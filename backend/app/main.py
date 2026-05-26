@@ -14,10 +14,12 @@ init_db()
 from app.api.i18n import router as i18n_router
 from app.api.bootstrap import router as bootstrap_router
 from app.api.icons import router as icons_router
+from app.api.auth import router as auth_router
 
 app.include_router(i18n_router)
 app.include_router(bootstrap_router)
 app.include_router(icons_router)
+app.include_router(auth_router)
 
 
 @app.get("/api/health")

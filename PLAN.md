@@ -79,12 +79,12 @@ These are baseline architectural calls that shape multiple milestones. Capture t
 
 *Build the entire login surface: avatar grid, PIN pad, PIN reset, first-run admin form.*
 
-* [ ] **Milestone 2.1: Avatar Grid Landing Page**
+* [x] **Milestone 2.1: Avatar Grid Landing Page** — DONE
   * **Backend:** `GET /api/auth/users` returns the public-safe user list (`id`, `name`, `avatar_kind`, `avatar_value`, `role`) — no PIN data, no balances. Used only by the login screen.
   * **Frontend:** A `Landing` page component fetches the list via TanStack Query and renders circular avatar tiles in a responsive CSS grid (3 cols on phone, 5+ on tablet). Each tile shows the user's icon, name, and role badge (subtle for kids, prominent shield for admins). Tapping a tile sets a `selected_user_id` slice in the auth Zustand store and reveals the PIN pad.
   * *Test:* With 3 seeded users (2 kids, 1 admin), `GET /api/auth/users` returns 3 entries in DB-insertion order with no `pin_hash` leak. The React component renders 3 tiles; clicking one updates the store and toggles the PIN pad into view.
 
-* [ ] **Milestone 2.2: PIN Pad Component**
+* [x] **Milestone 2.2: PIN Pad Component** — DONE
   * React `<PinPad>` component: 3×4 oversized numeric keypad (digits 0–9 + backspace + cancel).
   * Local component state tracks the entered digits (0–4). Visible input dots reflect the current length.
   * Cancel button clears the input and unsets `selected_user_id` in the auth store, returning to the avatar grid.
@@ -92,23 +92,23 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * On the 4th digit, fire `onComplete(pin: string)` to the parent component (auth orchestrator in Milestone 2.3).
   * *Test:* React Testing Library test simulating taps `1,2,3,4` fills four dots and invokes the `onComplete` prop with `"1234"`; backspace removes the last dot; cancel clears the input and calls `onCancel`.
 
-* [ ] **Milestone 2.3: PIN Verification & Lockout**
+* [x] **Milestone 2.3: PIN Verification & Lockout** — DONE
   * **Backend:** `POST /api/auth/login` with body `{ user_id: int, pin: str }`. Checks lockout via `security/lockout.py`; on lockout responds `423 Locked` with `{ "locked_seconds": int }`. On wrong PIN, registers failure and responds `401`. On success, registers the success, signs and sets the session cookie, and responds with the logged-in user payload.
   * **Frontend:** On `PinPad.onComplete`, the auth orchestrator calls `POST /api/auth/login`. On `423`, render a countdown message in place of the keypad until the lockout expires. On `401`, run the shake/red-flash animation on the dots, clear input. On `200`, navigate to `/admin` or `/dashboard` based on the returned role.
   * *Test:* Backend integration test simulating 5 failed attempts triggers `423` with `locked_seconds > 0`; a successful login mid-streak resets the counter and clears `locked_until`. Frontend component test mocks the `/api/auth/login` endpoint with `MSW` to assert each response path triggers the correct UI behavior.
 
-* [ ] **Milestone 2.4: Session Management**
+* [x] **Milestone 2.4: Session Management** — DONE
   * **Backend:** Session is the HttpOnly signed cookie set by `POST /api/auth/login` (per cross-cutting decisions). Add `POST /api/auth/logout` (clears the cookie) and `GET /api/auth/me` (returns the current user, or `401` if unauthenticated). A FastAPI dependency `require_user` (and `require_admin`) validates the cookie on every protected route.
   * **Frontend:** On app mount, the root component calls `GET /api/auth/me`; success hydrates the auth store, `401` falls back to the Landing page. A prominent "Logout / Έξοδος" button in the dashboard header calls `POST /api/auth/logout`, clears the auth store, and navigates to `/`.
   * Optional idle auto-logout: 30 minutes of inactivity calls `POST /api/auth/logout` and returns to the avatar grid (configurable via env var `IDLE_LOGOUT_MINUTES`, set to `0` to disable). Implementation: a single `useIdleTimer` hook that resets on `mousedown`/`touchstart`/`keydown`.
   * *Test:* Login, hard-refresh the page — `GET /api/auth/me` succeeds (cookie persisted by the browser) and the user lands back on their dashboard. Logout clears the cookie (verify via `Set-Cookie: ...; Max-Age=0`) and returns to the avatar grid. With `IDLE_LOGOUT_MINUTES=1` and `vi.useFakeTimers` advanced past 60s of no input, the session ends and the user is redirected to `/`.
 
-* [ ] **Milestone 2.5: First-Run Admin Setup Form**
+* [x] **Milestone 2.5: First-Run Admin Setup Form** — DONE
   * **Backend:** `POST /api/bootstrap/setup` accepts `{ name, avatar_kind, avatar_value, pin }`. Refuses with `409 Conflict` if `is_first_run()` is false (prevents race conditions and replay). On success, inserts the admin row, signs and sets the session cookie, returns the created user.
   * **Frontend:** When the bootstrap status response is `first_run: true`, render a single-page form: name, avatar (using `AvatarPicker` from Milestone 3.2 — admin can pick an icon or upload an image), PIN (4 digits), confirm PIN. On submit, call `POST /api/bootstrap/setup`; on success, store hydrates and the user lands on the admin panel.
   * *Test:* End-to-end test on an empty DB: `GET /api/bootstrap/status` returns `first_run: true`, the form renders, submission inserts one admin row, subsequent `GET /api/bootstrap/status` returns `first_run: false`, and a second `POST /api/bootstrap/setup` is rejected with `409`.
 
-* [ ] **Milestone 2.6: Self-Service PIN Reset**
+* [x] **Milestone 2.6: Self-Service PIN Reset** — DONE
   * **Backend:** `POST /api/auth/me/pin` accepts `{ current_pin, new_pin }` (requires session). Verifies `current_pin` against `pin_hash` *without* touching the lockout counter (already-authenticated user); on mismatch responds `400`. On success, writes the new `pin_hash`.
   * **Frontend:** Gear icon on every dashboard opens a settings modal. Form: enter current PIN → enter new PIN → confirm new PIN → save. On `200`, show green confirmation banner. On `400`, show inline error.
   * *Test:* Correct current PIN + new PIN (entered twice) updates `pin_hash`; old PIN no longer verifies via `POST /api/auth/login`, new PIN does. Wrong current PIN returns `400` and leaves `failed_pin_attempts` untouched. Mismatched new-PIN confirmation is rejected client-side before any HTTP call.

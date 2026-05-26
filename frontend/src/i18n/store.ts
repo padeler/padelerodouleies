@@ -21,7 +21,11 @@ export const useI18nStore = create<I18nState>((set, get) => ({
     if (!entry) {
       throw new Error(`Missing translation key: ${key}`);
     }
-    return entry[locale] ?? entry.el;
+    const result = entry[locale] ?? entry.el;
+    if (!result) {
+      throw new Error(`Missing translation key: ${key}`);
+    }
+    return result;
   },
 }));
 
