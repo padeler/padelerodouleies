@@ -119,12 +119,12 @@ These are baseline architectural calls that shape multiple milestones. Capture t
 
 *Build every surface the parents need to feed data into the app and process approvals.*
 
-* [ ] **Milestone 3.1: Admin Dashboard Shell**
+* [x] **Milestone 3.1: Admin Dashboard Shell** — DONE
   * **Frontend:** React Router layout at `/admin` with nested routes: `/admin/approvals` (with pending-count badge), `/admin/chores`, `/admin/rewards`, `/admin/users`, `/admin/fulfillment`. Sticky header carries the locale toggle + logout. The pending-count badge subscribes to the WebSocket (`pending_claims_changed` event) for live updates; falls back to a TanStack Query refetch on reconnect.
   * **Backend:** `GET /api/admin/pending-count` returns `{ count: int }` for initial render and reconnect fallback.
   * *Test:* Navigating between the five sections preserves the admin session (cookie carries through). The pending-count badge reflects the live `PendingClaim` row count — inserting two rows directly via the DB and broadcasting `pending_claims_changed` updates the badge to "2"; deleting one updates it to "1".
 
-* [ ] **Milestone 3.2: Icon & Avatar Pickers**
+* [x] **Milestone 3.2: Icon & Avatar Pickers** — DONE
   * **Backend — Catalog endpoint:** `GET /api/icons/catalog` returns the parsed `catalog.json` (cached at startup). The TS frontend treats it as the source of truth for both grouping and search keywords.
   * **Frontend — `<IconPicker>`:** Search input above a scrollable grid of icons. Source: the catalog response. Every icon ships with hand-curated keywords in both locales (e.g., `fa-teeth` → `keywords_en: ["tooth", "teeth", "brush", "dental"]`, `keywords_el: ["δόντι", "δόντια", "βούρτσισμα", "οδοντόβουρτσα"]`). When the search box is empty, the grid renders the **entire catalog**, scrollable, grouped by `category` (Hygiene, Meals, Tidying, School, Pets, Avatars, Parent, Rewards — sourced from Milestone 1.6) with sticky section headers. A row of category chips above the grid acts as a multi-select filter applied as an AND on top of any active text query. Typing narrows live; clearing restores the full grid. The query is normalized (`String.prototype.normalize("NFD")` + lowercase + strip combining marks) and substring-matched against the normalized union of both keyword lists, so `tooth` or `δοντι`/`δόντι` surface the same icon. Used by chore and reward creation forms. Emits `(kind: 'icon', value: '<name>')`.
   * **Frontend — `<AvatarPicker>`:** Two-tab control: an "Icon" tab wrapping `<IconPicker>`, and an "Upload" tab with `<input type="file" accept="image/png,image/jpeg,image/webp">`, a live `<img>` preview, and a square crop handle (recommend `react-easy-crop`). Used by the first-run setup form and the user-management forms. Emits the same `(kind, value)` shape so downstream forms stay uniform.
@@ -132,23 +132,23 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * **Backend — Static serving:** Mount `app.mount("/avatars", StaticFiles(directory="/app/data/avatars"), name="avatars")` in `main.py`. URLs are stable regardless of the bind-mount's host path.
   * *Test:* `<IconPicker>` searches `tooth`, `Tooth`, `δόντι`, `δοντι` (no tonos), and `ΔΟΝΤΙ` (uppercase) all surface `fa-teeth`. A query in one locale does not exclude icons whose match came from the other locale's keyword list. Unit test the normalization helper directly (`normalize("Δόντι") === normalize("δοντι") === "δοντι"`). Browse mode: opening the picker with an empty query renders every icon in the catalog grouped under its category header (count rendered === count in `catalog.json`); selecting the "Hygiene" chip narrows to that category only; typing `tooth` while "Hygiene" is selected narrows further (intersection, not union); clearing both restores the full grid. Backend upload integration test: a 5 MB JPEG is rejected with `400`; a 1 MB PNG is accepted, written as a WebP at `/app/data/avatars/<uuid>.webp`, and `GET /avatars/<uuid>.webp` returns the bytes. Replacing an uploaded avatar via the user-update endpoint deletes the old WebP from disk.
 
-* [ ] **Milestone 3.3: Chore CRUD**
+* [x] **Milestone 3.3: Chore CRUD** — DONE
   * **Backend:** `GET /api/admin/chores`, `POST /api/admin/chores`, `PATCH /api/admin/chores/{id}`, `DELETE /api/admin/chores/{id}` (soft delete by flipping `is_active=False` — historical ledger rows must keep their FK). Pydantic request models enforce validation: points > 0, window_hours in 1–24, start_time is a valid `HH:MM`, both locale titles present. All admin endpoints are gated by the `require_admin` dependency.
   * **Frontend:** Listing view at `/admin/chores`: table of all chores with `is_active` toggle, edit, delete buttons. Create/edit modal: bilingual `title_el` / `title_en` (both required), bilingual descriptions (optional), icon (via `<IconPicker>`), scope dropdown (individual/pooled), points, is_repeating, start_time, window_hours. Uses react-hook-form + Zod schema mirroring the backend validation for instant client-side feedback.
   * *Test:* Create a chore via the API, edit its window, soft-delete it; verify `GET /api/dashboard/visible-chores` no longer returns it but the existing `HistoryLedger` rows referencing its `id` still render in the kid history endpoint.
 
-* [ ] **Milestone 3.4: Reward CRUD**
+* [x] **Milestone 3.4: Reward CRUD** — DONE
   * **Backend:** `GET /api/admin/rewards`, `POST /api/admin/rewards`, `PATCH /api/admin/rewards/{id}`, `DELETE /api/admin/rewards/{id}`. For v1, `cost_stars` *is* the collaborative target (one row, one goal); no separate `collab_target_stars` field.
   * **Frontend:** Listing view at `/admin/rewards`: table with `is_enabled` toggle, edit, delete. Create/edit modal: bilingual title/description, icon, cost, `is_collaborative` toggle.
   * *Test:* Toggle `is_enabled=false`; `GET /api/marketplace/rewards` (kid-facing) no longer returns the row, but `GET /api/admin/rewards` still does.
 
-* [ ] **Milestone 3.5: Approvals Queue**
+* [x] **Milestone 3.5: Approvals Queue** — DONE
   * **Decision (unchanged):** Keep a small `PendingClaim(id, user_id, chore_id, claimed_at)` table — appending pending rows to the ledger and later mutating them muddies the immutable-ledger invariant.
   * **Backend:** `GET /api/admin/pending-claims` returns the joined pending-claim view (claim id, user id+name+avatar, chore id+icon+localized title pair, `claimed_at`) ordered by newest first.
   * **Frontend:** View at `/admin/approvals` renders each pending claim as a card: child avatar, chore icon + title (localized via the i18n store), claim time, [Approve ✅] [Decline ❌] buttons, optional admin-note textarea. The pending-count badge on the navigation derives from this list's length.
   * *Test:* Seed two `PendingClaim` rows and one approved `HistoryLedger` row; `GET /api/admin/pending-claims` returns exactly two items (newest first), the approved row does not appear. The React component renders two cards and the nav badge shows "2".
 
-* [ ] **Milestone 3.6: Approve / Decline Logic**
+* [x] **Milestone 3.6: Approve / Decline Logic** — DONE (WebSocket broadcast deferred to M4.8)
   * **Backend endpoints:**
     * `POST /api/admin/pending-claims/{id}/approve` — transactional: delete the `PendingClaim` row, insert `HistoryLedger(action_type='chore_approved', points_delta=+chore.points_value, ref_table='chore', ref_id=chore.id)`, increment `User.current_stars`. Broadcast `stars_changed` (for the affected user) and `pending_claims_changed` over the WebSocket.
     * `POST /api/admin/pending-claims/{id}/decline` — transactional: delete the `PendingClaim` row, insert `HistoryLedger(action_type='chore_declined', points_delta=0, admin_note=...)`. No balance change because nothing was credited yet. Broadcast `pending_claims_changed`.
@@ -156,22 +156,22 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * All three handlers run under a SQLAlchemy session with `BEGIN IMMEDIATE` (SQLite) so concurrent admin actions serialize cleanly.
   * *Test:* Concurrent approves on the same pending claim — second one must fail cleanly with `404` (row already gone) and emit no extra ledger row. Retroactive decline against a non-`chore_approved` ledger row is rejected with `400`.
 
-* [ ] **Milestone 3.7: User Management**
+* [x] **Milestone 3.7: User Management** — DONE
   * **Backend:** `GET /api/admin/users`, `POST /api/admin/users` (create), `PATCH /api/admin/users/{id}` (edit name/avatar/role), `DELETE /api/admin/users/{id}` (soft-delete via `is_active=False` flag — preserves ledger references), `POST /api/admin/users/{id}/pin-reset` (admin force-reset for forgotten kid PINs).
   * **Frontend:** Listing view at `/admin/users` — table of all users with role, avatar, balance, "Edit" / "Delete" / "Reset PIN" actions. Create form: name, role (admin/user), avatar (via `<AvatarPicker>`), initial PIN. Edit form: name, avatar, role. Replacing an uploaded avatar deletes the old file from disk per Milestone 3.2's pipeline.
   * *Test:* Creating a kid via `POST /api/admin/users` inserts a `User` row with the entered fields. `PATCH` updates the row without changing `id`. `DELETE` flips `is_active=False`; `GET /api/auth/users` no longer returns the row (avatar grid hides them) but `GET /api/admin/history?user_id=<id>` still renders existing ledger entries.
 
-* [ ] **Milestone 3.8: Manual Star Adjustments**
+* [x] **Milestone 3.8: Manual Star Adjustments** — DONE
   * **Backend:** `POST /api/admin/users/{id}/adjust-stars` with body `{ points_delta: int, description: str }`. Pydantic validation: `description` length ≥ 3. Handler (transactional): update `User.current_stars`, insert `HistoryLedger(action_type='manual_adjust', points_delta=±N, admin_note=description, ref_table=NULL, ref_id=NULL)`. Reject adjustments that would push balance below 0 with `400` (configurable; default reject). Broadcast `stars_changed`.
   * **Frontend:** "Adjust Stars" button on each user row opens a modal with +/− toggle, integer input, mandatory description textarea.
   * *Test:* Applying `+3` with note `"for sharing"` to a user with balance 10 results in balance 13 and a single `HistoryLedger(action_type='manual_adjust', points_delta=+3, admin_note='for sharing', ref_table=NULL, ref_id=NULL)`. Applying `-20` to a user with balance 5 returns `400`; balance stays at 5 and no ledger row is written. Empty/short descriptions are rejected by Pydantic before any DB write.
 
-* [ ] **Milestone 3.9: Reward Fulfillment Queue**
+* [x] **Milestone 3.9: Reward Fulfillment Queue** — DONE
   * **Backend:** `GET /api/admin/fulfillment?status=claimed|fulfilled` returns the matching `RewardLedger` rows joined with reward and contributor info. `POST /api/admin/fulfillment/{ledger_id}/mark-fulfilled` updates `status='fulfilled'` and `fulfilled_at=now()`.
   * **Frontend:** View at `/admin/fulfillment` renders one card per `claimed` row (child, reward icon+title, claimed time) with a [Mark Fulfilled] button. Fulfilled items render in a paginated read-only archive sub-tab.
   * *Test:* A `RewardLedger` row with `status='claimed'` appears in the active queue endpoint; tapping "Mark Fulfilled" sets `status='fulfilled'` and a non-null `fulfilled_at`, removes the row from `?status=claimed` and surfaces it under `?status=fulfilled`.
 
-* [ ] **Milestone 3.10: Admin Activity View (optional polish)**
+* [x] **Milestone 3.10: Admin Activity View (optional polish)** — DONE
   * **Backend:** `GET /api/admin/history` with query params `user_id`, `action_type`, `from`, `to`, `limit`, `offset`. Returns the matching `HistoryLedger` rows with embedded chore/reward summary fields.
   * **Frontend:** Paginated table at `/admin/activity` with the same filters as form controls.
   * *Test:* With seeded ledger spanning two users and three days, filtering by `user_id` returns only that user's rows; filtering by date range excludes rows outside the range; pagination at `limit=10` returns the correct offset/count for a 25-row fixture.

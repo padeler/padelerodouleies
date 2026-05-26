@@ -1,0 +1,89 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getPendingClaims, approveClaim, declineClaim } from '../../api/client';
+import { useT } from '../../i18n/store';
+import { PendingClaim } from '../../lib/types';
+import { useState } from 'react';
+import './AdminPage.css';
+
+function ClaimCard({ claim }: { claim: PendingClaim }) {
+  const t = useT();
+  const qc = useQueryClient();
+  const [note, setNote] = useState('');
+
+  const mutate = useMutation({
+    mutationFn: (action: 'approve' | 'decline') => {
+      if (action === 'approve') return approveClaim(claim.id);
+      return declineClaim(claim.id, note || undefined);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pending-claims'] });
+      qc.invalidateQueries({ queryKey: ['pending-count'] });
+    },
+  });
+
+  return (
+    <div className="admin-card" style={{ marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+        <img
+          src={`/icons/svg/${claim.user_avatar_value}.svg`}
+          alt=""
+          style={{ width: 32, height: 32 }}
+        />
+        <strong>{claim.user_name}</strong>
+        <span style={{ color: 'var(--accent)' }}>+{claim.points_value} ⭐</span>
+      </div>
+      <div style={{ marginBottom: 8, fontSize: 14 }}>
+        <img src={`/icons/svg/${claim.chore_icon}.svg`} alt="" style={{ width: 20, height: 20, verticalAlign: 'middle', marginRight: 6 }} />
+        {t('chore.' + (claim.chore_title_el ? 'title_el' : 'title_en'))}
+        {' — '}
+        {claim.chore_title_el}
+      </div>
+      <textarea
+        placeholder={t('admin.reason_placeholder')}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        style={{ width: '100%', marginBottom: 8, boxSizing: 'border-box', padding: '6px 8px' }}
+        rows={2}
+      />
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          className="admin-btn admin-btn-success"
+          onClick={() => mutate.mutate('approve')}
+          disabled={mutate.isPending}
+        >
+          {t('admin.approve')}
+        </button>
+        <button
+          className="admin-btn admin-btn-danger"
+          onClick={() => mutate.mutate('decline')}
+          disabled={mutate.isPending}
+        >
+          {t('admin.decline')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function ApprovalsPage() {
+  const t = useT();
+  const { data, isLoading } = useQuery({
+    queryKey: ['pending-claims'],
+    queryFn: getPendingClaims,
+  });
+
+  if (isLoading) return <div>{t('common.loading')}</div>;
+
+  return (
+    <div>
+      <h2 className="admin-page-title">{t('nav.approvals')}</h2>
+      {data?.length === 0 ? (
+        <div style={{ color: 'var(--text-muted, #888)' }}>No pending claims</div>
+      ) : (
+        (data as PendingClaim[])?.map((claim) => (
+          <ClaimCard key={claim.id} claim={claim} />
+        ))
+      )}
+    </div>
+  );
+}

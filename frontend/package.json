@@ -4,17 +4,21 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-"dev": "vite",
+    "dev": "vite",
     "build": "tsc -b && vite build",
     "gen:api": "npx openapi-typescript http://localhost:8000/api/openapi.json -o src/api/schema.d.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-query": "^5.100.14",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-easy-crop": "^5.5.7",
+    "react-hook-form": "^7.76.1",
     "react-router-dom": "^7.15.1",
+    "zod": "^4.4.3",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
