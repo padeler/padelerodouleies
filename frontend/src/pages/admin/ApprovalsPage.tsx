@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPendingClaims, approveClaim, declineClaim } from '../../api/client';
 import { useT } from '../../i18n/store';
-import { PendingClaim } from '../../lib/types';
+import type { PendingClaim } from '../../lib/types';
 import { useState } from 'react';
 import './AdminPage.css';
 

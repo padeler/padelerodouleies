@@ -13,7 +13,7 @@ export interface AuthUser {
 interface AuthState {
   user: AuthUser | null;
   selected_user_id: number | null;
-  setUser: (user: AuthUser) => void;
+  setUser: (user: AuthUser | null) => void;
   clearUser: () => void;
   setSelectedUserId: (id: number | null) => void;
 }

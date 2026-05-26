@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getAdminHistory, getAdminUsers } from '../../api/client';
 import { useT } from '../../i18n/store';
-import { HistoryEntry, AdminUser } from '../../lib/types';
+import type { HistoryEntry, AdminUser } from '../../lib/types';
 import { useState } from 'react';
 import './AdminPage.css';
 

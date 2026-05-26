@@ -3,12 +3,15 @@
 from datetime import datetime, timezone
 from typing import Any
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db.engine import get_session
 from app.db.models import Chore, HistoryLedger, PendingClaim, Reward, RewardLedger, User
+from app.realtime import broadcaster
 from app.schemas.admin import (
     AdminUserCreate,
     AdminUserRead,
@@ -233,21 +236,25 @@ def list_pending_claims(
 
 
 @router.post("/pending-claims/{claim_id}/approve")
-def approve_claim_endpoint(
+async def approve_claim_endpoint(
     claim_id: int,
     db: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ) -> JSONResponse:
     try:
-        approve_claim(claim_id, db)
+        result = approve_claim(claim_id, db)
     except ValueError as e:
         raise HTTPException(404, str(e))
     db.commit()
+    if result:
+        await broadcaster.emit("stars_changed", {"user_id": result.user_id, "current_stars": result.current_stars}, "all")
+        count = db.query(PendingClaim).count()
+        await broadcaster.emit("pending_claims_changed", {"count": count}, "admins")
     return JSONResponse(content={"message": "Approved"})
 
 
 @router.post("/pending-claims/{claim_id}/decline")
-def decline_claim_endpoint(
+async def decline_claim_endpoint(
     claim_id: int,
     req: DeclineRequest,
     db: Session = Depends(get_session),
@@ -258,21 +265,26 @@ def decline_claim_endpoint(
     except ValueError as e:
         raise HTTPException(404, str(e))
     db.commit()
+    count = db.query(PendingClaim).count()
+    await broadcaster.emit("pending_claims_changed", {"count": count}, "admins")
     return JSONResponse(content={"message": "Declined"})
 
 
 @router.post("/history/{ledger_id}/retroactive-decline")
-def retroactive_decline_endpoint(
+async def retroactive_decline_endpoint(
     ledger_id: int,
     req: DeclineRequest,
     db: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ) -> JSONResponse:
     try:
-        retroactive_decline(ledger_id, req.admin_note, db)
+        result = retroactive_decline(ledger_id, req.admin_note, db)
     except ValueError as e:
         raise HTTPException(400, str(e))
     db.commit()
+    if result:
+        await broadcaster.emit("stars_changed", {"user_id": result.user_id, "current_stars": result.current_stars}, "all")
+        await broadcaster.emit("history_changed", {"user_id": result.user_id}, "user", user_id=result.user_id)
     return JSONResponse(content={"message": "Declined"})
 
 
@@ -372,7 +384,7 @@ def reset_pin(
 # ---------------------------------------------------------------------
 
 @router.post("/users/{user_id}/adjust-stars")
-def adjust_stars(
+async def adjust_stars(
     user_id: int,
     req: StarAdjustmentRequest,
     db: Session = Depends(get_session),
@@ -395,6 +407,7 @@ def adjust_stars(
         admin_note=req.description,
     ))
     db.commit()
+    await broadcaster.emit("stars_changed", {"user_id": user_id, "current_stars": new_balance}, "all")
     return JSONResponse(
         content={"message": "Adjusted", "new_balance": new_balance},
     )
@@ -437,7 +450,7 @@ def list_fulfillment(
 
 
 @router.post("/fulfillment/{ledger_id}/mark-fulfilled")
-def mark_fulfilled(
+async def mark_fulfilled(
     ledger_id: int,
     db: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
@@ -448,6 +461,7 @@ def mark_fulfilled(
     entry.status = "fulfilled"  # type: ignore[assignment]
     entry.fulfilled_at = datetime.now(timezone.utc)  # type: ignore[assignment]
     db.commit()
+    await broadcaster.emit("fulfillment_queue_changed", {}, "admins")
     return JSONResponse(content={"message": "Fulfilled"})
 
 

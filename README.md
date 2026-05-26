@@ -153,6 +153,31 @@ The backend state is handled through five relational tables managed seamlessly i
 
 ---
 
+## 💻 Running a Development Environment
+
+Start the backend and frontend as separate processes (no Docker needed). Two terminal windows:
+
+**Terminal 1 — Backend:**
+```bash
+cd backend
+pip install ".[dev]"        # core + test dependencies
+pytest                       # run tests (optional, to verify setup)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Terminal 2 — Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173 in your browser. The frontend proxies API requests to the backend on port 8000 via Vite's dev proxy.
+
+On first run the backend will auto-create the SQLite database and bootstrap default admin users. Create any additional users, chores, or rewards through the admin panel.
+
+---
+
 ## 🐳 Deployment & Docker Configuration
 
 The system is deployed as a single container orchestrated through `docker-compose`.

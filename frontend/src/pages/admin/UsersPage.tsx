@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getAdminUsers, deleteAdminUser, resetUserPin } from '../../api/client';
 import { useT } from '../../i18n/store';
-import { AdminUser } from '../../lib/types';
+import type { AdminUser } from '../../lib/types';
 import { useState } from 'react';
 import { UserModal } from '../../components/UserModal';
 import { AdjustStarsModal } from '../../components/AdjustStarsModal';

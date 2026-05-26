@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getIconCatalog } from '../api/client';
-import { IconCatalogItem } from '../lib/types';
+import type { IconCatalogItem } from '../lib/types';
 import { normalizeSearchTerm } from '../lib/search';
 import { useT } from '../i18n/store';
 import './IconPicker.css';

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getChores, updateChore, deleteChore } from '../../api/client';
 import { useT } from '../../i18n/store';
-import { Chore } from '../../lib/types';
+import type { Chore } from '../../lib/types';
 import { useState } from 'react';
 import { ChoreModal } from '../../components/ChoreModal';
 import './AdminPage.css';

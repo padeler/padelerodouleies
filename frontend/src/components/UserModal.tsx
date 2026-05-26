@@ -5,8 +5,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createAdminUser, updateAdminUser } from '../api/client';
 import { useT } from '../i18n/store';
-import { AdminUser } from '../lib/types';
-import { AvatarSelection } from '../lib/types';
+import type { AdminUser, AvatarSelection } from '../lib/types';
 import { AvatarPicker } from './AvatarPicker';
 
 const userSchema = z.object({

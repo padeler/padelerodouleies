@@ -182,11 +182,11 @@ These are baseline architectural calls that shape multiple milestones. Capture t
 
 *The most visually intense phase. Large buttons, high contrast, dynamic rendering, real-time updates.*
 
-* [ ] **Milestone 4.1: Kid Dashboard Shell**
+* [x] **Milestone 4.1: Kid Dashboard Shell** — DONE
   * **Frontend:** React Router layout at `/dashboard` with nested routes: `/dashboard/chores` (default), `/dashboard/marketplace`, `/dashboard/history`, `/dashboard/leaderboard`. Top section: large avatar + name, animated star counter (`current_stars`). Sticky locale toggle + logout. The star counter subscribes to `stars_changed` events on the WebSocket (Milestone 4.8) and animates between the previous and new value using `framer-motion` or a CSS transition on a `tabular-nums` span.
   * *Test:* Logged-in kid sees her own avatar, name, and `current_stars` value. Sending a `stars_changed` event over the WebSocket re-renders the counter with the new value and triggers the animated transition (use Playwright or Vitest + an in-memory WebSocket mock).
 
-* [ ] **Milestone 4.2: Dynamic Chore Visibility Engine**
+* [x] **Milestone 4.2: Dynamic Chore Visibility Engine** — DONE
   * **Backend pure function** `visible_chores_for(user, now: datetime) -> list[Chore]` in `backend/app/services/chores.py`:
     1. Filters `is_active=True` chores.
     2. Computes each chore's current window using timezone-aware arithmetic: open at the local time `start_time` on the current local date; closed `window_hours` later (may extend past midnight).
@@ -195,7 +195,7 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * **Endpoint:** `GET /api/dashboard/visible-chores` calls `visible_chores_for(current_user, datetime.now(tz=...))` and returns the list. Called by the frontend on dashboard mount and after any successful claim mutation.
   * *Test:* Cases against `visible_chores_for` directly with injected `now`: chore window 07:00–11:00, query at 06:59 (hidden), 07:00 (visible), 10:59 (visible), 11:01 (hidden). Wrap-around 22:00–02:00 queried at 01:00 next day must be visible. One integration test confirms `GET /api/dashboard/visible-chores` returns the same list as the pure function under the same fixture.
 
-* [ ] **Milestone 4.3: Chore Cards & Claim Flow**
+* [x] **Milestone 4.3: Chore Cards & Claim Flow** — DONE
   * **Frontend:** Render each visible chore as a large colorful card: icon, localized title, `+N ⭐` badge, giant "Claim / Διεκδίκηση" button. On click, calls `POST /api/chores/{id}/claim`; button transitions to disabled "Pending… / Σε αναμονή" with a spinner; on success the card is removed from the list (TanStack Query invalidates `visible-chores`); on `409` (pooled-race loser) shows a "Someone else claimed this first!" toast.
   * **Backend `POST /api/chores/{id}/claim`** (transactional, `BEGIN IMMEDIATE`):
     * For pooled chores: re-check no `PendingClaim` or approved-today row exists for the chore, then insert `PendingClaim`. Race-loser raises a `409 Conflict`.
@@ -203,7 +203,7 @@ These are baseline architectural calls that shape multiple milestones. Capture t
     * On success, broadcast `pending_claims_changed` (admin queue badge updates) and `visible_chores_changed` for the affected user (and for *all users* if the chore is pooled).
   * *Test:* Claiming an individual chore inserts one `PendingClaim` and the same chore disappears from this user's dashboard (but stays visible for the sibling). For a pooled chore, two concurrent claim attempts: the first inserts a `PendingClaim` and returns `200`, the second returns `409` and surfaces the toast without creating a duplicate row.
 
-* [ ] **Milestone 4.4: Kid History Timeline**
+* [x] **Milestone 4.4: Kid History Timeline** — DONE
   * **Backend:** `GET /api/dashboard/history?limit=...&offset=...` returns the calling kid's own `HistoryLedger` rows joined with chore/reward summaries, newest first. Authorization scoped to `current_user.id` — no `user_id` query param accepted.
   * **Frontend:** Paginated view at `/dashboard/history`. Each row renders as a colored timeline entry, color-coded by `points_delta` sign:
     * `+5 ⭐ — Βούρτσισμα Δοντιών — Εγκρίθηκε` (green)
@@ -213,22 +213,22 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * Strings localized via the i18n store (initialized from `User.preferred_locale`). Chore/reward titles fall back client-side: prefer the active locale, fall back to the other if missing — implemented as a single `pickLocalized(row, locale)` helper used wherever bilingual content renders.
   * *Test:* With four seeded ledger rows (chore approval +5, retroactive decline -5, manual adjust +3, reward purchase -20), the timeline renders four entries newest-first with correct sign-based colors. Toggling locale via `<LocaleToggle>` from `el` to `en` re-renders strings; rows referencing a chore that has only `title_en` populated still render (locale fallback). Unit-test `pickLocalized` for both-present, primary-missing, both-missing (throws) cases.
 
-* [ ] **Milestone 4.5: Marketplace — Individual Rewards**
+* [x] **Milestone 4.5: Marketplace — Individual Rewards** — DONE
   * **Backend:** `GET /api/marketplace/rewards` returns `is_enabled=True` rewards (both individual and collaborative — frontend separates them in render). `POST /api/rewards/{id}/redeem` (transactional, `BEGIN IMMEDIATE`): reject if `is_collaborative=True` (use the contribute endpoint instead), re-verify balance, decrement `User.current_stars`, insert `RewardLedger(status='claimed')`, insert `HistoryLedger(action_type='reward_purchase', points_delta=-cost)`. Insufficient balance returns `400`. Broadcast `stars_changed` and `fulfillment_queue_changed`.
   * **Frontend:** Card grid of individual rewards at `/dashboard/marketplace`. Each card: icon, localized title/description, cost badge, "Redeem / Εξαργύρωση" button. Button is grayed with a padlock overlay when `current_stars < cost`.
   * *Test:* A kid with `current_stars=35` sees the Redeem button enabled on a 20-star reward and disabled (padlock overlay) on a 50-star reward. Calling `POST /api/rewards/{id}/redeem` on the 20-star reward decrements balance to 15, inserts one `RewardLedger(status='claimed')`, and inserts one `HistoryLedger(action_type='reward_purchase', points_delta=-20)`. A concurrent redeem that would push balance below 0 returns `400`; the balance never drops below 0.
 
-* [ ] **Milestone 4.6: Marketplace — Collaborative Rewards**
+* [x] **Milestone 4.6: Marketplace — Collaborative Rewards** — DONE
   * **Backend:** `POST /api/rewards/{id}/contribute` with body `{ stars: int }` (transactional, `BEGIN IMMEDIATE`): row-lock the reward, re-verify the cap (`current + stars <= target`), decrement user balance, insert/update a `RewardLedger` row for this user (`status='claimed'`, `stars_contributed` accumulates), insert `HistoryLedger(action_type='reward_purchase', points_delta=-stars, ref_table='reward', ref_id=reward.id)`. When the total contributions reach the target, the reward becomes visible in `GET /api/admin/fulfillment?status=claimed` with all contributors listed. Broadcast `stars_changed`, `collab_progress_changed` (carries reward_id + new totals for the progress bar), and `fulfillment_queue_changed` on cap-reach.
   * **Frontend:** Separate "Epic Goals / Επικοί Στόχοι" section above the individual cards. Each card shows a horizontal progress bar with stacked per-user contributions (different colors per child) and `current / target ⭐` text. "Contribute Stars / Συνεισφορά" button opens a slider modal: range 1 to `min(user.current_stars, target - current)`, plus a confirm button. Progress bars subscribe to `collab_progress_changed` for live updates across devices.
   * *Test:* Two kids contribute 15 and 10 to a 500-star goal — the progress bar reads 25/500 with two stacked colored segments and the reward is absent from the admin's fulfillment queue. Contributions exactly summing to 500 stop further client-side increments (slider max enforces) and surface the goal in the fulfillment queue with both contributor names. Concurrent contributions that would together exceed the cap: the second one is rejected with `400`, never overshoots.
 
-* [ ] **Milestone 4.7: Podium Leaderboard**
+* [x] **Milestone 4.7: Podium Leaderboard** — DONE
   * **Backend:** `GET /api/leaderboard` returns kids only (per README §5 framing), `role='user'` AND `is_active=True`, ranked by `current_stars` descending; tie-break by `id` ascending in the pure sort helper for determinism.
   * **Frontend:** Standalone page at `/dashboard/leaderboard`. Top 3 rendered as a literal podium (1st center+tall, 2nd left, 3rd right); the rest as a list below. The page subscribes to `stars_changed` over the WebSocket and re-queries `/api/leaderboard` so the order updates without refresh.
   * *Test:* With three kids at 50/30/10 stars, the podium renders 1st centered+tall, 2nd left, 3rd right in that order. Bumping the 3rd-place kid to 60 stars via `POST /api/admin/users/{id}/adjust-stars` re-renders the page with the new ordering (driven by the broadcast `stars_changed` event). Unit-test the pure sorting helper directly: equal balances tie-break by ascending id deterministically.
 
-* [ ] **Milestone 4.8: Real-Time WebSocket Broadcaster**
+* [x] **Milestone 4.8: Real-Time WebSocket Broadcaster** — DONE
   * **Backend `backend/app/realtime/broadcaster.py`:** A single in-process pub/sub. Tracks connected sockets in a dict keyed by `(user_id, role)`. Exposes:
     * `async def connect(websocket, user_id, role)` / `async def disconnect(websocket)`.
     * `async def emit(event: str, payload: dict, audience: Literal['all', 'admins', 'user'], user_id: int | None = None)`.

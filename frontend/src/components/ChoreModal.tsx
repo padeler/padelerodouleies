@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createChore, updateChore } from '../api/client';
 import { useT } from '../i18n/store';
-import { Chore } from '../lib/types';
+import type { Chore } from '../lib/types';
 import { IconPicker } from './IconPicker';
 
 const choreSchema = z.object({

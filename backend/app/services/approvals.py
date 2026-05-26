@@ -1,11 +1,20 @@
 """Transactional approve/decline/retroactive-decline logic."""
 
+from dataclasses import dataclass
+
 from sqlalchemy.orm import Session
 
 from app.db.models import Chore, HistoryLedger, PendingClaim, User
 
 
-def approve_claim(claim_id: int, db: Session) -> None:
+@dataclass
+class ApprovalResult:
+    user_id: int
+    current_stars: int
+
+
+def approve_claim(claim_id: int, db: Session) -> ApprovalResult | None:
+    """Approve a pending claim. Returns result data for broadcasting, or None on error."""
     claim = db.query(PendingClaim).filter(PendingClaim.id == claim_id).first()
     if not claim:
         raise ValueError("Claim not found")
@@ -23,6 +32,7 @@ def approve_claim(claim_id: int, db: Session) -> None:
         ref_id=chore.id,
     ))
     db.delete(claim)
+    return ApprovalResult(user_id=user.id, current_stars=user.current_stars)
 
 
 def decline_claim(claim_id: int, admin_note: str | None, db: Session) -> None:
@@ -39,7 +49,7 @@ def decline_claim(claim_id: int, admin_note: str | None, db: Session) -> None:
     db.delete(claim)
 
 
-def retroactive_decline(ledger_id: int, admin_note: str | None, db: Session) -> None:
+def retroactive_decline(ledger_id: int, admin_note: str | None, db: Session) -> ApprovalResult | None:
     original = db.query(HistoryLedger).filter(
         HistoryLedger.id == ledger_id,
         HistoryLedger.action_type == "chore_approved",
@@ -66,3 +76,4 @@ def retroactive_decline(ledger_id: int, admin_note: str | None, db: Session) -> 
         ref_id=chore.id,
         admin_note=admin_note,
     ))
+    return ApprovalResult(user_id=user.id, current_stars=user.current_stars)

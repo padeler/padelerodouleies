@@ -18,8 +18,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
         .then((u) => {
           setUser({ ...u, role: u.role as 'admin' | 'user' });
         })
-        .catch(() => {
-          // Not authenticated — stay on landing
+        .catch((e) => {
+          // Not authenticated — resolve loading state.
+          // On network errors (backend down) we keep loading.
+          if (e?.status === 401) setUser(null);
         });
     }, [setUser]);
     return <div className="loading">Loading…</div>;

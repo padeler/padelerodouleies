@@ -1,0 +1,16 @@
+.kid-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.kid-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.kid-content {
+  flex: 1;
+  overflow-y: auto;
+}

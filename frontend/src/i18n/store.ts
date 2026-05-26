@@ -32,3 +32,7 @@ export const useI18nStore = create<I18nState>((set, get) => ({
 export function useT() {
   return useI18nStore((s) => s.t);
 }
+
+export function useLocale() {
+  return useI18nStore((s) => s.locale);
+}

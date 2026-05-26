@@ -89,3 +89,57 @@ export interface IconCatalogItem {
 }
 
 export type AvatarSelection = { kind: 'icon' | 'image'; value: string };
+
+export interface VisibleChore {
+  id: number;
+  title_el: string;
+  title_en: string;
+  icon_name: string;
+  scope: string;
+  points_value: number;
+}
+
+export interface KidHistoryEntry {
+  id: number;
+  action_type: string;
+  points_delta: number;
+  ref_table: string | null;
+  ref_id: number | null;
+  admin_note: string | null;
+  timestamp: string;
+  chore_title_el?: string;
+  chore_title_en?: string;
+  chore_icon?: string;
+  chore_points_value?: number;
+}
+
+export interface MarketplaceReward {
+  id: number;
+  title_el: string;
+  title_en: string;
+  description_el: string | null;
+  description_en: string | null;
+  icon_name: string;
+  cost_stars: number;
+  is_collaborative: boolean;
+  current_stars?: number;
+  target_stars?: number;
+  contributors?: Array<{ user_id: number; user_name: string; stars: number }>;
+}
+
+export interface LeaderboardEntry {
+  ranking: number;
+  id: number;
+  name: string;
+  avatar_kind: string;
+  avatar_value: string;
+  current_stars: number;
+}
+
+export type WSEvent =
+  | { event: 'stars_changed'; user_id: number; current_stars: number }
+  | { event: 'pending_claims_changed'; count: number }
+  | { event: 'visible_chores_changed'; user_id: number }
+  | { event: 'collab_progress_changed'; reward_id: number; current: number; target: number; contributions: Array<{ user_id: number; user_name: string; stars: number }> }
+  | { event: 'fulfillment_queue_changed' }
+  | { event: 'history_changed'; user_id: number };

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getFulfillmentQueue, markFulfilled } from '../../api/client';
 import { useT } from '../../i18n/store';
-import { FulfillmentEntry } from '../../lib/types';
+import type { FulfillmentEntry } from '../../lib/types';
 import { useState } from 'react';
 import './AdminPage.css';
 

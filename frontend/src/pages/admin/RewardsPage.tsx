@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getRewards, updateReward, deleteReward } from '../../api/client';
 import { useT } from '../../i18n/store';
-import { Reward } from '../../lib/types';
+import type { Reward } from '../../lib/types';
 import { useState } from 'react';
 import { RewardModal } from '../../components/RewardModal';
 import './AdminPage.css';

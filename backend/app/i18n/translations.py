@@ -48,6 +48,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "chore.title_el_placeholder": {"el": "Τίτλος στα Ελληνικά", "en": "Title in Greek"},
     "chore.title_en_placeholder": {"el": "Τίτλος στα Αγγλικά", "en": "Title in English"},
     "chore.already_claimed": {"el": "Κάποιος άλλος το διεκδίκησε πρώτος!", "en": "Someone else claimed this first!"},
+    "chore.none_visible": {"el": "Δεν υπάρχουν χόρες αυτή τη στιγμή", "en": "No chores available right now"},
     # Rewards
     "reward.redeem": {"el": "Εξαργύρωση", "en": "Redeem"},
     "reward.contribute": {"el": "Συνεισφορά", "en": "Contribute"},
@@ -55,6 +56,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "reward.collaborative_goals": {"el": "Επικοί Στόχοι", "en": "Epic Goals"},
     "reward.fulfilled": {"el": "Εκτελέστηκε", "en": "Fulfilled"},
     "reward.claimed": {"el": "Διεκδικήθηκε", "en": "Claimed"},
+    "reward.complete": {"el": "Στόχος επιτεύχτηκε!", "en": "Goal reached!"},
     # Stars
     "stars.current": {"el": "{count} ⭐", "en": "{count} ⭐"},
     "stars.adjust": {"el": "Ρύθμιση Αστέρων", "en": "Adjust Stars"},
@@ -64,6 +66,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "history.action_declined": {"el": "Αρνήθηκε από Γονέα: {reason}", "en": "Declined by Parent: {reason}"},
     "history.action_manual": {"el": "Χειροκίνητη ρύθμιση: {reason}", "en": "Manual adjustment: {reason}"},
     "history.action_purchase": {"el": "Αγόρασε: {title}", "en": "Purchased: {title}"},
+    "history.empty": {"el": "Δεν υπάρχει ιστορικό ακόμα", "en": "No history yet"},
     # Admin
     "admin.approve": {"el": "Έγκριση", "en": "Approve"},
     "admin.decline": {"el": "Άρνηση", "en": "Decline"},
@@ -97,6 +100,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "error.generic": {"el": "Προέκυψε σφάλμα", "en": "An error occurred"},
     "error.not_found": {"el": "Δεν βρέθηκε", "en": "Not found"},
     "error.unauthorized": {"el": "Μη εξουσιοδοτημένη πρόσβαση", "en": "Unauthorized"},
+    "leaderboard.empty": {"el": "Δεν υπάρχουν δεδομένα κατάταξης", "en": "No leaderboard data yet"},
+    "marketplace.empty": {"el": "Δεν υπάρχουν βραβεία ακόμα", "en": "No rewards available yet"},
+    "auth.locale": {"el": "el", "en": "en"},
 }
 
 

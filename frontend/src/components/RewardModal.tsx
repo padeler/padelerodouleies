@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createReward, updateReward } from '../api/client';
 import { useT } from '../i18n/store';
-import { Reward } from '../lib/types';
+import type { Reward } from '../lib/types';
 import { IconPicker } from './IconPicker';
 
 const rewardSchema = z.object({

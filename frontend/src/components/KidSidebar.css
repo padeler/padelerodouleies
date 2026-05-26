@@ -1,0 +1,56 @@
+.kid-sidebar {
+  width: 160px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #4a1a6b 0%, #2d1050 100%);
+  border-right: 3px solid #7b2ff7;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  flex-shrink: 0;
+}
+
+.kid-sidebar-brand {
+  padding: 0 16px 16px;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #f0c36d;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 8px;
+}
+
+.kid-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.kid-sidebar li {
+  margin: 4px 0;
+}
+
+.kid-sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  color: #e0d4f5;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+  border-radius: 8px;
+  margin: 0 8px;
+}
+
+.kid-sidebar a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.kid-nav-active {
+  color: #f0c36d !important;
+  background: rgba(240, 195, 109, 0.15) !important;
+  font-weight: 700 !important;
+}

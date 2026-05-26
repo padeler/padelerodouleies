@@ -357,3 +357,81 @@ export async function getAdminHistory(params: {
     }>;
   }>(`/admin/history${separator}${qs}`);
 }
+
+/* -- Dashboard endpoints (Phase 4) -- */
+
+export async function getVisibleChores() {
+  return request<Array<{
+    id: number;
+    title_el: string;
+    title_en: string;
+    icon_name: string;
+    scope: string;
+    points_value: number;
+  }>>('/dashboard/visible-chores');
+}
+
+export async function claimChore(choreId: number) {
+  return request<unknown>(`/dashboard/chores/${choreId}/claim`, { method: 'POST' });
+}
+
+export async function getKidHistory(params?: { limit?: number; offset?: number }) {
+  const qs = new URLSearchParams();
+  if (params?.limit) qs.set('limit', String(params.limit));
+  if (params?.offset) qs.set('offset', String(params.offset));
+  const separator = qs.toString() ? '?' : '';
+  return request<{
+    total: number;
+    entries: Array<{
+      id: number;
+      action_type: string;
+      points_delta: number;
+      ref_table: string | null;
+      ref_id: number | null;
+      admin_note: string | null;
+      timestamp: string;
+      chore_title_el?: string;
+      chore_title_en?: string;
+      chore_icon?: string;
+      chore_points_value?: number;
+    }>;
+  }>(`/dashboard/history${separator}${qs}`);
+}
+
+export async function getMarketplaceRewards() {
+  return request<Array<{
+    id: number;
+    title_el: string;
+    title_en: string;
+    description_el: string | null;
+    description_en: string | null;
+    icon_name: string;
+    cost_stars: number;
+    is_collaborative: boolean;
+    current_stars?: number;
+    target_stars?: number;
+    contributors?: Array<{ user_id: number; user_name: string; stars: number }>;
+  }>>('/marketplace/rewards');
+}
+
+export async function redeemReward(rewardId: number) {
+  return request<unknown>(`/rewards/${rewardId}/redeem`, { method: 'POST' });
+}
+
+export async function contributeReward(rewardId: number, stars: number) {
+  return request<unknown>(`/rewards/${rewardId}/contribute`, {
+    method: 'POST',
+    body: JSON.stringify({ stars }),
+  });
+}
+
+export async function getLeaderboard() {
+  return request<Array<{
+    ranking: number;
+    id: number;
+    name: string;
+    avatar_kind: string;
+    avatar_value: string;
+    current_stars: number;
+  }>>('/leaderboard');
+}

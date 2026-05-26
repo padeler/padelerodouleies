@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { adjustStars } from '../api/client';
 import { useT } from '../i18n/store';
-import { AdminUser } from '../lib/types';
+import type { AdminUser } from '../lib/types';
 
 const schema = z.object({
   direction: z.enum(['+', '-']),

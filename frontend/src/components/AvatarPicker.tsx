@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useT } from '../i18n/store';
-import { AvatarSelection } from '../lib/types';
+import type { AvatarSelection } from '../lib/types';
 import { IconPicker } from './IconPicker';
 import { uploadAvatar } from '../api/client';
 import './AvatarPicker.css';
