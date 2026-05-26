@@ -52,7 +52,7 @@ export function ChoresPage() {
           {(data as Chore[])?.map((chore) => (
             <tr key={chore.id}>
               <td>
-                <img src={`/icons/svg/${chore.icon_name}.svg`} alt="" style={{ width: 24, height: 24 }} />
+                <img src={`/api/icons/svg/${chore.icon_name}`} alt="" style={{ width: 24, height: 24 }} />
               </td>
               <td>{chore.title_el}</td>
               <td>{chore.title_en}</td>

@@ -99,7 +99,7 @@ export function IconPicker({ selected, onChange }: IconPickerProps) {
                   onClick={() => onChange(icon.name)}
                   title={icon.name}
                 >
-                  <img src={`/icons/svg/${icon.name}.svg`} alt={icon.name} />
+                  <img src={`/api/icons/svg/${icon.name}`} alt={icon.name} />
                 </button>
               ))}
             </div>

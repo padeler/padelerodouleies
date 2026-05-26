@@ -11,7 +11,7 @@ function AvatarCell(user: AdminUser) {
   if (user.avatar_kind === 'image') {
     return <img src={user.avatar_value} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />;
   }
-  return <img src={`/icons/svg/${user.avatar_value}.svg`} alt="" style={{ width: 32, height: 32 }} />;
+  return <img src={`/api/icons/svg/${user.avatar_value}`} alt="" style={{ width: 32, height: 32 }} />;
 }
 
 export function UsersPage() {

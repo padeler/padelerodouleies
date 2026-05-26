@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing';
 import { Setup } from './pages/Setup';
@@ -10,20 +10,22 @@ import './App.css';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, setUser } = useAuth();
-  const loading = user === null;
+  const [checking, setChecking] = useState(true);
 
-  if (loading) {
-    useEffect(() => {
-      getMe()
-        .then((u) => {
-          setUser({ ...u, role: u.role as 'admin' | 'user' });
-        })
-        .catch((e) => {
-          // Not authenticated — resolve loading state.
-          // On network errors (backend down) we keep loading.
-          if (e?.status === 401) setUser(null);
-        });
-    }, [setUser]);
+  useEffect(() => {
+    getMe()
+      .then((u) => {
+        setUser({ ...u, role: u.role as 'admin' | 'user' });
+      })
+      .catch(() => {
+        setUser(null);
+      })
+      .finally(() => {
+        setChecking(false);
+      });
+  }, [setUser]);
+
+  if (checking) {
     return <div className="loading">Loading…</div>;
   }
 

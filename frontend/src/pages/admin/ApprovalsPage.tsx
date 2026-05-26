@@ -25,7 +25,7 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
     <div className="admin-card" style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
         <img
-          src={`/icons/svg/${claim.user_avatar_value}.svg`}
+          src={`/api/icons/svg/${claim.user_avatar_value}`}
           alt=""
           style={{ width: 32, height: 32 }}
         />
@@ -33,7 +33,7 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
         <span style={{ color: 'var(--accent)' }}>+{claim.points_value} ⭐</span>
       </div>
       <div style={{ marginBottom: 8, fontSize: 14 }}>
-        <img src={`/icons/svg/${claim.chore_icon}.svg`} alt="" style={{ width: 20, height: 20, verticalAlign: 'middle', marginRight: 6 }} />
+        <img src={`/api/icons/svg/${claim.chore_icon}`} alt="" style={{ width: 20, height: 20, verticalAlign: 'middle', marginRight: 6 }} />
         {t('chore.' + (claim.chore_title_el ? 'title_el' : 'title_en'))}
         {' — '}
         {claim.chore_title_el}

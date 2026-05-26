@@ -23,7 +23,7 @@ function AvatarTile({ user }: { user: UserListItem }) {
   const avatarSrc =
     user.avatar_kind === 'image'
       ? `/avatars/${user.avatar_value}`
-      : `/icons/${user.avatar_value}.svg`;
+      : `/api/icons/svg/${user.avatar_value}`;
 
   return (
     <button className="avatar-tile" type="button" onClick={handleClick}>

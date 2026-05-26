@@ -74,7 +74,7 @@ export function Setup() {
                 className={`avatar-option ${avatar === icon ? 'selected' : ''}`}
                 onClick={() => setAvatar(icon)}
               >
-                <img src={`/icons/${icon}.svg`} alt={icon} />
+                <img src={`/api/icons/svg/${icon}`} alt={icon} />
               </button>
             ))}
           </div>

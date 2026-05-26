@@ -29,7 +29,7 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
   return (
     <div className="reward-card">
       <div className="reward-icon-wrap">
-        <img src={`/icons/svg/${reward.icon_name}.svg`} alt="" className="reward-icon" />
+        <img src={`/api/icons/svg/${reward.icon_name}`} alt="" className="reward-icon" />
       </div>
       <h3 className="reward-title">{title}</h3>
       {desc && <p className="reward-desc">{desc}</p>}
@@ -80,7 +80,7 @@ function CollabCard({ reward }: { reward: MarketplaceReward }) {
   return (
     <div className="collab-card">
       <div className="collab-header">
-        <img src={`/icons/svg/${reward.icon_name}.svg`} alt="" className="collab-icon" />
+        <img src={`/api/icons/svg/${reward.icon_name}`} alt="" className="collab-icon" />
         <h3 className="collab-title">{title}</h3>
       </div>
       <div className="collab-progress-wrap">

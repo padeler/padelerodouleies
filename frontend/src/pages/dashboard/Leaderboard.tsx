@@ -44,7 +44,7 @@ export function Leaderboard() {
               <span className="lb-avatar">
                 <img
                   className="lb-avatar-img"
-                  src={`/icons/svg/${entry.avatar_value}.svg`}
+                  src={`/api/icons/svg/${entry.avatar_value}`}
                   alt=""
                 />
               </span>
@@ -74,7 +74,7 @@ function PodiumFigure({ entry, rank }: { entry: LeaderboardEntry; rank: number }
     <div className="podium-figure">
       <div className="podium-avatar">
         <img
-          src={`/icons/svg/${entry.avatar_value}.svg`}
+          src={`/api/icons/svg/${entry.avatar_value}`}
           alt=""
           className="podium-avatar-img"
         />

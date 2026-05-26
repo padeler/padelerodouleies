@@ -22,7 +22,7 @@ function ChoreCard({ chore }: { chore: VisibleChore }) {
     <div className={`chore-card chore-scope-${chore.scope}`}>
       <div className="chore-icon-wrap">
         <img
-          src={`/icons/svg/${chore.icon_name}.svg`}
+          src={`/api/icons/svg/${chore.icon_name}`}
           alt=""
           className="chore-icon"
         />

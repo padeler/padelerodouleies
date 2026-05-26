@@ -51,7 +51,7 @@ export function RewardsPage() {
           {(data as Reward[])?.map((reward) => (
             <tr key={reward.id}>
               <td>
-                <img src={`/icons/svg/${reward.icon_name}.svg`} alt="" style={{ width: 24, height: 24 }} />
+                <img src={`/api/icons/svg/${reward.icon_name}`} alt="" style={{ width: 24, height: 24 }} />
               </td>
               <td>{reward.title_el}</td>
               <td>{reward.title_en}</td>

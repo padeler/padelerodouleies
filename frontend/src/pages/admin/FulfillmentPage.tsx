@@ -18,7 +18,7 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
   return (
     <tr>
       <td>
-        <img src={`/icons/svg/${entry.reward_icon}.svg`} alt="" style={{ width: 24, height: 24 }} />
+        <img src={`/api/icons/svg/${entry.reward_icon}`} alt="" style={{ width: 24, height: 24 }} />
       </td>
       <td>{entry.reward_title_el}</td>
       <td>{entry.user_name}</td>
@@ -87,7 +87,7 @@ export function FulfillmentPage() {
               : (data as FulfillmentEntry[])?.map((entry) => (
                   <tr key={entry.id}>
                     <td>
-                      <img src={`/icons/svg/${entry.reward_icon}.svg`} alt="" style={{ width: 24, height: 24 }} />
+                      <img src={`/api/icons/svg/${entry.reward_icon}`} alt="" style={{ width: 24, height: 24 }} />
                     </td>
                     <td>{entry.reward_title_el}</td>
                     <td>{entry.user_name}</td>

@@ -36,3 +36,4 @@ Thumbs.db
 # Claude
 .claude/
 venv
+backend/app/icons/svg
