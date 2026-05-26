@@ -8,12 +8,13 @@ Pre-implementation. The repo currently contains only product documentation (`REA
 
 ## Stack & Architecture (Planned)
 
-The entire app is intentionally 100% Python via the **Reflex** framework (compiles to a Next.js frontend + ASGI backend from a single Python codebase). Deviations from this — e.g., introducing a separate JS frontend, swapping out Reflex for FastAPI+templates — should be raised with the user before writing code, because the "single Python codebase for long-term self-hosted maintenance" constraint is load-bearing.
+Split frontend/backend, served from one container in production. The frontend is a **Vite + React + TypeScript** SPA; the backend is a **FastAPI** ASGI app that serves the built SPA assets as static files alongside the JSON / WebSocket API. The "single container, LAN-only, long-term self-hosted maintenance" constraint is load-bearing — deviations (e.g., separate Nginx, splitting frontend into its own container) should be raised before writing code.
 
-- **Framework:** Reflex (Python → Next.js + ASGI)
+- **Frontend:** Vite + React + TypeScript (strict mode). Built to static assets and copied into the runtime container; FastAPI mounts the build output and SPA-fallbacks to `index.html` for client-side routes.
+- **Backend:** FastAPI on Uvicorn. SQLAlchemy + Alembic for persistence. WebSockets for realtime push.
 - **Database:** Embedded SQLite, bind-mounted from container to host RAID at `/mnt/raid/padelerodouleies/data` → `/app/data/` inside the container. Schema is relational (5 tables: `USERS`, `CHORES`, `CHORE_HISTORY`, `REWARDS`, `REWARD_LEDGER` — see README §Database Schema).
-- **Deployment:** Single multi-stage `Dockerfile` orchestrated via `docker-compose`. LAN-only (no public exposure planned).
-- **Realtime:** Reflex WebSockets push state changes to all connected clients (e.g., leaderboard / star counters update without refresh when an admin approves a chore).
+- **Deployment:** Single multi-stage `Dockerfile` (Node build stage for frontend → Python runtime stage that bundles both) orchestrated via `docker-compose`. LAN-only (no public exposure planned).
+- **Realtime:** FastAPI WebSocket endpoint with an in-process pub/sub broadcaster; state changes (chore approval, balance updates, leaderboard reordering) are pushed to all connected clients without page refresh.
 
 ## Core Domain Invariants
 
@@ -34,6 +35,6 @@ Work is sequenced as: (1) DB models + i18n scaffold → (2) Fast-Switcher auth +
 
 - Code comments and documentation: English (per global user instructions).
 - Fail explicitly with clear exceptions — no silent fallback logic.
-- Prefer functional style and immutability unless Reflex's State class model requires OOP.
-- Strict typing with explicit return types.
+- Prefer functional style and immutability. SQLAlchemy ORM classes and Pydantic models are the natural exception on the backend; React function components with hooks are the default on the frontend (no class components).
+- Strict typing with explicit return types: Python type hints + `mypy --strict` on the backend; TypeScript `strict: true` on the frontend.
 - Minimal diffs; do not rewrite files for small changes.

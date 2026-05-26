@@ -2,7 +2,7 @@
 
 ### Home-Server Gamified Chore & Reward Web Application
 
-`padelerodouleies` is a self-hosted, lightweight, and highly visual web application designed to gamify household chores for two children (ages 4 and 9). Built entirely within the Python ecosystem using the **Reflex** framework, the app runs locally inside a Docker container on a home server, providing responsive, real-time access across family tablets, smartphones, and PCs.
+`padelerodouleies` is a self-hosted, lightweight, and highly visual web application designed to gamify household chores for two children (ages 4 and 9). The frontend is a **Vite + React + TypeScript** single-page app; the backend is a **FastAPI** service that also serves the built SPA assets. The whole stack runs locally inside a single Docker container on a home server, providing responsive, real-time access across family tablets, smartphones, and PCs.
 
 The application balances a highly visual, zero-literacy interface for the 4-year-old with a text-and-numerical interface for the 9-year-old, managed completely by parental administrators via an authorization PIN system.
 
@@ -15,7 +15,7 @@ The application balances a highly visual, zero-literacy interface for the 4-year
 * **Gamification:** Motivate children to complete daily habits and tasks by rewarding them with "Stars" (points) that can be saved and redeemed for custom rewards.
 * **Kid-Friendly UX:** Provide a vibrant, colorful, and highly touch-responsive interface optimized for mobile and tablet screens.
 * **Low Friction Shared-Device Login:** Implement an incredibly fast user-switching profile screen suitable for children who cannot read or type usernames.
-* **100% Python Architecture:** Keep frontend and backend architectures unified within Python using Reflex to simplify long-term self-hosted maintenance.
+* **Single-Container Architecture:** A Vite-built React SPA served by the FastAPI backend out of one process. One image, one port, one bind-mount — chosen to simplify long-term self-hosted maintenance.
 * **Localization:** Support bilingual toggles natively, displaying **Greek (Default)** and **English (Secondary)**.
 
 ### Infrastructure Requirements
@@ -93,7 +93,7 @@ A marketplace layout where earned stars are exchanged for incentives.
 A live-updating, high-contrast leaderboard view accessible to everyone in the house.
 
 * **The Podium Layout:** Displays users ranked side-by-side on colorful, game-style podium steps.
-* **Real-Time Synchronicity:** Utilizing Reflex WebSockets, the leaderboard automatically updates instantly on tablet screens the moment an admin approves a chore from their smartphone—no page refreshes required.
+* **Real-Time Synchronicity:** A FastAPI WebSocket endpoint pushes state changes to every connected client; the leaderboard, star counters, and approvals badge update instantly on tablet screens the moment an admin approves a chore from their smartphone — no page refreshes required.
 
 ---
 
@@ -155,9 +155,11 @@ The backend state is handled through five relational tables managed seamlessly i
 
 ## 🐳 Deployment & Docker Configuration
 
-The system is deployed using a two-container environment orchestrated through `docker-compose`.
+The system is deployed as a single container orchestrated through `docker-compose`.
 
-* **Container 1 (Application Server):** Compiles the Reflex Next.js production frontend layer and boots the ASGI production web API service wrapper.
+* **Multi-stage Image:**
+  * **Stage 1 (Frontend Build):** Node-based image that runs `npm ci && npm run build` against the Vite + React + TypeScript project, emitting static assets to `frontend/dist/`.
+  * **Stage 2 (Runtime):** Slim Python image that installs the FastAPI dependencies, copies the backend source plus the `frontend/dist/` output from Stage 1, runs Alembic migrations on startup, and boots Uvicorn. FastAPI mounts the built SPA at `/` (with SPA fallback to `index.html`) and exposes the JSON API under `/api/` and the WebSocket under `/ws`.
 * **Storage Mount:** The SQLite production database file directory (`/app/data/`) is bind-mounted out of the container volume structure into the host system’s fault-tolerant storage array (`/mnt/raid/padelerodouleies/data`), guaranteeing zero data loss during image updates or system container recreations.
 
 
@@ -175,7 +177,7 @@ The authentication system is built to minimize friction on shared family tablets
 1. **Landing State:** The screen presents a bright, clean grid of round user avatars (e.g., a Fox icon for the 9-year-old, a Unicorn for the 4-year-old, and a Shield icon for the Parent Admin).
 2. **Profile Selection:** The user taps their respective avatar.
 3. **PIN Pad Overlay:** A full-screen, oversized 3x4 numeric keypad smooth-slides into view. The child taps out their 4-digit PIN.
-4. **Instant Verification:** The Reflex state monitors the string length. The exact microsecond the 4th digit is pressed, the frontend fires a WebSocket verification request to the server:
+4. **Instant Verification:** The React PIN-pad component watches the entered-digit length. The exact microsecond the 4th digit is pressed, the frontend fires `POST /api/auth/login` to FastAPI and awaits the response:
 * **Success:** The keypad slides away, and the UI redirects to either the *Kid Dashboard* or the *Admin Control Panel*.
 * **Failure:** The PIN inputs shake visually, turn red, and clear instantly for a retry.
 
