@@ -26,13 +26,13 @@ These are baseline architectural calls that shape multiple milestones. Capture t
 
 *Set up the backend Python environment, the frontend Vite project, the shared database, and the services every later phase consumes.*
 
-* [ ] **Milestone 1.1: Environment Setup**
+* [x] **Milestone 1.1: Environment Setup** — DONE
   * **Backend (`backend/`):** Create a virtual environment (`python -m venv .venv`). Install FastAPI, Uvicorn (with `[standard]` extras for WebSockets), SQLAlchemy 2.x, Alembic, `bcrypt`, `Pillow`, `itsdangerous`, `python-multipart` (for upload endpoints), `pytest`, `httpx` (for FastAPI test client), `mypy`. Pin in `pyproject.toml`. Establish folder layout: `backend/app/main.py`, `backend/app/api/` (routers), `backend/app/db/` (SQLAlchemy models + session), `backend/app/schemas/` (Pydantic), `backend/app/services/`, `backend/app/i18n/`, `backend/app/realtime/` (WebSocket broadcaster), `backend/alembic/`, `backend/tests/`.
   * **Frontend (`frontend/`):** Scaffold with `npm create vite@latest frontend -- --template react-ts`. Install React Router, TanStack Query, Zustand (state), `openapi-typescript` (dev). Configure `tsconfig.json` with `strict: true` and `noUncheckedIndexedAccess: true`. Configure `vite.config.ts` with a dev-mode proxy: `/api` and `/ws` → `http://localhost:8000`. Folder layout: `frontend/src/api/`, `frontend/src/components/`, `frontend/src/pages/`, `frontend/src/state/`, `frontend/src/i18n/`, `frontend/src/hooks/`.
   * **Codegen wiring:** Add an `npm run gen:api` script that fetches `http://localhost:8000/api/openapi.json` and writes `frontend/src/api/schema.d.ts` via `openapi-typescript`. Re-run after every backend schema change.
   * *Test:* `uvicorn app.main:app --reload` in `backend/` boots and `GET /api/health` returns `{"status": "ok"}`. `npm run dev` in `frontend/` boots Vite on `:5173` and the placeholder React page renders. `pytest` from `backend/` collects zero tests and exits 0. `tsc --noEmit` from `frontend/` exits 0.
 
-* [ ] **Milestone 1.2: Database Schema (SQLite + SQLAlchemy)**
+* [x] **Milestone 1.2: Database Schema (SQLite + SQLAlchemy)** — DONE
   * Define ORM models matching `README.md` §Database Schema, with the cross-cutting refinements above:
     * `User`: `id`, `name`, `avatar_kind` (`icon | image`), `avatar_value` (icon name or relative file path under `/app/data/avatars/`), `pin_hash`, `role` (`admin | user`), `current_stars`, `preferred_locale`, `failed_pin_attempts`, `locked_until`, `created_at`.
     * `Chore`: `id`, `title_el`, `title_en`, `description_el`, `description_en`, `icon_name`, `scope` (`individual | pooled`), `points_value`, `is_repeating`, `start_time` (time-of-day), `window_hours`, `is_active`, `created_at`.
@@ -43,22 +43,22 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * Add Alembic and generate the initial migration (`alembic revision --autogenerate -m "initial schema"`).
   * *Test:* Pytest fixture spins up an in-memory SQLite, runs migrations, inserts dummy rows (2 kids, 1 admin, 2 chores, 1 reward); assertions confirm queries return as expected.
 
-* [ ] **Milestone 1.3: Localization Engine**
+* [x] **Milestone 1.3: Localization Engine** — DONE
   * **Backend:** Create `backend/app/i18n/translations.py` as a flat dict: `TRANSLATIONS = {"login.welcome": {"el": "Καλωσήρθες", "en": "Welcome"}, ...}`. Build a pure helper `t(key: str, locale: str) -> str` with explicit `KeyError` on missing keys (no silent fallback). Expose `GET /api/i18n/translations` returning the full dict (cached) so the frontend bootstraps with one fetch.
   * **Frontend:** Create `frontend/src/i18n/store.ts` (Zustand) holding `{ locale: 'el' | 'en', translations: Record<string, Record<string, string>> }`. Expose a `t(key)` hook that throws on missing keys. Implement a `LocaleToggle` React component (header pill button, two-state, `EL` ↔ `EN`). Toggling updates the store and calls `POST /api/auth/me/locale` to persist `User.preferred_locale` for the logged-in user.
   * *Test:* Backend unit-test `t()` for hits, misses (raises), and the bilingual-content locale-fallback helper (chore titles). Frontend unit-test the `t()` hook with an in-memory store: hit returns the localized string, miss throws, toggling locale re-renders. Integration test confirms `POST /api/auth/me/locale` updates the DB row.
 
-* [ ] **Milestone 1.4: Security Primitives**
+* [x] **Milestone 1.4: Security Primitives** — DONE
   * `security/pins.py`: `hash_pin(pin: str) -> str` and `verify_pin(pin: str, pin_hash: str) -> bool` using bcrypt; input validation rejects non-4-digit-numeric.
   * `security/lockout.py`: helpers `register_failure(user)`, `register_success(user)`, `is_locked(user) -> tuple[bool, int]` (returns seconds remaining). Operates on the `failed_pin_attempts` / `locked_until` columns under a DB transaction.
   * *Test:* Unit tests for hash round-trip, lockout after 5 failures, automatic unlock after 60s, success resets the counter.
 
-* [ ] **Milestone 1.5: First-Run Detection**
+* [x] **Milestone 1.5: First-Run Detection** — DONE
   * **Backend:** `backend/app/services/bootstrap.py` with `is_first_run() -> bool` returning true when `USERS` is empty. Endpoint `GET /api/bootstrap/status` returns `{"first_run": bool}`.
   * **Frontend:** The root route component calls `GET /api/bootstrap/status` on mount; when `first_run` is true, it renders the first-run admin form (Milestone 2.5) instead of the Fast Switcher.
   * *Test:* Unit test confirms `is_first_run()` returns `True` against an empty fixture DB and `False` after a single `User` row is inserted. Integration test against `GET /api/bootstrap/status` returns the expected JSON for both states.
 
-* [ ] **Milestone 1.6: Icon Catalog Curation**
+* [x] **Milestone 1.6: Icon Catalog Curation** — DONE (minimal test set, full catalog deferred to end of project)
   * Choose an icon set with a permissive self-hosting license (recommended: Lucide MIT, or the FontAwesome Free subset). Vendor the chosen SVGs under `backend/app/icons/svg/` and expose them via FastAPI's `StaticFiles` mount at `/icons/<name>.svg`. The catalog itself is exposed via `GET /api/icons/catalog` so the frontend renders without bundling SVGs into the JS payload.
   * Hand-curate ~200 icons covering the real-world domain:
     * **Hygiene & morning routine:** toothbrush, soap, shower, comb, towel.

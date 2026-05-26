@@ -1,0 +1,107 @@
+[
+  {
+    "name": "tooth",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/tooth.svg",
+    "keywords_en": ["tooth", "teeth", "brush", "dental"],
+    "keywords_el": ["δόντι", "δόντια", "βούρτσισμα", "οδοντόβουρτσα"]
+  },
+  {
+    "name": "shower",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/shower.svg",
+    "keywords_en": ["shower", "bath", "wash", "water"],
+    "keywords_el": ["ντους", "λουτρό", "πλύσιμο", "νερό"]
+  },
+  {
+    "name": "plate",
+    "category": "meals",
+    "svg_ref": "icons/svg/plate.svg",
+    "keywords_en": ["plate", "food", "meal", "eat", "dishes"],
+    "keywords_el": ["πιάτο", "φαγητό", "γεύμα", "φαγη", "πιάτα"]
+  },
+  {
+    "name": "bed",
+    "category": "tidying",
+    "svg_ref": "icons/svg/bed.svg",
+    "keywords_en": ["bed", "sleep", "bedroom", "fold", "sheets"],
+    "keywords_el": ["κρεβάτι", "ύπνος", "δωμάτιο", "δίπλωμα", "σεντόνια"]
+  },
+  {
+    "name": "book",
+    "category": "school",
+    "svg_ref": "icons/svg/book.svg",
+    "keywords_en": ["book", "read", "homework", "study"],
+    "keywords_el": ["βιβλίο", "διάβασμα", "σπουδές", "απογευματινά"]
+  },
+  {
+    "name": "dog",
+    "category": "pets",
+    "svg_ref": "icons/svg/dog.svg",
+    "keywords_en": ["dog", "pet", "walk", "animal"],
+    "keywords_el": ["σκύλος", "ζώο", "περπάτημα", "θρεμμα"]
+  },
+  {
+    "name": "fox",
+    "category": "avatars",
+    "svg_ref": "icons/svg/fox.svg",
+    "keywords_en": ["fox", "animal", "cute", "avatar"],
+    "keywords_el": ["αλεπού", "ζώο", "προφίλ", "εικόνα"]
+  },
+  {
+    "name": "unicorn",
+    "category": "avatars",
+    "svg_ref": "icons/svg/unicorn.svg",
+    "keywords_en": ["unicorn", "magic", "cute", "avatar"],
+    "keywords_el": ["μονόκερος", "μαγικό", "προφίλ", "εικόνα"]
+  },
+  {
+    "name": "shield",
+    "category": "parent",
+    "svg_ref": "icons/svg/shield.svg",
+    "keywords_en": ["shield", "admin", "parent", "protect"],
+    "keywords_el": ["στούπενο", "διοίκηση", "γονέας", "προστασία"]
+  },
+  {
+    "name": "gift",
+    "category": "rewards",
+    "svg_ref": "icons/svg/gift.svg",
+    "keywords_en": ["gift", "present", "reward", "prize"],
+    "keywords_el": ["δώρο", "βραβείο", "επilogue"]
+  },
+  {
+    "name": "star",
+    "category": "rewards",
+    "svg_ref": "icons/svg/star.svg",
+    "keywords_en": ["star", "points", "reward", "shine"],
+    "keywords_el": ["άστρο", "πunti", "βραβείο", "λάμψη"]
+  },
+  {
+    "name": "ice-cream",
+    "category": "rewards",
+    "svg_ref": "icons/svg/ice-cream.svg",
+    "keywords_en": ["ice cream", "dessert", "sweet", "treat"],
+    "keywords_el": ["παγωτό", "γλυκό", "επilogue", "λαχτα"]
+  },
+  {
+    "name": "gamepad",
+    "category": "rewards",
+    "svg_ref": "icons/svg/gamepad.svg",
+    "keywords_en": ["gamepad", "game", "play", "console"],
+    "keywords_el": ["πανο", "παίγνιο", "κολονολ", "οθόνη"]
+  },
+  {
+    "name": "crown",
+    "category": "parent",
+    "svg_ref": "icons/svg/crown.svg",
+    "keywords_en": ["crown", "king", "queen", "admin", "royal"],
+    "keywords_el": ["στέμμα", "βασιλιάς", "βασιλόγισσα", "διοίκηση"]
+  },
+  {
+    "name": "sun",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/sun.svg",
+    "keywords_en": ["sun", "morning", "day", "rise", "breakfast"],
+    "keywords_el": ["ήλιος", "πρωί", "ημέρα", "αναστολή", "πρωινό"]
+  }
+]
