@@ -29,6 +29,7 @@ export function ChoresPage() {
   };
 
   const handleDelete = async (chore: Chore) => {
+    if (!window.confirm(`Delete "${chore.title}" permanently? This cannot be undone.`)) return;
     await deleteChore(chore.id);
     refetch();
   };

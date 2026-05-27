@@ -1,9 +1,12 @@
 """Admin control panel routes."""
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
 import asyncio
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import JSONResponse
@@ -149,7 +152,7 @@ async def delete_chore(
     chore = db.query(Chore).filter(Chore.id == chore_id).first()
     if not chore:
         raise HTTPException(404, "Chore not found")
-    chore.is_active = False
+    db.delete(chore)
     db.commit()
     await broadcaster.emit("chores_changed", {}, "admins")
     return {"message": "Deleted"}
@@ -208,9 +211,14 @@ def delete_reward(
     reward = db.query(Reward).filter(Reward.id == reward_id).first()
     if not reward:
         raise HTTPException(404, "Reward not found")
-    reward.is_enabled = False
-    db.commit()
-    return {"message": "Disabled"}
+    try:
+        db.delete(reward)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error("Failed to delete reward %d: %s", reward_id, e)
+        raise HTTPException(400, f"Cannot delete reward: {str(e)}")
+    return {"message": "Deleted"}
 
 
 # ---------------------------------------------------------------------

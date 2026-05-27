@@ -13,6 +13,7 @@ function ChoreCard({ chore }: { chore: VisibleChore }) {
     mutationFn: () => claimChore(chore.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['visible-chores'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-stars'] });
     },
   });
 

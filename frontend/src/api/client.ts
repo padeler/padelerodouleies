@@ -89,6 +89,37 @@ export async function changePin(currentPin: string, newPin: string) {
   });
 }
 
+export async function uploadMyAvatar(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const resp = await fetch('/api/auth/me/avatar-upload', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({}));
+    throw new Error(body.detail || `HTTP ${resp.status}`);
+  }
+  return resp.json() as Promise<{ url: string }>;
+}
+
+export async function updateMeAvatar(avatarKind: string, avatarValue: string) {
+  return request<{
+    id: number;
+    name: string;
+    avatar_kind: string;
+    avatar_value: string;
+    role: string;
+    current_stars: number;
+    preferred_locale: string;
+    preferred_theme: string;
+  }>('/auth/me/avatar', {
+    method: 'PATCH',
+    body: JSON.stringify({ avatar_kind: avatarKind, avatar_value: avatarValue }),
+  });
+}
+
 export async function getBootstrapStatus() {
   return request<{ first_run: boolean }>('/bootstrap/status');
 }

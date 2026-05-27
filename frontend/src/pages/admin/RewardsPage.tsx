@@ -21,6 +21,7 @@ export function RewardsPage() {
   };
 
   const handleDelete = async (reward: Reward) => {
+    if (!window.confirm(`Delete "${reward.title}" permanently? This cannot be undone.`)) return;
     await deleteReward(reward.id);
     refetch();
   };

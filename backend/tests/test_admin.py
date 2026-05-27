@@ -90,11 +90,11 @@ async def test_chore_crud(async_client: AsyncClient, _db: Session):
     assert resp.status_code == 200
     assert resp.json()["points_value"] == 10
 
-    # Soft delete
+    # Hard delete
     resp = await async_client.delete(f"/api/admin/chores/{data['id']}", cookies=cookie)
     assert resp.status_code == 200
     chore = _db.query(Chore).filter(Chore.id == data["id"]).first()
-    assert chore.is_active is False
+    assert chore is None  # hard deleted from DB
 
     # Create with invalid data
     resp = await async_client.post("/api/admin/chores", json={

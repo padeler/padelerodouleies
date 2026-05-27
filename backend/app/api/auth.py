@@ -1,10 +1,10 @@
-"""Authentication routes: login, logout, session, user list, PIN change."""
+"""Authentication routes: login, logout, session, user list, PIN change, avatar update."""
 
 from typing import Any
 
 from pydantic import BaseModel
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -18,6 +18,7 @@ from app.security.session import (
     get_current_user,
     set_session_cookie,
 )
+from app.services.avatars import delete_avatar, save_avatar
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -149,3 +150,42 @@ def change_pin(
     current_user.pin_hash = pin_utils.hash_pin(req.new_pin)  # type: ignore[assignment]
     db.commit()
     return JSONResponse(content={"message": "PIN updated"})
+
+
+@router.post("/me/avatar-upload")
+async def upload_my_avatar(
+    file: UploadFile,
+    _current_user: User = Depends(get_current_user),
+) -> JSONResponse:
+    """Upload an avatar image. Accessible to any authenticated user."""
+    try:
+        url = save_avatar(file)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"detail": str(e)})
+    return JSONResponse(content={"url": url})
+
+
+class _AvatarUpdateRequest(BaseModel):
+    avatar_kind: str
+    avatar_value: str
+
+
+@router.patch("/me/avatar")
+async def update_my_avatar(
+    req: _AvatarUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> JSONResponse:
+    """Update the current user's avatar. Cleans up old image avatar if applicable."""
+    if req.avatar_kind not in ("icon", "image"):
+        return JSONResponse(status_code=400, content={"detail": "avatar_kind must be 'icon' or 'image'"})
+
+    # Clean up old uploaded avatar if being replaced
+    if current_user.avatar_kind == "image" and current_user.avatar_value != req.avatar_value:
+        delete_avatar(current_user.avatar_value)
+
+    current_user.avatar_kind = req.avatar_kind  # type: ignore[assignment]
+    current_user.avatar_value = req.avatar_value  # type: ignore[assignment]
+    db.commit()
+    db.refresh(current_user)
+    return JSONResponse(content=_to_dict(current_user))
