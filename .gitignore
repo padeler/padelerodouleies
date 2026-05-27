@@ -38,3 +38,5 @@ Thumbs.db
 venv
 backend/app/icons/svg
 .playwright-mcp/
+data
+frontend/test-results

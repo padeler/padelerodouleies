@@ -277,8 +277,12 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * Auto-restart `unless-stopped`.
   * *Test:* `docker-compose up -d` brings the service to `healthy`. Complete the first-run admin form, create a user with an uploaded avatar; then `docker-compose down && docker-compose up -d` and verify the admin user, the avatar WebP file at `/mnt/raid/padelerodouleies/data/avatars/`, and the SQLite DB all persist via the bind mount.
 
-* [ ] **Milestone 5.4: Handover Docs**
+* [ ] **Milestone 5.4: Usability scripts**
+  * Write python scripts for backing up the db (dump to json) and populating a db from a json dump (place them in backend/scripts)
+
+* [ ] **Milestone 5.5: Handover Docs**
   * Update `README.md` with a brief "Running" section: env vars (`TZ`, `DB_PATH`, `IDLE_LOGOUT_MINUTES`, `SESSION_SECRET` for the cookie signer), compose-up flow, where the DB file lives, how to add an admin from scratch (delete DB, restart, re-run setup), how to regenerate `frontend/src/api/schema.d.ts` against the running backend, basic troubleshooting.
+
 
 ---
 
