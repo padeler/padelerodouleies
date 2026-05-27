@@ -11,6 +11,8 @@ export interface Chore {
   start_time: string | null;
   window_hours: number | null;
   is_active: boolean;
+  repeat_days: string[] | null;
+  n_day_interval: number | null;
   created_at: string;
 }
 
@@ -129,6 +131,7 @@ export interface LeaderboardEntry {
 
 export type WSEvent =
   | { event: 'stars_changed'; user_id: number; current_stars: number }
+  | { event: 'pending_stars_changed'; user_id: number; pending_stars: number }
   | { event: 'pending_claims_changed'; count: number }
   | { event: 'visible_chores_changed'; user_id: number }
   | { event: 'collab_progress_changed'; reward_id: number; current: number; target: number; contributions: Array<{ user_id: number; user_name: string; stars: number }> }

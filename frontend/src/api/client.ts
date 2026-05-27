@@ -173,6 +173,8 @@ export async function getChores() {
     start_time: string | null;
     window_hours: number | null;
     is_active: boolean;
+    repeat_days: string[] | null;
+    n_day_interval: number | null;
     created_at: string;
   }>>('/admin/chores');
 }
@@ -390,6 +392,19 @@ export async function getVisibleChores() {
     scope: string;
     points_value: number;
   }>>('/dashboard/visible-chores');
+}
+
+export async function getPendingStars() {
+  return request<{
+    pending_stars: number;
+    claims: Array<{
+      claim_id: number;
+      chore_id: number;
+      chore_title: string;
+      points_value: number;
+      claimed_at: string;
+    }>;
+  }>('/dashboard/pending-stars');
 }
 
 export async function claimChore(choreId: number) {

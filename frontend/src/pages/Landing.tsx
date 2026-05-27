@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { getUsers, login, getBootstrapStatus } from '../api/client';
+import { getUsers, login, getBootstrapStatus, getPendingStars } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { PinPad } from '../components/PinPad';
 import './Landing.css';
@@ -61,7 +61,17 @@ export function Landing() {
     if (!selectedUserId) return;
     try {
       const user = await login(selectedUserId, pin);
-      setUser({ ...user, role: user.role as 'admin' | 'user' });
+      const authUser = { ...user, role: user.role as 'admin' | 'user' };
+      if (user.role === 'user') {
+        try {
+          const pending = await getPendingStars();
+          setUser({ ...authUser, pending_stars: pending.pending_stars });
+        } catch {
+          setUser({ ...authUser, pending_stars: 0 });
+        }
+      } else {
+        setUser({ ...authUser, pending_stars: 0 });
+      }
       if (user.role === 'admin') {
         navigate('/admin');
       } else {

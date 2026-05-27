@@ -38,7 +38,16 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
             </button>
           )}
           <span className="user-name">{user?.name}</span>
-          <span className="user-stars">{user?.current_stars ?? 0} ⭐</span>
+          {user?.role !== 'admin' && (
+            <>
+              {user?.pending_stars > 0 && (
+                <span className="user-pending-stars" title="Pending stars">
+                  {user.pending_stars}☆
+                </span>
+              )}
+              <span className="user-stars">{user?.current_stars ?? 0} ★</span>
+            </>
+          )}
         </div>
         <div className="header-right">
           <LocaleToggle />

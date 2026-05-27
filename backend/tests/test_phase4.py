@@ -1,13 +1,13 @@
 """Phase 4 backend tests: chore visibility, claims, history, marketplace, leaderboard, WebSocket."""
 
-from datetime import date, time
+from datetime import date, datetime, time
 
 import pytest
 from httpx import ASGITransport, AsyncClient, Cookies
 
 from app.db.engine import LocalSession
 from app.db.models import Chore, HistoryLedger, Reward, RewardLedger, User
-from app.services.chores import _is_in_window
+from app.services.chores import _is_in_window, _matches_day
 from app.main import app
 from app.security.pins import hash_pin
 
@@ -283,3 +283,132 @@ async def test_contribute_rejects_individual(kid_client):
 
     resp = await client.post(f"/api/rewards/{reward_id}/contribute", json={"stars": 5})
     assert resp.status_code == 400
+
+
+# -- Recurrence tests --
+
+def test_daily_chore_always_visible():
+    """A chore with no recurrence filter should be visible every day."""
+    chore = Chore(
+        title="Daily",
+        icon_name="star",
+        scope="individual",
+        points_value=5,
+        is_repeating=True,
+        is_active=True,
+        created_at=datetime(2025, 1, 1),
+    )
+    assert _matches_day(chore, date(2025, 5, 27))  # Tuesday
+    assert _matches_day(chore, date(2025, 5, 31))  # Saturday
+    assert _matches_day(chore, date(2025, 6, 1))   # Sunday
+
+
+def test_weekly_chore_visible_on_matching_day():
+    chore = Chore(
+        title="Weekly",
+        icon_name="brush",
+        scope="individual",
+        points_value=3,
+        is_repeating=True,
+        is_active=True,
+        repeat_days=["Mon", "Wed", "Fri"],
+        created_at=datetime(2025, 1, 1),
+    )
+    assert _matches_day(chore, date(2025, 5, 26))  # Monday
+    assert _matches_day(chore, date(2025, 5, 28))  # Wednesday
+    assert _matches_day(chore, date(2025, 5, 30))  # Friday
+
+
+def test_weekly_chore_hidden_on_non_matching_day():
+    chore = Chore(
+        title="Weekly",
+        icon_name="brush",
+        scope="individual",
+        points_value=3,
+        is_repeating=True,
+        is_active=True,
+        repeat_days=["Mon", "Wed", "Fri"],
+        created_at=datetime(2025, 1, 1),
+    )
+    assert not _matches_day(chore, date(2025, 5, 27))  # Tuesday
+    assert not _matches_day(chore, date(2025, 5, 31))  # Saturday
+    assert not _matches_day(chore, date(2025, 6, 1))   # Sunday
+
+
+def test_every_n_days_visible_on_schedule():
+    """A chore with n_day_interval=7 should be visible on day 0, 7, 14, ..."""
+    chore = Chore(
+        title="Every 7 days",
+        icon_name="filter",
+        scope="individual",
+        points_value=10,
+        is_repeating=True,
+        is_active=True,
+        n_day_interval=7,
+        created_at=datetime(2025, 5, 1),
+    )
+    assert _matches_day(chore, date(2025, 5, 1))   # day 0
+    assert _matches_day(chore, date(2025, 5, 8))   # day 7
+    assert _matches_day(chore, date(2025, 5, 15))  # day 14
+
+
+def test_every_n_days_hidden_off_schedule():
+    chore = Chore(
+        title="Every 7 days",
+        icon_name="filter",
+        scope="individual",
+        points_value=10,
+        is_repeating=True,
+        is_active=True,
+        n_day_interval=7,
+        created_at=datetime(2025, 5, 1),
+    )
+    assert not _matches_day(chore, date(2025, 5, 4))   # day 3
+    assert not _matches_day(chore, date(2025, 5, 6))   # day 5
+    assert not _matches_day(chore, date(2025, 5, 10))  # day 9
+
+
+async def test_pending_stars_endpoint(kid_client, admin_client_p4):
+    """Pending stars endpoint returns sum of unapproved claim points."""
+    client, kid_id = kid_client
+    admin_client = admin_client_p4
+
+    # Create a chore via admin
+    db = LocalSession()
+    chore = Chore(
+        title="Test Chore",
+        icon_name="star",
+        scope="individual",
+        points_value=5,
+        is_repeating=True,
+        start_time=time(6, 0),
+        window_hours=24,
+        is_active=True,
+    )
+    db.add(chore)
+    db.commit()
+    chore_id = chore.id
+    db.close()
+
+    # Claim it
+    resp = await client.post(f"/api/dashboard/chores/{chore_id}/claim")
+    assert resp.status_code == 200
+
+    # Check pending stars
+    resp = await client.get("/api/dashboard/pending-stars")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["pending_stars"] == 5
+    assert len(data["claims"]) == 1
+    assert data["claims"][0]["chore_id"] == chore_id
+    assert data["claims"][0]["points_value"] == 5
+
+
+async def test_pending_stars_zero_when_no_claims(kid_client):
+    """Pending stars endpoint returns 0 when no claims exist."""
+    client, _ = kid_client
+    resp = await client.get("/api/dashboard/pending-stars")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["pending_stars"] == 0
+    assert len(data["claims"]) == 0

@@ -43,6 +43,7 @@ beforeAll(() => {
     avatar_value: 'fox',
     role: 'user',
     current_stars: 25,
+    pending_stars: 0,
     preferred_locale: 'el',
   });
 });
@@ -62,11 +63,14 @@ describe('DashboardChores', () => {
       http.get('/api/dashboard/visible-chores', async () => {
         return HttpResponse.json([]);
       }),
+      http.get('/api/dashboard/pending-stars', async () => {
+        return HttpResponse.json({ pending_stars: 0, claims: [] });
+      }),
     );
     renderDashboard();
     await waitFor(() => {
       expect(screen.getByText(/Maria/)).toBeInTheDocument();
-      expect(screen.getByText('25 ⭐')).toBeInTheDocument();
+      expect(screen.getByText(/25/)).toBeInTheDocument();
     });
   });
 
@@ -74,6 +78,9 @@ describe('DashboardChores', () => {
     server.use(
       http.get('/api/dashboard/visible-chores', async () => {
         return HttpResponse.json([]);
+      }),
+      http.get('/api/dashboard/pending-stars', async () => {
+        return HttpResponse.json({ pending_stars: 0, claims: [] });
       }),
     );
     renderDashboard();
@@ -90,11 +97,14 @@ describe('DashboardChores', () => {
           { id: 2, title: 'Πλύσιμο χεριών', icon_name: 'hand', scope: 'individual', points_value: 3 },
         ]);
       }),
+      http.get('/api/dashboard/pending-stars', async () => {
+        return HttpResponse.json({ pending_stars: 0, claims: [] });
+      }),
     );
     renderDashboard();
     await waitFor(() => {
       expect(screen.getByText('Βούρτσισμα')).toBeInTheDocument();
-      expect(screen.getByText('+5 ⭐')).toBeInTheDocument();
+      expect(screen.getByText(/\+5/)).toBeInTheDocument();
       expect(screen.getAllByText('Διεκδίκηση').length).toBe(2);
     });
   });
@@ -109,6 +119,9 @@ describe('DashboardChores', () => {
         return HttpResponse.json([
           { id: 1, title: 'Βούρτσισμα', icon_name: 'tooth', scope: 'individual', points_value: 5 },
         ]);
+      }),
+      http.get('/api/dashboard/pending-stars', async () => {
+        return HttpResponse.json({ pending_stars: 0, claims: [] });
       }),
       http.post('/api/dashboard/chores/1/claim', async () => {
         return HttpResponse.json({ ok: true });
@@ -132,6 +145,9 @@ describe('DashboardChores', () => {
           { id: 1, title: 'Βούρτσισμα', icon_name: 'tooth', scope: 'individual', points_value: 5 },
         ]);
       }),
+      http.get('/api/dashboard/pending-stars', async () => {
+        return HttpResponse.json({ pending_stars: 0, claims: [] });
+      }),
       http.post('/api/dashboard/chores/1/claim', async () => {
         await promise;
         return HttpResponse.json({ ok: true });
@@ -153,6 +169,9 @@ describe('DashboardChores', () => {
         return HttpResponse.json([
           { id: 1, title: 'Βούρτσισμα', icon_name: 'tooth', scope: 'individual', points_value: 5 },
         ]);
+      }),
+      http.get('/api/dashboard/pending-stars', async () => {
+        return HttpResponse.json({ pending_stars: 0, claims: [] });
       }),
     );
     renderDashboard();

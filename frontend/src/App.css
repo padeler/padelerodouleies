@@ -28,6 +28,12 @@
   font-weight: 700;
 }
 
+.user-pending-stars {
+  font-size: 16px;
+  color: #ccc;
+  font-weight: 700;
+}
+
 .header-right {
   display: flex;
   align-items: center;

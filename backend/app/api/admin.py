@@ -260,7 +260,16 @@ async def approve_claim_endpoint(
         raise HTTPException(404, str(e))
     db.commit()
     if result:
+        # Calculate remaining pending stars for this user
+        remaining_claims = (
+            db.query(PendingClaim)
+            .join(Chore, PendingClaim.chore_id == Chore.id)
+            .filter(PendingClaim.user_id == result.user_id)
+            .all()
+        )
+        remaining_pending = sum(c.chore.points_value for c in remaining_claims)
         await broadcaster.emit("stars_changed", {"user_id": result.user_id, "current_stars": result.current_stars}, "all")
+        await broadcaster.emit("pending_stars_changed", {"user_id": result.user_id, "pending_stars": remaining_pending}, "user", user_id=result.user_id)
         count = db.query(PendingClaim).count()
         await broadcaster.emit("pending_claims_changed", {"count": count}, "admins")
     return JSONResponse(content={"message": "Approved"})
@@ -273,6 +282,9 @@ async def decline_claim_endpoint(
     db: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ) -> JSONResponse:
+    claim = db.query(PendingClaim).filter(PendingClaim.id == claim_id).first()
+    if not claim:
+        raise HTTPException(404, "Claim not found")
     try:
         decline_claim(claim_id, req.admin_note, db)
     except ValueError as e:
@@ -280,6 +292,16 @@ async def decline_claim_endpoint(
     db.commit()
     count = db.query(PendingClaim).count()
     await broadcaster.emit("pending_claims_changed", {"count": count}, "admins")
+
+    # Calculate remaining pending stars for the claim's user
+    remaining_claims = (
+        db.query(PendingClaim)
+        .join(Chore, PendingClaim.chore_id == Chore.id)
+        .filter(PendingClaim.user_id == claim.user_id)
+        .all()
+    )
+    remaining_pending = sum(c.chore.points_value for c in remaining_claims)
+    await broadcaster.emit("pending_stars_changed", {"user_id": claim.user_id, "pending_stars": remaining_pending}, "user", user_id=claim.user_id)
     return JSONResponse(content={"message": "Declined"})
 
 

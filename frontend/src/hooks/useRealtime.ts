@@ -37,6 +37,13 @@ export function useRealtime() {
           queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
           break;
         }
+        case 'pending_stars_changed': {
+          const user = useAuthStore.getState().user;
+          if (user && msg.user_id === user.id) {
+            useAuthStore.setState({ user: { ...user, pending_stars: msg.pending_stars } });
+          }
+          break;
+        }
         case 'visible_chores_changed':
           queryClient.invalidateQueries({ queryKey: ['visible-chores'] });
           break;

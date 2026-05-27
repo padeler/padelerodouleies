@@ -277,14 +277,7 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * Auto-restart `unless-stopped`.
   * *Test:* `docker-compose up -d` brings the service to `healthy`. Complete the first-run admin form, create a user with an uploaded avatar; then `docker-compose down && docker-compose up -d` and verify the admin user, the avatar WebP file at `/mnt/raid/padelerodouleies/data/avatars/`, and the SQLite DB all persist via the bind mount.
 
-* [ ] **Milestone 5.4: First Deploy & LAN Verification**
-  * `docker-compose up -d` on the home server.
-  * First-run setup form completes the bootstrap admin.
-  * Connect from each target device (9yo tablet, 4yo tablet, parent phone). Bookmark/install as PWA so it opens chromeless.
-  * Run the realtime test checklist from 4.8 against the real LAN.
-  * Verify SQLite file lives at the bind-mounted host path and persists across `docker-compose down && up`.
-
-* [ ] **Milestone 5.5: Handover Docs**
+* [ ] **Milestone 5.4: Handover Docs**
   * Update `README.md` with a brief "Running" section: env vars (`TZ`, `DB_PATH`, `IDLE_LOGOUT_MINUTES`, `SESSION_SECRET` for the cookie signer), compose-up flow, where the DB file lives, how to add an admin from scratch (delete DB, restart, re-run setup), how to regenerate `frontend/src/api/schema.d.ts` against the running backend, basic troubleshooting.
 
 ---
@@ -297,5 +290,3 @@ Items considered and deliberately deferred. Revisit if the family asks.
 - Multi-household / multi-tenant support.
 - Cloud backup of the SQLite file (RAID handles redundancy; manual `cp` snapshots are documented in 5.5).
 - Web-accessible deployment outside the LAN (would require auth hardening beyond 4-digit PINs).
-- Mobile native apps (PWA-as-app via home-screen bookmark is sufficient).
-- Internationalization beyond `el` / `en`.

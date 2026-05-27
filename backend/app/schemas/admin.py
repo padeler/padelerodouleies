@@ -16,6 +16,8 @@ class ChoreCreate(BaseModel):
     is_repeating: bool = True
     start_time: dtime | None = None
     window_hours: int | None = Field(default=None, ge=1, le=24)
+    repeat_days: list[str] | None = None
+    n_day_interval: int | None = Field(default=None, ge=1, le=30)
 
 
 class ChoreUpdate(BaseModel):
@@ -28,6 +30,8 @@ class ChoreUpdate(BaseModel):
     start_time: dtime | None = None
     window_hours: int | None = Field(default=None, ge=1, le=24)
     is_active: bool | None = None
+    repeat_days: list[str] | None = None
+    n_day_interval: int | None = None
 
 
 class ChoreRead(BaseModel):
@@ -42,6 +46,8 @@ class ChoreRead(BaseModel):
     start_time: dtime | None
     window_hours: int | None
     is_active: bool
+    repeat_days: list[str] | None
+    n_day_interval: int | None
     created_at: datetime
 
 

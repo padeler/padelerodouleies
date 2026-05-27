@@ -12,6 +12,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    JSON,
     String,
     Time,
     func,
@@ -55,6 +56,8 @@ class Chore(Base):
     is_repeating = Column(Boolean, nullable=False, default=True)
     start_time = Column(Time, nullable=True)  # NULL for one-time or flexible chores
     window_hours = Column(Integer, nullable=True)  # NULL for one-time or flexible chores
+    repeat_days = Column(JSON, nullable=True)  # e.g. ["Mon", "Wed", "Fri"] — NULL means daily
+    n_day_interval = Column(Integer, nullable=True)  # e.g. 7 — NULL means not used
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 

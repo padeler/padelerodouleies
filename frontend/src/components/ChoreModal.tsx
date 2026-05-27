@@ -19,7 +19,16 @@ const choreSchema = z.object({
   is_repeating: z.boolean(),
   start_time: z.string().nullable().optional(),
   window_hours: z.number().int().min(1).max(24).optional(),
+  repeat_pattern: z.enum(['daily', 'weekly', 'every_n_days']),
+  repeat_days: z.array(z.string()).optional(),
+  n_day_interval: z.number().int().min(1).max(30).optional(),
 });
+
+function getRepeatPattern(chore?: { n_day_interval?: number | null; repeat_days?: string[] | null }): 'daily' | 'weekly' | 'every_n_days' {
+  if (chore?.n_day_interval) return 'every_n_days';
+  if (chore?.repeat_days?.length) return 'weekly';
+  return 'daily';
+}
 
 type ChoreForm = z.infer<typeof choreSchema>;
 
@@ -43,6 +52,9 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     is_repeating: chore?.is_repeating ?? true,
     start_time: chore?.start_time ?? undefined,
     window_hours: chore?.window_hours ?? undefined,
+    repeat_pattern: getRepeatPattern(chore),
+    repeat_days: chore?.repeat_days ?? [],
+    n_day_interval: chore?.n_day_interval ?? undefined,
   };
 
   const { control, handleSubmit, formState: { errors }, watch } = useForm<ChoreForm>({
@@ -51,11 +63,23 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
   });
 
   const isRepeating = watch('is_repeating');
+  const repeatPattern = watch('repeat_pattern');
 
   const mutate = useMutation({
     mutationFn: async (data: ChoreForm) => {
-      const payload = { ...data };
+      const payload: Record<string, unknown> = { ...data };
       if (payload.start_time === '') delete payload.start_time;
+      // Map repeat_pattern to backend fields
+      if (payload.repeat_pattern === 'daily') {
+        payload.repeat_days = null;
+        payload.n_day_interval = null;
+      } else if (payload.repeat_pattern === 'weekly') {
+        payload.repeat_days = payload.repeat_days || [];
+        payload.n_day_interval = null;
+      } else if (payload.repeat_pattern === 'every_n_days') {
+        payload.repeat_days = null;
+      }
+      delete payload.repeat_pattern;
       if (chore) {
         return updateChore(chore.id, payload);
       }
@@ -159,6 +183,60 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
           </div>
           {isRepeating && (
             <>
+              <div className="admin-form-group">
+                <label>{t('chore.repeat_pattern')}</label>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  {(['daily', 'weekly', 'every_n_days'] as const).map((pattern) => (
+                    <label key={pattern} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <input
+                        type="radio"
+                        name="repeat_pattern"
+                        value={pattern}
+                        checked={repeatPattern === pattern}
+                        onChange={() => {
+                          const { getField: getF } = control as any;
+                          getF('repeat_pattern')?.onChange(pattern);
+                        }}
+                      />
+                      {pattern === 'daily' ? t('chore.daily') : pattern === 'weekly' ? t('chore.weekly') : t('chore.every_n_days')}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {repeatPattern === 'weekly' && (
+                <div className="admin-form-group">
+                  <label>{t('chore.repeat_days_label')}</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
+                      const current = watch('repeat_days') || [];
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          className={`day-toggle ${current.includes(day) ? 'day-toggle-active' : ''}`}
+                          onClick={() => {
+                            const next = current.includes(day)
+                              ? current.filter((d) => d !== day)
+                              : [...current, day];
+                            const { getField: getF } = control as any;
+                            getF('repeat_days')?.onChange(next);
+                          }}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {repeatPattern === 'every_n_days' && (
+                <div className="admin-form-group">
+                  <label>{t('chore.n_days_label')}</label>
+                  <Controller name="n_day_interval" control={control} render={({ field }) => (
+                    <input {...field} type="number" min={1} max={30} onChange={(e) => field.onChange(Number(e.target.value))} />
+                  )} />
+                </div>
+              )}
               <div className="admin-form-group">
                 <label>{t('chore.start_time')}</label>
                 <Controller name="start_time" control={control} render={({ field }) => (

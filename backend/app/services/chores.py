@@ -18,6 +18,7 @@ def visible_chores_for(user_id: int, now: datetime, db: Session) -> list[Chore]:
     A chore is visible when:
     - it is active and repeating,
     - the current local time falls inside today's window (start_time .. start_time + window_hours),
+      or the chore has no time window set (visible all day),
     - no one (pooled) or the user (individual) has already claimed or been approved for this window.
     """
     local_now = now.replace(tzinfo=TZ) if now.tzinfo is None else now.astimezone(TZ)
@@ -27,12 +28,13 @@ def visible_chores_for(user_id: int, now: datetime, db: Session) -> list[Chore]:
     active = (
         db.query(Chore)
         .filter(Chore.is_active == True, Chore.is_repeating == True)
-        .filter(Chore.start_time.isnot(None), Chore.window_hours.isnot(None))
         .all()
     )
 
     result: list[Chore] = []
     for chore in active:
+        if not _matches_day(chore, today):
+            continue
         if not _is_in_window(chore.start_time, chore.window_hours, today, now_time):
             continue
         if _is_already_done(chore, user_id, today, db):
@@ -44,6 +46,9 @@ def visible_chores_for(user_id: int, now: datetime, db: Session) -> list[Chore]:
 
 def _is_in_window(start: time | None, window: int | None, today: date, now: time) -> bool:
     """Check whether `now` falls inside [start, start + window_hours) on `today`, allowing wrap past midnight."""
+    if start is None and window is None:
+        # No time window set → visible all day (24h window from midnight)
+        return True
     if start is None or window is None:
         return False
     from datetime import datetime as _dt
@@ -59,6 +64,18 @@ def _is_in_window(start: time | None, window: int | None, today: date, now: time
         window_end = window_start + timedelta(hours=window)
 
     return window_start <= now_dt < window_end
+
+
+def _matches_day(chore: Chore, today: date) -> bool:
+    """Check if today is a valid day for this chore's recurrence pattern."""
+    if chore.n_day_interval is not None and chore.n_day_interval > 0:
+        days_since = (today - chore.created_at.date()).days
+        return days_since % chore.n_day_interval == 0
+    if chore.repeat_days is not None and len(chore.repeat_days) > 0:
+        weekday_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        today_name = weekday_names[today.weekday()]
+        return today_name in chore.repeat_days
+    return True
 
 
 def _is_already_done(chore: Chore, user_id: int, today: date, db: Session) -> bool:

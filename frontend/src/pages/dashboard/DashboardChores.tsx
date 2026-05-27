@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getVisibleChores, claimChore } from '../../api/client';
+import { getVisibleChores, claimChore, getPendingStars } from '../../api/client';
 import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { VisibleChore } from '../../lib/types';
@@ -20,13 +20,13 @@ function ChoreCard({ chore }: { chore: VisibleChore }) {
     <div className={`chore-card chore-scope-${chore.scope}`}>
       <div className="chore-icon-wrap">
         <img
-          src={`/api/icons/svg/${chore.icon_name}`}
+          src={chore.icon_name.startsWith('/') ? chore.icon_name : `/api/icons/svg/${chore.icon_name}`}
           alt=""
           className="chore-icon"
         />
       </div>
       <h3 className="chore-title">{chore.title}</h3>
-      <div className="chore-points">+{chore.points_value} ⭐</div>
+      <div className="chore-points">+{chore.points_value} ★</div>
       <button
         className="chore-claim-btn"
         type="button"
@@ -57,17 +57,38 @@ export function DashboardChores() {
     refetchInterval: 30_000,
   });
 
+  const { data: pendingData } = useQuery({
+    queryKey: ['pending-stars'],
+    queryFn: getPendingStars,
+    enabled: user?.role !== 'admin',
+  });
+
   if (isLoading) return <div className="page-loading">{t('common.loading')}</div>;
 
   const chores = data ?? [];
+  const pendingStars = pendingData?.pending_stars ?? 0;
 
   return (
     <div className="dashboard-chores">
       <div className="dashboard-greeting">
+        {user && (
+          <img
+            className="dashboard-avatar"
+            src={user.avatar_kind === 'image' ? user.avatar_value : `/api/icons/svg/${user.avatar_value}`}
+            alt=""
+          />
+        )}
         <h2>
           {t('login.welcome')} {user?.name}!
         </h2>
-        <div className="stars-display">{user?.current_stars ?? 0} ⭐</div>
+        {user?.role !== 'admin' && (
+          <div className="stars-display">
+            {pendingStars > 0 && (
+              <span className="pending-stars" title="Pending stars">{pendingStars}☆ </span>
+            )}
+            <span className="confirmed-stars">{user?.current_stars ?? 0} ★</span>
+          </div>
+        )}
       </div>
       {chores.length === 0 ? (
         <div className="empty-state">

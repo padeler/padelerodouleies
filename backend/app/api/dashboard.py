@@ -35,6 +35,34 @@ def get_visible_chores(
     ]
 
 
+@router.get("/pending-stars")
+def get_pending_stars(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> dict:
+    """Return sum of points_value for all pending claims of this user."""
+    claims = (
+        db.query(PendingClaim)
+        .join(Chore, PendingClaim.chore_id == Chore.id)
+        .filter(PendingClaim.user_id == current_user.id)
+        .all()
+    )
+    pending_stars = sum(c.chore.points_value for c in claims)
+    return {
+        "pending_stars": pending_stars,
+        "claims": [
+            {
+                "claim_id": c.id,
+                "chore_id": c.chore_id,
+                "chore_title": c.chore.title,
+                "points_value": c.chore.points_value,
+                "claimed_at": c.claimed_at.isoformat(),
+            }
+            for c in claims
+        ],
+    }
+
+
 @router.post("/chores/{chore_id}/claim")
 async def claim_chore(
     chore_id: int,
@@ -63,7 +91,17 @@ async def claim_chore(
     db.add(PendingClaim(user_id=current_user.id, chore_id=chore_id))
     db.commit()
 
+    # Calculate pending stars for this user
+    user_claims = (
+        db.query(PendingClaim)
+        .join(Chore, PendingClaim.chore_id == Chore.id)
+        .filter(PendingClaim.user_id == current_user.id)
+        .all()
+    )
+    pending_stars = sum(c.chore.points_value for c in user_claims)
+
     await broadcaster.emit("pending_claims_changed", {"count": db.query(PendingClaim).count()}, "admins")
+    await broadcaster.emit("pending_stars_changed", {"user_id": current_user.id, "pending_stars": pending_stars}, "user", user_id=current_user.id)
     audience = "all" if chore.scope == "pooled" else "user"
     await broadcaster.emit(
         "visible_chores_changed", {"user_id": current_user.id}, audience, user_id=current_user.id,

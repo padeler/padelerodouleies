@@ -7,6 +7,7 @@ export interface AuthUser {
   avatar_value: string;
   role: 'admin' | 'user';
   current_stars: number;
+  pending_stars: number;
   preferred_locale: string;
   preferred_theme: string;
 }
