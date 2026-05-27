@@ -37,3 +37,4 @@ Thumbs.db
 .claude/
 venv
 backend/app/icons/svg
+.playwright-mcp/

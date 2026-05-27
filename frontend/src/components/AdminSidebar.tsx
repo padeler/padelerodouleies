@@ -5,12 +5,12 @@ import { useT } from '../i18n/store';
 import './AdminSidebar.css';
 
 const navItems = [
-  { path: 'approvals', key: 'nav.approvals' },
-  { path: 'chores', key: 'nav.chores' },
-  { path: 'rewards', key: 'nav.rewards' },
-  { path: 'users', key: 'nav.users' },
-  { path: 'fulfillment', key: 'nav.fulfillment' },
-  { path: 'activity', key: 'nav.activity' },
+  { path: '/admin/approvals', key: 'nav.approvals' },
+  { path: '/admin/chores', key: 'nav.chores' },
+  { path: '/admin/rewards', key: 'nav.rewards' },
+  { path: '/admin/users', key: 'nav.users' },
+  { path: '/admin/fulfillment', key: 'nav.fulfillment' },
+  { path: '/admin/activity', key: 'nav.activity' },
 ];
 
 export function AdminSidebar() {

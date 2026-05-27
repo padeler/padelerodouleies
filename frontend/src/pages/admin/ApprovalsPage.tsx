@@ -34,7 +34,7 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
       </div>
       <div style={{ marginBottom: 8, fontSize: 14 }}>
         <img src={`/api/icons/svg/${claim.chore_icon}`} alt="" style={{ width: 20, height: 20, verticalAlign: 'middle', marginRight: 6 }} />
-        {t('chore.' + (claim.chore_title_el ? 'title_el' : 'title_en'))}
+        {t('chore.label')}
         {' — '}
         {claim.chore_title_el}
       </div>
@@ -73,7 +73,7 @@ export function ApprovalsPage() {
   });
 
   if (isLoading) return <div>{t('common.loading')}</div>;
-  if (error) return <div style={{ color: '#e55' }}>Error loading claims: {error.message || String(error)}</div>;;
+  if (error) return <div style={{ color: '#e55' }}>Error loading claims: {error.message || String(error)}</div>;
 
   return (
     <div>

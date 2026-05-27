@@ -3,10 +3,10 @@ import { useT } from '../i18n/store';
 import './KidSidebar.css';
 
 const navItems = [
-  { path: 'chores', key: 'nav.chores' },
-  { path: 'marketplace', key: 'nav.marketplace' },
-  { path: 'history', key: 'nav.history' },
-  { path: 'leaderboard', key: 'nav.leaderboard' },
+  { path: '/dashboard/chores', key: 'nav.chores' },
+  { path: '/dashboard/marketplace', key: 'nav.marketplace' },
+  { path: '/dashboard/history', key: 'nav.history' },
+  { path: '/dashboard/leaderboard', key: 'nav.leaderboard' },
 ];
 
 export function KidSidebar() {

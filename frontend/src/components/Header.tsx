@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
+import { useT } from '../i18n/store';
 import LocaleToggle from '../i18n/LocaleToggle';
 import { SettingsModal } from './SettingsModal';
 
 export function Header() {
+  const t = useT();
   const navigate = useNavigate();
   const { user, clearUser } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
@@ -29,12 +31,12 @@ export function Header() {
             className="settings-btn"
             type="button"
             onClick={() => setShowSettings(true)}
-            title="Settings"
+            title={t('nav.settings')}
           >
             ⚙
           </button>
           <button className="logout-btn" onClick={handleLogout}>
-            Exit
+            {t('nav.logout')}
           </button>
         </div>
       </header>

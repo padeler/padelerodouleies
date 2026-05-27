@@ -12,11 +12,11 @@ function getEntryColor(entry: KidHistoryEntry) {
   return 'history-default';
 }
 
-function getActionLabel(entry: KidHistoryEntry, t: (key: string) => string) {
+function getActionLabel(entry: KidHistoryEntry, t: (key: string, params?: Record<string, string>) => string) {
   if (entry.action_type === 'chore_approved') return t('history.action_approved');
-  if (entry.action_type === 'chore_declined') return t('history.action_declined');
-  if (entry.action_type === 'manual_adjust') return t('history.action_manual');
-  if (entry.action_type === 'reward_purchase') return t('history.action_purchase');
+  if (entry.action_type === 'chore_declined') return t('history.action_declined', { reason: entry.admin_note ?? '' });
+  if (entry.action_type === 'manual_adjust') return t('history.action_manual', { reason: entry.admin_note ?? '' });
+  if (entry.action_type === 'reward_purchase') return t('history.action_purchase', { title: pickBilingual(entry.chore_title_el, entry.chore_title_en, entry.admin_note ?? 'el') });
   return entry.action_type;
 }
 

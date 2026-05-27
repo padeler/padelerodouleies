@@ -46,17 +46,17 @@ export function UsersPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 className="admin-page-title" style={{ marginBottom: 0 }}>{t('nav.users')}</h2>
         <button className="admin-btn admin-btn-primary" onClick={() => setCreating(true)}>
-          {t('chore.new')}
+          {t('user.new')}
         </button>
       </div>
       <table className="admin-table">
         <thead>
           <tr>
-            <th>Avatar</th>
-            <th>Name</th>
-            <th>Role</th>
-            <th>Stars</th>
-            <th>Active</th>
+            <th>{t('user.table.avatar')}</th>
+            <th>{t('user.table.name')}</th>
+            <th>{t('user.table.role')}</th>
+            <th>{t('user.table.stars')}</th>
+            <th>{t('user.table.active')}</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -73,7 +73,7 @@ export function UsersPage() {
               <td>{user.current_stars} ⭐</td>
               <td>
                 <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
-                  {user.is_active ? 'Active' : 'Inactive'}
+                  {user.is_active ? t('common.enabled') : t('common.disabled')}
                 </span>
               </td>
               <td className="actions">
@@ -84,7 +84,7 @@ export function UsersPage() {
                   {t('stars.adjust')}
                 </button>
                 <button className="admin-btn" onClick={() => handleResetPin(user)}>
-                  Reset PIN
+                  {t('user.reset_pin')}
                 </button>
                 <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(user)}>
                   {t('common.delete')}
@@ -93,7 +93,7 @@ export function UsersPage() {
             </tr>
           ))}
           {data?.length === 0 && (
-            <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>No users</td></tr>
+            <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('user.table.empty')}</td></tr>
           )}
         </tbody>
       </table>
