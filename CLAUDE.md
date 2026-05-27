@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-Pre-implementation. The repo currently contains only product documentation (`README.md`) and a phased implementation plan (`PLAN.md`) — no application source code, no commits, no build tooling exists yet. When asked to implement features, treat `PLAN.md` as the authoritative roadmap and `README.md` as the spec; if either disagrees with code that gets written later, the code wins but flag the drift.
+Phases 1–4 complete. The repo contains a working split frontend/backend application with authentication, admin panel, kid dashboard, and realtime WebSocket support. Phase 5 (Docker deployment, LAN testing) is the remaining work. Frontend has 111 Vitest tests passing (see M4.9). When asked to implement features, treat `PLAN.md` as the authoritative roadmap and `README.md` as the spec; if either disagrees with code that gets written later, the code wins but flag the drift.
 
-## Stack & Architecture (Planned)
+## Stack & Architecture
 
 Split frontend/backend, served from one container in production. The frontend is a **Vite + React + TypeScript** SPA; the backend is a **FastAPI** ASGI app that serves the built SPA assets as static files alongside the JSON / WebSocket API. The "single container, LAN-only, long-term self-hosted maintenance" constraint is load-bearing — deviations (e.g., separate Nginx, splitting frontend into its own container) should be raised before writing code.
 
@@ -38,3 +38,10 @@ Work is sequenced as: (1) DB models + i18n scaffold → (2) Fast-Switcher auth +
 - Prefer functional style and immutability. SQLAlchemy ORM classes and Pydantic models are the natural exception on the backend; React function components with hooks are the default on the frontend (no class components).
 - Strict typing with explicit return types: Python type hints + `mypy --strict` on the backend; TypeScript `strict: true` on the frontend.
 - Minimal diffs; do not rewrite files for small changes.
+
+## Testing
+
+- **Frontend:** Vitest (v3.2.4) + jsdom + React Testing Library + MSW. Run `npm test` in `frontend/`. Tests live in `src/**/*.test.{ts,tsx}`. Test config in `vitest.config.ts`, setup in `tests/setup.ts`.
+- **Backend:** pytest + httpx for FastAPI test client. Run `pytest` in `backend/`.
+- MSW handlers registered via `server.use()` are NOT consumed after a single match — use a closure variable to track call count for sequential response patterns.
+- React 19 + testing-library compatibility: jsdom over happy-dom, `expect.extend(matchers)` pattern for jest-dom, `@testing-library/user-event` for mutation flows that require proper event sequencing.

@@ -58,9 +58,9 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * **Frontend:** The root route component calls `GET /api/bootstrap/status` on mount; when `first_run` is true, it renders the first-run admin form (Milestone 2.5) instead of the Fast Switcher.
   * *Test:* Unit test confirms `is_first_run()` returns `True` against an empty fixture DB and `False` after a single `User` row is inserted. Integration test against `GET /api/bootstrap/status` returns the expected JSON for both states.
 
-* [x] **Milestone 1.6: Icon Catalog Curation** — DONE (minimal test set, full catalog deferred to end of project)
-  * Choose an icon set with a permissive self-hosting license (recommended: Lucide MIT, or the FontAwesome Free subset). Vendor the chosen SVGs under `backend/app/icons/svg/` and expose them via FastAPI's `StaticFiles` mount at `/icons/<name>.svg`. The catalog itself is exposed via `GET /api/icons/catalog` so the frontend renders without bundling SVGs into the JS payload.
-  * Hand-curate ~200 icons covering the real-world domain:
+* [x] **Milestone 1.6: Icon Catalog Curation** — DONE (109 icons, 8 categories)
+  * Chose Lucide icons (MIT license). Vended SVGs under `backend/app/icons/svg/` and expose via FastAPI `StaticFiles` mount at `/api/icons/svg/{name}`. Catalog exposed via `GET /api/icons/catalog` so the frontend renders without bundling SVGs into the JS payload.
+  * Curated 109 icons across 8 categories:
     * **Hygiene & morning routine:** toothbrush, soap, shower, comb, towel.
     * **Meals:** plate, fork, fruit, water bottle, milk.
     * **Tidying:** broom, vacuum, bed, toy box, books.
@@ -71,6 +71,7 @@ These are baseline architectural calls that shape multiple milestones. Capture t
     * **Rewards:** ice cream, gift, movie reel, gamepad, ticket, balloon, swim ring.
   * Author `backend/app/icons/catalog.json` — one entry per icon with `name`, `category` (one of `hygiene | meals | tidying | school | pets | avatars | parent | rewards`, mapping 1:1 to the curation domains listed above), `svg_ref` (path under `icons/svg/`), `keywords_en[]` (3–6 terms incl. singular/plural and common synonyms), `keywords_el[]` (3–6 terms, same coverage). The `category` field drives the browse-mode grouping in Milestone 3.2. Keywords are the only text-search surface, so favour everyday parent vocabulary, not technical jargon.
   * Bake the catalog and SVG directory into the Docker image (Milestone 5.2) — no runtime fetches.
+  * Download scripts in `scripts/fetch_icons.py` (downloads from jsDelivr CDN) and `scripts/build_catalog.py` (generates catalog.json with bilingual keywords).
   * *Test:* A pytest validator loads `catalog.json` and asserts: schema conformance (all five fields present), unique `name` across the file, `category` is in the allowed enum, no empty keyword lists, every `svg_ref` resolves to a real file on disk. A throwaway script (`scripts/preview_icons.py`) renders the full catalog to a static HTML grid grouped by `category` so the parent can eyeball-review and edit keywords *before* Milestone 3.2 wires the picker up.
 
 ---
@@ -242,6 +243,13 @@ These are baseline architectural calls that shape multiple milestones. Capture t
     * `history_changed` → `{ user_id }` (frontend refetches the kid's history) → audience: `user`.
   * **Frontend hook `useRealtime()`** establishes one WebSocket per dashboard, auto-reconnects with exponential backoff, and dispatches incoming events to TanStack Query's `queryClient.invalidateQueries(...)` so the affected views refetch automatically. Optimistic updates from local mutations are preserved on reconnect via React Query's stale-while-revalidate semantics.
   * *Test:* Backend unit-test the broadcaster's `emit` audience routing with stub WebSockets. Backend integration test connects a test client to `/ws` with a valid cookie, triggers `POST /api/chores/{id}/claim`, and asserts the test client receives `pending_claims_changed`. Multi-device manual test checklist captured in `docs/realtime-test.md`: open the kid's dashboard on tablet A, open the admin approvals queue on phone B, claim a chore on A, approve from B, watch A's star counter animate up without refresh.
+
+* [x] **Milestone 4.9: Frontend Test Infrastructure** — DONE
+  * **Test framework:** Vitest (v3.2.4) with jsdom environment, configured in `frontend/vitest.config.ts`.
+  * **Component testing:** `@testing-library/react` + `@testing-library/jest-dom` matchers via `expect.extend()`. MSW (Mock Service Worker) for API interception in `frontend/tests/handlers.ts`.
+  * **Test coverage:** 111 tests across 15 files covering Zustand stores (auth, i18n), API client functions (auth, bootstrap, admin CRUD, dashboard, marketplace), React components (PinPad, IconPicker), pages (Landing, Setup, DashboardChores, Leaderboard, Marketplace, KidHistory, ApprovalsPage, ActivityPage).
+  * Run via `npm test` (runs `vitest run`).
+  * *Note:* React 19 + testing-library compatibility required switching from happy-dom to jsdom, using `expect.extend(matchers)` pattern instead of `@testing-library/jest-dom/vitest` import, and downgrading Vitest from 4.x to 3.x.
 
 ---
 
