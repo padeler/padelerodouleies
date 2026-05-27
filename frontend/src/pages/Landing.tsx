@@ -14,10 +14,9 @@ interface UserListItem {
   role: string;
 }
 
-function AvatarTile({ user }: { user: UserListItem }) {
-  const { setSelectedUserId } = useAuth();
+function AvatarTile({ user, onSelected }: { user: UserListItem; onSelected: (id: number) => void }) {
   const handleClick = () => {
-    setSelectedUserId(user.id);
+    onSelected(user.id);
   };
 
   const avatarSrc =
@@ -38,7 +37,7 @@ function AvatarTile({ user }: { user: UserListItem }) {
 
 export function Landing() {
   const navigate = useNavigate();
-  const { setUser, selectedUserId, clearUser } = useAuth();
+  const { setUser, selectedUserId, clearUser, setSelectedUserId } = useAuth();
   const [showPin, setShowPin] = useState(false);
   const [lockedSeconds, setLockedSeconds] = useState<number | null>(null);
 
@@ -91,7 +90,7 @@ export function Landing() {
       {users && (
         <div className="avatar-grid">
           {users.map((user) => (
-            <AvatarTile key={user.id} user={user} />
+            <AvatarTile key={user.id} user={user} onSelected={(id) => { setSelectedUserId(id); setShowPin(true); }} />
           ))}
         </div>
       )}

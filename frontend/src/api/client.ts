@@ -1,6 +1,7 @@
 const BASE = '/api';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  console.log('[API] →', init?.method || 'GET', `${BASE}${path}`);
   const resp = await fetch(`${BASE}${path}`, {
     ...init,
     credentials: 'include',
@@ -9,6 +10,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init?.headers,
     },
   });
+  console.log('[API] ←', resp.status, path);
   if (!resp.ok && resp.status !== 401 && resp.status !== 423) {
     const body = await resp.json().catch(() => ({}));
     throw new Error(body.detail || `HTTP ${resp.status}`);
@@ -95,6 +97,10 @@ export async function bootstrapSetup(name: string, avatarKind: string, avatarVal
     method: 'POST',
     body: JSON.stringify({ name, avatar_kind: avatarKind, avatar_value: avatarValue, pin }),
   });
+}
+
+export async function getTranslations() {
+  return request<Record<string, Record<string, string>>>('/i18n/translations');
 }
 
 /* -- Admin endpoints -- */

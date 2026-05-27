@@ -53,4 +53,5 @@ def bootstrap_setup(req: BootstrapSetupRequest, db: Session = Depends(get_sessio
 
     resp = JSONResponse(status_code=201, content=data.model_dump())
     set_session_cookie(resp, uid)
+    print(f'[Bootstrap] session cookie set for user id={uid}')
     return resp

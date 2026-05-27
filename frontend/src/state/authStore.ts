@@ -21,7 +21,16 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   selected_user_id: null,
-  setUser: (user) => set({ user }),
-  clearUser: () => set({ user: null, selected_user_id: null }),
-  setSelectedUserId: (id) => set({ selected_user_id: id }),
+  setUser: (user) => {
+    console.log('[Auth] setUser:', user?.name || 'NULL', 'role:', user?.role);
+    set({ user });
+  },
+  clearUser: () => {
+    console.log('[Auth] clearUser');
+    set({ user: null, selected_user_id: null });
+  },
+  setSelectedUserId: (id) => {
+    console.log('[Auth] setSelectedUserId:', id);
+    set({ selected_user_id: id });
+  },
 }));

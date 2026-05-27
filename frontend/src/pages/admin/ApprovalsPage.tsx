@@ -67,12 +67,13 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
 
 export function ApprovalsPage() {
   const t = useT();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['pending-claims'],
     queryFn: getPendingClaims,
   });
 
   if (isLoading) return <div>{t('common.loading')}</div>;
+  if (error) return <div style={{ color: '#e55' }}>Error loading claims: {error.message || String(error)}</div>;;
 
   return (
     <div>
