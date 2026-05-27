@@ -7,6 +7,8 @@ import { createChore, updateChore, uploadChoreImage } from '../api/client';
 import { useT } from '../i18n/store';
 import type { Chore } from '../lib/types';
 import { IconPicker } from './IconPicker';
+import { TimePicker24h } from './TimePicker24h';
+import './TimePicker24h.css';
 
 const choreSchema = z.object({
   title: z.string().min(1, 'Required').max(200),
@@ -107,14 +109,16 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
                 className={`admin-btn ${iconTab === 'icon' ? 'admin-btn-primary' : ''}`}
                 onClick={() => setIconTab('icon')}
               >
-                {t('icon_picker.tab_icon')}
+                <span className="btn-icon">✦</span>
+                <span className="btn-text">{t('icon_picker.tab_icon')}</span>
               </button>
               <button
                 type="button"
                 className={`admin-btn ${iconTab === 'upload' ? 'admin-btn-primary' : ''}`}
                 onClick={() => setIconTab('upload')}
               >
-                {t('icon_picker.tab_upload')}
+                <span className="btn-icon">⬆</span>
+                <span className="btn-text">{t('icon_picker.tab_upload')}</span>
               </button>
             </div>
             {iconTab === 'icon' ? (
@@ -156,11 +160,8 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
               <div className="admin-form-group">
                 <label>{t('chore.start_time')}</label>
                 <Controller name="start_time" control={control} render={({ field }) => (
-                  <input {...field} type="time" step={1800} />
+                  <TimePicker24h value={field.value} onChange={field.onChange} />
                 )} />
-                <div style={{ fontSize: 11, color: 'var(--text-muted, #888)', marginTop: 4 }}>
-                  {t('chore.time_optional')}
-                </div>
               </div>
               <div className="admin-form-group">
                 <label>{t('chore.window')}</label>
@@ -173,10 +174,12 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
           )}
           <div className="admin-form-actions">
             <button type="button" className="admin-btn" onClick={onClose}>
-              {t('common.cancel')}
+              <span className="btn-icon">✕</span>
+              <span className="btn-text">{t('common.cancel')}</span>
             </button>
             <button type="submit" className="admin-btn admin-btn-primary" disabled={mutate.isPending}>
-              {t('common.save')}
+              <span className="btn-icon">✓</span>
+              <span className="btn-text">{t('common.save')}</span>
             </button>
           </div>
         </form>

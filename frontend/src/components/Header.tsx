@@ -46,7 +46,8 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
             ⚙
           </button>
           <button className="logout-btn" onClick={handleLogout}>
-            {t('nav.logout')}
+            <span className="btn-icon">⏻</span>
+            <span className="btn-text">{t('nav.logout')}</span>
           </button>
         </div>
       </header>

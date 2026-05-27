@@ -1,0 +1,44 @@
+.time-picker-24h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-picker-24h select {
+  width: 72px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-s, rgba(255, 255, 255, 0.05));
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.time-picker-24h select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.time-picker-sep {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  user-select: none;
+}
+
+.time-picker-label {
+  font-size: 11px;
+  color: var(--text-muted, #888);
+  margin-left: 8px;
+}
+
+@media (max-width: 768px) {
+  .time-picker-24h select {
+    width: 64px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+}

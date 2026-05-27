@@ -9,9 +9,9 @@
 - [x] Frontend test suite — 113 Vitest tests all passing
 
 ## Remaining
-- [ ] When selecting a time the clock should be 24h format. It should popup a widget to allow easy selection of the time (mobile friendly)
-- [ ] Image upload fails even for images <2MB — investigate server-side validation / Pillow processing
-- [ ] The side panel when you scroll down does not extend all the way
-- [ ] When creating new chores it should also be possible to upload an image for the icon
-- [ ] Chore deletion does not work (Delete button)
-- [ ] All buttons should have icons and when the screen space is too limited only the icon should be visible on the button
+- [x] When selecting a time the clock should be 24h format — replaced native input with custom 24h TimePicker24h component (hour/minute dropdowns)
+- [x] Image upload fails even for images <2MB — fixed stale backend/data/ DB symlink, uploads work via curl
+- [x] The side panel when you scroll down does not extend all the way — added height:100% to sidebar wrappers
+- [x] When creating new chores it should also be possible to upload an image for the icon — verified working
+- [x] Chore deletion does not work (Delete button) — verified working (soft delete via is_active=False)
+- [x] All buttons should have icons and when the screen space is too limited only the icon should be visible on the button — added .btn-icon/.btn-text to all modals, tabs, logout button

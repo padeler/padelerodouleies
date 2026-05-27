@@ -72,10 +72,12 @@ export function AdjustStarsModal({ user, onClose }: AdjustStarsModalProps) {
           </div>
           <div className="admin-form-actions">
             <button type="button" className="admin-btn" onClick={onClose}>
-              {t('common.cancel')}
+              <span className="btn-icon">✕</span>
+              <span className="btn-text">{t('common.cancel')}</span>
             </button>
             <button type="submit" className="admin-btn admin-btn-primary" disabled={mutate.isPending}>
-              {t('common.confirm')}
+              <span className="btn-icon">✓</span>
+              <span className="btn-text">{t('common.confirm')}</span>
             </button>
           </div>
         </form>

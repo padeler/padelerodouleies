@@ -40,14 +40,16 @@ export function AvatarPicker({ selected, onChange }: AvatarPickerProps) {
           className={`avatar-picker-tab ${tab === 'icon' ? 'active' : ''}`}
           onClick={() => setTab('icon')}
         >
-          {t('icon_picker.tab_icon')}
+          <span className="btn-icon">✦</span>
+          <span className="btn-text">{t('icon_picker.tab_icon')}</span>
         </button>
         <button
           type="button"
           className={`avatar-picker-tab ${tab === 'upload' ? 'active' : ''}`}
           onClick={() => setTab('upload')}
         >
-          {t('icon_picker.tab_upload')}
+          <span className="btn-icon">⬆</span>
+          <span className="btn-text">{t('icon_picker.tab_upload')}</span>
         </button>
       </div>
       {tab === 'icon' ? (

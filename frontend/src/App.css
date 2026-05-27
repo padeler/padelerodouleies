@@ -43,6 +43,27 @@
   color: var(--text);
   cursor: pointer;
   min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logout-btn .btn-icon {
+  display: inline;
+  font-size: 14px;
+}
+
+.logout-btn .btn-text {
+  display: inline;
+}
+
+@media (max-width: 360px) {
+  .logout-btn .btn-text {
+    display: none;
+  }
+  .logout-btn {
+    padding: 6px 8px;
+  }
 }
 
 .logout-btn:hover {

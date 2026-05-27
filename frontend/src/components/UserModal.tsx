@@ -111,10 +111,12 @@ export function UserModal({ user, onClose }: UserModalProps) {
           )}
           <div className="admin-form-actions">
             <button type="button" className="admin-btn" onClick={onClose}>
-              {t('common.cancel')}
+              <span className="btn-icon">✕</span>
+              <span className="btn-text">{t('common.cancel')}</span>
             </button>
             <button type="submit" className="admin-btn admin-btn-primary" disabled={mutate.isPending}>
-              {t('common.save')}
+              <span className="btn-icon">✓</span>
+              <span className="btn-text">{t('common.save')}</span>
             </button>
           </div>
         </form>

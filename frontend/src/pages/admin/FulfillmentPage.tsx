@@ -57,13 +57,15 @@ export function FulfillmentPage() {
           className={`admin-btn ${tab === 'claimed' ? 'admin-btn-primary' : ''}`}
           onClick={() => setTab('claimed')}
         >
-          {t('reward.claimed')}
+          <span className="btn-icon">📋</span>
+          <span className="btn-text">{t('reward.claimed')}</span>
         </button>
         <button
           className={`admin-btn ${tab === 'fulfilled' ? 'admin-btn-primary' : ''}`}
           onClick={() => setTab('fulfilled')}
         >
-          {t('reward.fulfilled')}
+          <span className="btn-icon">✓</span>
+          <span className="btn-text">{t('reward.fulfilled')}</span>
         </button>
       </div>
       {(data as FulfillmentEntry[])?.length === 0 ? (
