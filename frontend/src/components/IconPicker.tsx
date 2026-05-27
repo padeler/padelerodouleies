@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getIconCatalog } from '../api/client';
 import type { IconCatalogItem } from '../lib/types';
@@ -19,10 +19,12 @@ const categoryKeyMap: Record<string, string> = {
 
 interface IconPickerProps {
   selected?: string;
-  onChange: (iconName: string) => void;
+  onChange: (iconName: string) => void | Promise<void>;
+  /** When true, show only one category at a time in a compact layout. Default: false (full picker). */
+  avatarMode?: boolean;
 }
 
-export function IconPicker({ selected, onChange }: IconPickerProps) {
+export function IconPicker({ selected, onChange, avatarMode = false }: IconPickerProps) {
   const t = useT();
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -37,6 +39,13 @@ export function IconPicker({ selected, onChange }: IconPickerProps) {
     const set = new Set(catalog.map((i: IconCatalogItem) => i.category));
     return Array.from(set);
   }, [catalog]);
+
+  /* In avatar mode, default-select the "avatars" category */
+  useEffect(() => {
+    if (avatarMode && !selectedCategory && categories.length > 0) {
+      setSelectedCategory(categories.find((c) => c === 'avatars') ?? categories[0]);
+    }
+  }, [avatarMode, categories, selectedCategory]);
 
   const filtered = useMemo(() => {
     let items = catalog as IconCatalogItem[];
@@ -62,6 +71,48 @@ export function IconPicker({ selected, onChange }: IconPickerProps) {
     }
     return map;
   }, [filtered]);
+
+  /* In avatar mode: render a compact tab-based picker */
+  if (avatarMode) {
+    return (
+      <div className="icon-picker icon-picker-avatar-mode">
+        <div className="icon-picker-chips">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`icon-picker-chip ${selectedCategory === cat ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {categoryKeyMap[cat] ? t(categoryKeyMap[cat]) : cat}
+            </button>
+          ))}
+        </div>
+        <div className="icon-picker-grid">
+          {categories
+            .filter((cat) => selectedCategory === cat)
+            .map((cat) => {
+              const icons = catalog.filter((i: IconCatalogItem) => i.category === cat);
+              return (
+                <div key={cat} className="icon-picker-icons">
+                  {icons.map((icon) => (
+                    <button
+                      key={icon.name}
+                      type="button"
+                      className={`icon-picker-tile ${selected === icon.name ? 'selected' : ''}`}
+                      onClick={() => onChange(icon.name)}
+                      title={icon.name}
+                    >
+                      <img loading="lazy" decoding="async" src={`/api/icons/svg/${icon.name}`} alt={icon.name} />
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="icon-picker">

@@ -100,3 +100,24 @@
     font-size: 16px; /* prevents iOS zoom on input focus */
   }
 }
+
+/* Avatar mode: compact picker with tab-style category chips */
+
+.icon-picker-avatar-mode .icon-picker-grid {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.icon-picker-avatar-mode .icon-picker-tile {
+  width: 40px;
+  height: 40px;
+}
+
+.icon-picker-avatar-mode .icon-picker-chips {
+  margin-bottom: 8px;
+}
+
+.icon-picker-avatar-mode .icon-picker-chip {
+  font-size: 11px;
+  padding: 3px 8px;
+}
