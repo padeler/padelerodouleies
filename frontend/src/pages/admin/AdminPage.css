@@ -48,6 +48,28 @@
   font-size: 13px;
   cursor: pointer;
   min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-btn .btn-icon {
+  display: inline;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.admin-btn .btn-text {
+  display: inline;
+}
+
+@media (max-width: 540px) {
+  .admin-btn .btn-text {
+    display: none;
+  }
+  .admin-btn {
+    padding: 6px 10px;
+  }
 }
 
 .admin-btn:hover {

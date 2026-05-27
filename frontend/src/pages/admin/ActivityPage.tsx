@@ -5,7 +5,13 @@ import type { HistoryEntry, AdminUser } from '../../lib/types';
 import { useState } from 'react';
 import './AdminPage.css';
 
-const actionTypes = ['chore_approved', 'chore_declined', 'manual_adjust', 'reward_purchase', 'reward_refund'];
+const actionTypes = [
+  { value: 'chore_approved', key: 'history.action_label_approved' },
+  { value: 'chore_declined', key: 'history.action_label_declined' },
+  { value: 'manual_adjust', key: 'history.action_label_manual' },
+  { value: 'reward_purchase', key: 'history.action_label_purchase' },
+  { value: 'reward_refund', key: 'history.action_label_refund' },
+];
 
 export function ActivityPage() {
   const t = useT();
@@ -45,7 +51,7 @@ export function ActivityPage() {
       <h2 className="admin-page-title">{t('nav.activity')}</h2>
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' }}>User</label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' }}>{t('nav.users')}</label>
           <select
             value={userId ?? ''}
             onChange={(e) => setUserId(e.target.value ? Number(e.target.value) : undefined)}
@@ -58,7 +64,7 @@ export function ActivityPage() {
           </select>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' }}>Action</label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' }}>{t('chore.scope')}</label>
           <select
             value={actionType}
             onChange={(e) => setActionType(e.target.value)}
@@ -66,7 +72,7 @@ export function ActivityPage() {
           >
             <option value="">All</option>
             {actionTypes.map((at) => (
-              <option key={at} value={at}>{at}</option>
+              <option key={at.value} value={at.value}>{t(at.key)}</option>
             ))}
           </select>
         </div>
@@ -88,14 +94,17 @@ export function ActivityPage() {
             style={{ padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg-s, rgba(255,255,255,0.05))', color: 'var(--text)' }}
           />
         </div>
-        <button className="admin-btn" onClick={clearFilters}>Clear</button>
+        <button className="admin-btn" onClick={clearFilters}>
+          <span className="btn-icon">✕</span>
+          <span className="btn-text">{t('btn.clear')}</span>
+        </button>
       </div>
       <div className="admin-table-wrap">
         <table className="admin-table">
         <thead>
           <tr>
             <th>Time</th>
-            <th>User</th>
+            <th>{t('nav.users')}</th>
             <th>Action</th>
             <th>Delta</th>
             <th>Note</th>
@@ -106,7 +115,7 @@ export function ActivityPage() {
             <tr key={entry.id}>
               <td>{new Date(entry.timestamp).toLocaleString()}</td>
               <td>{entry.user_name}</td>
-              <td>{entry.action_type}</td>
+              <td>{entry.action_label || entry.action_type}</td>
               <td style={{ color: entry.points_delta >= 0 ? '#4c8' : '#e55' }}>
                 {entry.points_delta > 0 ? '+' : ''}{entry.points_delta}
               </td>
@@ -116,7 +125,7 @@ export function ActivityPage() {
             </tr>
           ))}
           {!data?.entries?.length && (
-            <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>No activity yet</td></tr>
+            <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('history.empty')}</td></tr>
           )}
         </tbody>
       </table>

@@ -9,7 +9,7 @@ import type { AdminUser, AvatarSelection } from '../lib/types';
 import { AvatarPicker } from './AvatarPicker';
 
 const userSchema = z.object({
-  name: z.string().min(1, 'Required'),
+  name: z.string().min(1, 'Required').max(100),
   role: z.enum(['admin', 'user']),
   pin: z.string().length(4, '4 digits required').regex(/^\d{4}$/, 'PIN must be numeric').optional(),
 });
@@ -28,6 +28,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
     kind: user?.avatar_kind ?? 'icon',
     value: user?.avatar_value ?? 'fox',
   });
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const defaultValues: UserForm = {
     name: user?.name ?? '',
@@ -60,14 +61,24 @@ export function UserModal({ user, onClose }: UserModalProps) {
       qc.invalidateQueries({ queryKey: ['admin-users'] });
       onClose();
     },
+    onError: (err) => {
+      if (err instanceof Error) {
+        setServerError(err.message);
+      }
+    },
   });
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>
-          {user ? t('common.edit') + ': ' + user.name : t('nav.users')}
+          {user ? t('common.edit') + ': ' + user.name : t('user.new')}
         </h3>
+        {serverError && (
+          <div style={{ padding: '8px 12px', marginBottom: 12, background: 'rgba(238,85,85,0.15)', borderRadius: 6, color: '#e55', fontSize: 13 }}>
+            {serverError}
+          </div>
+        )}
         <form onSubmit={handleSubmit((data) => mutate.mutate(data))}>
           <div className="admin-form-group">
             <label>{t('bootstrap.name')}</label>
@@ -77,7 +88,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
             {errors.name && <div className="field-error">{errors.name.message}</div>}
           </div>
           <div className="admin-form-group">
-            <label>Role</label>
+            <label>{t('user.role')}</label>
             <Controller name="role" control={control} render={({ field }) => (
               <select {...field}>
                 <option value="user">User</option>
@@ -86,7 +97,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
             )} />
           </div>
           <div className="admin-form-group">
-            <label>Avatar</label>
+            <label>{t('user.avatar')}</label>
             <AvatarPicker selected={avatar} onChange={setAvatar} />
           </div>
           {!user && (

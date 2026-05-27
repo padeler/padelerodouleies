@@ -1,19 +1,16 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMarketplaceRewards, redeemReward, contributeReward } from '../../api/client';
-import { useT, useLocale } from '../../i18n/store';
+import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { MarketplaceReward } from '../../lib/types';
 import './Marketplace.css';
 
 function RewardCard({ reward }: { reward: MarketplaceReward }) {
   const t = useT();
-  const locale = useLocale();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const stars = user?.current_stars ?? 0;
-  const title = locale === 'en' ? reward.title_en : reward.title_el;
-  const desc = locale === 'en' ? reward.description_en : reward.description_el;
 
   const redeemMutation = useMutation({
     mutationFn: () => redeemReward(reward.id),
@@ -31,8 +28,8 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
       <div className="reward-icon-wrap">
         <img src={`/api/icons/svg/${reward.icon_name}`} alt="" className="reward-icon" />
       </div>
-      <h3 className="reward-title">{title}</h3>
-      {desc && <p className="reward-desc">{desc}</p>}
+      <h3 className="reward-title">{reward.title}</h3>
+      {reward.description && <p className="reward-desc">{reward.description}</p>}
       <div className="reward-cost">{reward.cost_stars} ⭐</div>
       <button
         className={`redeem-btn ${canAfford ? '' : 'redeem-locked'}`}
@@ -54,11 +51,9 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
 
 function CollabCard({ reward }: { reward: MarketplaceReward }) {
   const t = useT();
-  const locale = useLocale();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const stars = user?.current_stars ?? 0;
-  const title = locale === 'en' ? reward.title_en : reward.title_el;
   const current = reward.current_stars ?? 0;
   const target = reward.target_stars ?? reward.cost_stars;
   const contributors = reward.contributors ?? [];
@@ -81,7 +76,7 @@ function CollabCard({ reward }: { reward: MarketplaceReward }) {
     <div className="collab-card">
       <div className="collab-header">
         <img src={`/api/icons/svg/${reward.icon_name}`} alt="" className="collab-icon" />
-        <h3 className="collab-title">{title}</h3>
+        <h3 className="collab-title">{reward.title}</h3>
       </div>
       <div className="collab-progress-wrap">
         <div className="collab-progress-bar">

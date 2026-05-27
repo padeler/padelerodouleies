@@ -46,7 +46,8 @@ export function UsersPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 className="admin-page-title" style={{ marginBottom: 0 }}>{t('nav.users')}</h2>
         <button className="admin-btn admin-btn-primary" onClick={() => setCreating(true)}>
-          {t('user.new')}
+          <span className="btn-icon">+</span>
+          <span className="btn-text">{t('user.new')}</span>
         </button>
       </div>
       <div className="admin-table-wrap">
@@ -78,17 +79,21 @@ export function UsersPage() {
                   </span>
                 </td>
                 <td className="actions">
-                  <button className="admin-btn" onClick={() => setEditing(user)}>
-                    {t('common.edit')}
+                  <button className="admin-btn" onClick={() => setEditing(user)} title={t('btn.edit')}>
+                    <span className="btn-icon">✎</span>
+                    <span className="btn-text">{t('btn.edit')}</span>
                   </button>
-                  <button className="admin-btn" onClick={() => setAdjusting(user)}>
-                    {t('stars.adjust')}
+                  <button className="admin-btn" onClick={() => setAdjusting(user)} title={t('btn.adjust_stars')}>
+                    <span className="btn-icon">⭐</span>
+                    <span className="btn-text">{t('btn.adjust_stars')}</span>
                   </button>
-                  <button className="admin-btn" onClick={() => handleResetPin(user)}>
-                    {t('user.reset_pin')}
+                  <button className="admin-btn" onClick={() => handleResetPin(user)} title={t('btn.reset_pin')}>
+                    <span className="btn-icon">🔑</span>
+                    <span className="btn-text">{t('btn.reset_pin')}</span>
                   </button>
-                  <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(user)}>
-                    {t('common.delete')}
+                  <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(user)} title={t('btn.delete')}>
+                    <span className="btn-icon">🗑</span>
+                    <span className="btn-text">{t('btn.delete')}</span>
                   </button>
                 </td>
               </tr>

@@ -8,10 +8,8 @@ import type { Reward } from '../lib/types';
 import { IconPicker } from './IconPicker';
 
 const rewardSchema = z.object({
-  title_el: z.string().min(1, 'Required'),
-  title_en: z.string().min(1, 'Required'),
-  description_el: z.string().optional(),
-  description_en: z.string().optional(),
+  title: z.string().min(1, 'Required').max(200),
+  description: z.string().max(500).optional(),
   icon_name: z.string().min(1, 'Required'),
   cost_stars: z.number().int().min(1),
   is_collaborative: z.boolean(),
@@ -30,10 +28,8 @@ export function RewardModal({ reward, onClose }: RewardModalProps) {
   const qc = useQueryClient();
 
   const defaultValues: RewardForm = {
-    title_el: reward?.title_el ?? '',
-    title_en: reward?.title_en ?? '',
-    description_el: reward?.description_el ?? '',
-    description_en: reward?.description_en ?? '',
+    title: reward?.title ?? '',
+    description: reward?.description ?? '',
     icon_name: reward?.icon_name ?? 'gift',
     cost_stars: reward?.cost_stars ?? 20,
     is_collaborative: reward?.is_collaborative ?? false,
@@ -62,32 +58,32 @@ export function RewardModal({ reward, onClose }: RewardModalProps) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>
-          {reward ? t('common.edit') : t('nav.rewards')}
+          {reward ? t('common.edit') : t('reward.new')}
         </h3>
         <form onSubmit={handleSubmit((data) => mutate.mutate(data))}>
           <div className="admin-form-group">
-            <label>{t('chore.title_el_placeholder')}</label>
-            <Controller name="title_el" control={control} render={({ field }) => (
-              <input {...field} />
+            <label>{t('reward.title_placeholder')}</label>
+            <Controller name="title" control={control} render={({ field }) => (
+              <input {...field} placeholder={t('reward.title_placeholder')} />
             )} />
-            {errors.title_el && <div className="field-error">{errors.title_el.message}</div>}
+            {errors.title && <div className="field-error">{errors.title.message}</div>}
           </div>
           <div className="admin-form-group">
-            <label>{t('chore.title_en_placeholder')}</label>
-            <Controller name="title_en" control={control} render={({ field }) => (
-              <input {...field} />
+            <label>{t('chore.description_placeholder')}</label>
+            <Controller name="description" control={control} render={({ field }) => (
+              <input {...field} placeholder={t('chore.description_placeholder')} />
             )} />
-            {errors.title_en && <div className="field-error">{errors.title_en.message}</div>}
+            {errors.description && <div className="field-error">{errors.description.message}</div>}
           </div>
           <div className="admin-form-group">
-            <label>Icon</label>
+            <label>{t('chore.icon')}</label>
             <Controller name="icon_name" control={control} render={({ field }) => (
               <IconPicker selected={field.value} onChange={field.onChange} />
             )} />
             {errors.icon_name && <div className="field-error">{errors.icon_name.message}</div>}
           </div>
           <div className="admin-form-group">
-            <label>Cost (Stars)</label>
+            <label>{t('reward.cost')}</label>
             <Controller name="cost_stars" control={control} render={({ field }) => (
               <input {...field} type="number" min={1} onChange={(e) => field.onChange(Number(e.target.value))} />
             )} />
@@ -97,13 +93,13 @@ export function RewardModal({ reward, onClose }: RewardModalProps) {
             <Controller name="is_collaborative" control={control} render={({ field }) => (
               <input type="checkbox" checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />
             )} />
-            <label style={{ margin: 0 }}>Collaborative</label>
+            <label style={{ margin: 0 }}>{t('reward.collaborative')}</label>
           </div>
           <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Controller name="is_enabled" control={control} render={({ field }) => (
               <input type="checkbox" checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />
             )} />
-            <label style={{ margin: 0 }}>Enabled</label>
+            <label style={{ margin: 0 }}>{t('reward.enabled')}</label>
           </div>
           <div className="admin-form-actions">
             <button type="button" className="admin-btn" onClick={onClose}>

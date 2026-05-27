@@ -26,8 +26,7 @@ def get_visible_chores(
     return [
         {
             "id": c.id,
-            "title_el": c.title_el,
-            "title_en": c.title_en,
+            "title": c.title,
             "icon_name": c.icon_name,
             "scope": c.scope,
             "points_value": c.points_value,
@@ -102,8 +101,7 @@ def get_history(
         if r.ref_table == "chore" and r.ref_id:
             chore = db.query(Chore).filter(Chore.id == r.ref_id).first()
             if chore:
-                entry["chore_title_el"] = chore.title_el
-                entry["chore_title_en"] = chore.title_en
+                entry["chore_title"] = chore.title
                 entry["chore_icon"] = chore.icon_name
                 entry["chore_points_value"] = chore.points_value
         entries.append(entry)

@@ -16,13 +16,8 @@ function getActionLabel(entry: KidHistoryEntry, t: (key: string, params?: Record
   if (entry.action_type === 'chore_approved') return t('history.action_approved');
   if (entry.action_type === 'chore_declined') return t('history.action_declined', { reason: entry.admin_note ?? '' });
   if (entry.action_type === 'manual_adjust') return t('history.action_manual', { reason: entry.admin_note ?? '' });
-  if (entry.action_type === 'reward_purchase') return t('history.action_purchase', { title: pickBilingual(entry.chore_title_el, entry.chore_title_en, entry.admin_note ?? 'el') });
+  if (entry.action_type === 'reward_purchase') return t('history.action_purchase', { title: entry.chore_title ?? '' });
   return entry.action_type;
-}
-
-function pickBilingual(el: string | undefined, en: string | undefined, locale: string) {
-  if (locale === 'en') return en ?? el ?? '';
-  return el ?? en ?? '';
 }
 
 export function KidHistory() {
@@ -49,7 +44,7 @@ export function KidHistory() {
       ) : (
         <div className="history-timeline">
           {entries.map((entry) => {
-            const title = entry.chore_title_el || entry.chore_title_en || '';
+            const title = entry.chore_title || '';
             const label = getActionLabel(entry, t);
             const note = entry.admin_note ?? '';
             const sign = entry.points_delta >= 0 ? '+' : '';
@@ -60,26 +55,22 @@ export function KidHistory() {
                 <div className="history-content">
                   <div className="history-header">
                     <span className={`history-points ${sign}${entry.points_delta} ⭐`}>
-                      {sign}{entry.points_delta} ⭐
+                   {sign}{entry.points_delta} ⭐
                     </span>
                     <span className="history-action">{label}</span>
                   </div>
                   {title && (
                     <div className="history-chore-title">
-                      — {pickBilingual(
-                        entry.chore_title_el,
-                        entry.chore_title_en,
-                        locale,
-                      )}
+                   — {title}
                     </div>
                   )}
                   {note && <div className="history-note">{note}</div>}
                   <div className="history-time">
                     {new Date(entry.timestamp).toLocaleString(locale === 'el' ? 'el-GR' : 'en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      day: 'numeric',
-                      month: 'short',
+                   hour: '2-digit',
+                   minute: '2-digit',
+                   day: 'numeric',
+                   month: 'short',
                     })}
                   </div>
                 </div>

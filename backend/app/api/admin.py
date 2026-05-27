@@ -7,6 +7,7 @@ import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import JSONResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.db.engine import get_session
@@ -32,7 +33,7 @@ from app.schemas.admin import (
 from app.security import pins as pin_utils
 from app.security.session import require_admin
 from app.services.approvals import approve_claim, decline_claim, retroactive_decline
-from app.services.avatars import delete_avatar, save_avatar
+from app.services.avatars import delete_avatar, save_avatar, save_chore_image
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -77,7 +78,19 @@ async def upload_avatar_endpoint(
     _admin: User = Depends(require_admin),
 ) -> JSONResponse:
     try:
-        url = await save_avatar(file)
+        url = save_avatar(file)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"detail": str(e)})
+    return JSONResponse(content={"url": url})
+
+
+@router.post("/chore-images")
+async def upload_chore_image_endpoint(
+    file: UploadFile,
+    _admin: User = Depends(require_admin),
+) -> JSONResponse:
+    try:
+        url = save_chore_image(file)
     except ValueError as e:
         return JSONResponse(status_code=400, content={"detail": str(e)})
     return JSONResponse(content={"url": url})
@@ -128,7 +141,7 @@ def update_chore(
 
 
 @router.delete("/chores/{chore_id}")
-def delete_chore(
+async def delete_chore(
     chore_id: int,
     db: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
@@ -138,6 +151,7 @@ def delete_chore(
         raise HTTPException(404, "Chore not found")
     chore.is_active = False
     db.commit()
+    await broadcaster.emit("chores_changed", {}, "admins")
     return {"message": "Deleted"}
 
 
@@ -227,8 +241,7 @@ def list_pending_claims(
             user_avatar_value=user.avatar_value,
             chore_id=chore.id,
             chore_icon=chore.icon_name,
-            chore_title_el=chore.title_el,
-            chore_title_en=chore.title_en,
+            chore_title=chore.title,
             points_value=chore.points_value,
             claimed_at=claim.claimed_at,
         ))
@@ -309,6 +322,9 @@ def create_admin_user(
 ) -> JSONResponse:
     if len(req.pin) != 4 or not req.pin.isdigit():
         return JSONResponse(status_code=400, content={"detail": "PIN must be 4 digits"})
+    existing = db.query(User).filter(func.lower(User.name) == req.name.lower()).first()
+    if existing:
+        return JSONResponse(status_code=409, content={"detail": "Username already exists (case-insensitive)"})
     user = User(
         name=req.name,
         role=req.role,
@@ -335,6 +351,11 @@ def update_admin_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "User not found")
+
+    if req.name is not None:
+        existing = db.query(User).filter(func.lower(User.name) == req.name.lower(), User.id != user_id).first()
+        if existing:
+            return JSONResponse(status_code=409, content={"detail": "Username already exists (case-insensitive)"})
 
     if req.avatar_kind == "image" and req.avatar_value:
         if user.avatar_kind == "image" and user.avatar_value != req.avatar_value:
@@ -435,8 +456,7 @@ def list_fulfillment(
         FulfillmentRead(
             id=e.id,
             reward_id=e.reward_id,
-            reward_title_el=e.reward.title_el,
-            reward_title_en=e.reward.title_en,
+            reward_title=e.reward.title,
             reward_icon=e.reward.icon_name,
             user_id=e.user_id,
             user_name=e.user.name,
@@ -480,6 +500,14 @@ def list_history(
     db: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ) -> dict[str, Any]:
+    ACTION_LABELS = {
+        "chore_approved": "Approved chore",
+        "chore_declined": "Declined chore",
+        "manual_adjust": "Manual star adjustment",
+        "reward_purchase": "Reward purchase",
+        "reward_refund": "Reward refund",
+    }
+
     q = db.query(HistoryLedger).join(User, HistoryLedger.user_id == User.id)
     if user_id is not None:
         q = q.filter(HistoryLedger.user_id == user_id)
@@ -494,17 +522,18 @@ def list_history(
     return {
         "total": total,
         "entries": [
-            HistoryRead(
-                id=r.id,
-                user_id=r.user_id,
-                user_name=r.user.name,
-                action_type=r.action_type,
-                points_delta=r.points_delta,
-                ref_table=r.ref_table,
-                ref_id=r.ref_id,
-                admin_note=r.admin_note,
-                timestamp=r.timestamp,
-            ).model_dump()
+            {
+                "id": r.id,
+                "user_id": r.user_id,
+                "user_name": r.user.name,
+                "action_type": r.action_type,
+                "action_label": ACTION_LABELS.get(r.action_type, r.action_type),
+                "points_delta": r.points_delta,
+                "ref_table": r.ref_table,
+                "ref_id": r.ref_id,
+                "admin_note": r.admin_note,
+                "timestamp": r.timestamp.isoformat(),
+            }
             for r in rows
         ],
     }

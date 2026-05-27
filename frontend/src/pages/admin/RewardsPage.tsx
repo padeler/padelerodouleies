@@ -32,7 +32,8 @@ export function RewardsPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 className="admin-page-title" style={{ marginBottom: 0 }}>{t('nav.rewards')}</h2>
         <button className="admin-btn admin-btn-primary" onClick={() => setCreating(true)}>
-          {t('reward.new')}
+          <span className="btn-icon">+</span>
+          <span className="btn-text">{t('reward.new')}</span>
         </button>
       </div>
       <div className="admin-table-wrap">
@@ -40,8 +41,7 @@ export function RewardsPage() {
         <thead>
           <tr>
             <th>{t('reward.table.icon')}</th>
-            <th>{t('chore.title_el_placeholder')}</th>
-            <th>{t('chore.title_en_placeholder')}</th>
+            <th>{t('reward.title_placeholder')}</th>
             <th>{t('reward.table.cost')}</th>
             <th>{t('reward.table.collaborative')}</th>
             <th>{t('common.enabled')}</th>
@@ -54,8 +54,7 @@ export function RewardsPage() {
               <td>
                 <img src={`/api/icons/svg/${reward.icon_name}`} alt="" style={{ width: 24, height: 24 }} />
               </td>
-              <td>{reward.title_el}</td>
-              <td>{reward.title_en}</td>
+              <td>{reward.title}</td>
               <td>{reward.cost_stars} ⭐</td>
               <td>{reward.is_collaborative ? t('common.yes') : t('common.no')}</td>
               <td>
@@ -64,20 +63,23 @@ export function RewardsPage() {
                 </span>
               </td>
               <td className="actions">
-                <button className="admin-btn" onClick={() => setEditing(reward)}>
-                  {t('common.edit')}
+                <button className="admin-btn" onClick={() => setEditing(reward)} title={t('btn.edit')}>
+                  <span className="btn-icon">✎</span>
+                  <span className="btn-text">{t('btn.edit')}</span>
                 </button>
-                <button className="admin-btn" onClick={() => handleToggle(reward)}>
-                  {reward.is_enabled ? t('common.disable') : t('common.enable')}
+                <button className="admin-btn" onClick={() => handleToggle(reward)} title={reward.is_enabled ? t('btn.disable') : t('btn.enable')}>
+                  <span className="btn-icon">{reward.is_enabled ? '👁' : '👁‍🗨'}</span>
+                  <span className="btn-text">{reward.is_enabled ? t('btn.disable') : t('btn.enable')}</span>
                 </button>
-                <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(reward)}>
-                  {t('common.delete')}
+                <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(reward)} title={t('btn.delete')}>
+                  <span className="btn-icon">🗑</span>
+                  <span className="btn-text">{t('btn.delete')}</span>
                 </button>
               </td>
             </tr>
           ))}
           {data?.length === 0 && (
-            <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('reward.table.empty')}</td></tr>
+            <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('reward.table.empty')}</td></tr>
           )}
         </tbody>
       </table>

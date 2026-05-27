@@ -247,8 +247,8 @@ These are baseline architectural calls that shape multiple milestones. Capture t
 * [x] **Milestone 4.9: Frontend Test Infrastructure** — DONE
   * **Test framework:** Vitest (v3.2.4) with jsdom environment, configured in `frontend/vitest.config.ts`.
   * **Component testing:** `@testing-library/react` + `@testing-library/jest-dom` matchers via `expect.extend()`. MSW (Mock Service Worker) for API interception in `frontend/tests/handlers.ts`.
-  * **Test coverage:** 111 tests across 15 files covering Zustand stores (auth, i18n), API client functions (auth, bootstrap, admin CRUD, dashboard, marketplace), React components (PinPad, IconPicker), pages (Landing, Setup, DashboardChores, Leaderboard, Marketplace, KidHistory, ApprovalsPage, ActivityPage).
-  * Run via `npm test` (runs `vitest run`).
+  * **Test coverage:** 113 tests across 15 files covering Zustand stores (auth, i18n), API client functions (auth, bootstrap, admin CRUD, dashboard, marketplace), React components (PinPad, IconPicker), pages (Landing, Setup, DashboardChores, Leaderboard, Marketplace, KidHistory, ApprovalsPage, ActivityPage).
+  * Run via `npm test` (runs `vitest run`). All 113 passing.
   * *Note:* React 19 + testing-library compatibility required switching from happy-dom to jsdom, using `expect.extend(matchers)` pattern instead of `@testing-library/jest-dom/vitest` import, and downgrading Vitest from 4.x to 3.x.
 
 ---

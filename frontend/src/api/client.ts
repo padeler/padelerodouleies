@@ -134,15 +134,28 @@ export async function uploadAvatar(file: File) {
   return resp.json() as Promise<{ url: string }>;
 }
 
+export async function uploadChoreImage(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const resp = await fetch('/api/admin/chore-images', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({}));
+    throw new Error(body.detail || `HTTP ${resp.status}`);
+  }
+  return resp.json() as Promise<{ url: string }>;
+}
+
 /* -- Chore CRUD -- */
 
 export async function getChores() {
   return request<Array<{
     id: number;
-    title_el: string;
-    title_en: string;
-    description_el: string | null;
-    description_en: string | null;
+    title: string;
+    description: string | null;
     icon_name: string;
     scope: string;
     points_value: number;
@@ -155,10 +168,8 @@ export async function getChores() {
 }
 
 export async function createChore(data: {
-  title_el: string;
-  title_en: string;
-  description_el?: string;
-  description_en?: string;
+  title: string;
+  description?: string;
   icon_name: string;
   scope: string;
   points_value: number;
@@ -172,7 +183,7 @@ export async function createChore(data: {
   });
 }
 
-export async function updateChore(id: number, data: Partial<typeof getChores extends () => Promise<Array<infer C>> ? C : object>) {
+export async function updateChore(id: number, data: Record<string, unknown>) {
   return request<unknown>(`/admin/chores/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),
@@ -188,10 +199,8 @@ export async function deleteChore(id: number) {
 export async function getRewards() {
   return request<Array<{
     id: number;
-    title_el: string;
-    title_en: string;
-    description_el: string | null;
-    description_en: string | null;
+    title: string;
+    description: string | null;
     icon_name: string;
     cost_stars: number;
     is_collaborative: boolean;
@@ -201,10 +210,8 @@ export async function getRewards() {
 }
 
 export async function createReward(data: {
-  title_el: string;
-  title_en: string;
-  description_el?: string;
-  description_en?: string;
+  title: string;
+  description?: string;
   icon_name: string;
   cost_stars: number;
   is_collaborative: boolean;
@@ -237,8 +244,7 @@ export async function getPendingClaims() {
     user_avatar_value: string;
     chore_id: number;
     chore_icon: string;
-    chore_title_el: string;
-    chore_title_en: string;
+    chore_title: string;
     points_value: number;
     claimed_at: string;
   }>>('/admin/pending-claims');
@@ -314,8 +320,7 @@ export async function getFulfillmentQueue(status: 'claimed' | 'fulfilled') {
   return request<Array<{
     id: number;
     reward_id: number;
-    reward_title_el: string;
-    reward_title_en: string;
+    reward_title: string;
     reward_icon: string;
     user_id: number;
     user_name: string;
@@ -355,6 +360,7 @@ export async function getAdminHistory(params: {
       user_id: number;
       user_name: string;
       action_type: string;
+      action_label: string | null;
       points_delta: number;
       ref_table: string | null;
       ref_id: number | null;
@@ -364,13 +370,12 @@ export async function getAdminHistory(params: {
   }>(`/admin/history${separator}${qs}`);
 }
 
-/* -- Dashboard endpoints (Phase 4) -- */
+/* -- Dashboard endpoints -- */
 
 export async function getVisibleChores() {
   return request<Array<{
     id: number;
-    title_el: string;
-    title_en: string;
+    title: string;
     icon_name: string;
     scope: string;
     points_value: number;
@@ -396,8 +401,7 @@ export async function getKidHistory(params?: { limit?: number; offset?: number }
       ref_id: number | null;
       admin_note: string | null;
       timestamp: string;
-      chore_title_el?: string;
-      chore_title_en?: string;
+      chore_title?: string;
       chore_icon?: string;
       chore_points_value?: number;
     }>;
@@ -407,10 +411,8 @@ export async function getKidHistory(params?: { limit?: number; offset?: number }
 export async function getMarketplaceRewards() {
   return request<Array<{
     id: number;
-    title_el: string;
-    title_en: string;
-    description_el: string | null;
-    description_en: string | null;
+    title: string;
+    description: string | null;
     icon_name: string;
     cost_stars: number;
     is_collaborative: boolean;

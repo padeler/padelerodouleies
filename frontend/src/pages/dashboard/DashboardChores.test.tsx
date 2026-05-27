@@ -86,8 +86,8 @@ describe('DashboardChores', () => {
     server.use(
       http.get('/api/dashboard/visible-chores', async () => {
         return HttpResponse.json([
-          { id: 1, title_el: 'Βούρτσισμα', title_en: 'Brush Teeth', icon_name: 'tooth', scope: 'individual', points_value: 5 },
-          { id: 2, title_el: 'Πλύσιμο χεριών', title_en: 'Wash Hands', icon_name: 'hand', scope: 'individual', points_value: 3 },
+          { id: 1, title: 'Βούρτσισμα', icon_name: 'tooth', scope: 'individual', points_value: 5 },
+          { id: 2, title: 'Πλύσιμο χεριών', icon_name: 'hand', scope: 'individual', points_value: 3 },
         ]);
       }),
     );
@@ -107,7 +107,7 @@ describe('DashboardChores', () => {
         if (getCalled) return HttpResponse.json([]);
         getCalled = true;
         return HttpResponse.json([
-          { id: 1, title_el: 'Βούρτσισμα', title_en: 'Brush Teeth', icon_name: 'tooth', scope: 'individual', points_value: 5 },
+          { id: 1, title: 'Βούρτσισμα', icon_name: 'tooth', scope: 'individual', points_value: 5 },
         ]);
       }),
       http.post('/api/dashboard/chores/1/claim', async () => {
@@ -129,7 +129,7 @@ describe('DashboardChores', () => {
     server.use(
       http.get('/api/dashboard/visible-chores', async () => {
         return HttpResponse.json([
-          { id: 1, title_el: 'Βούρτσισμα', title_en: 'Brush Teeth', icon_name: 'tooth', scope: 'individual', points_value: 5 },
+          { id: 1, title: 'Βούρτσισμα', icon_name: 'tooth', scope: 'individual', points_value: 5 },
         ]);
       }),
       http.post('/api/dashboard/chores/1/claim', async () => {
@@ -151,7 +151,7 @@ describe('DashboardChores', () => {
     server.use(
       http.get('/api/dashboard/visible-chores', async () => {
         return HttpResponse.json([
-          { id: 1, title_el: 'Βούρτσισμα', title_en: 'Brush Teeth', icon_name: 'tooth', scope: 'individual', points_value: 5 },
+          { id: 1, title: 'Βούρτσισμα', icon_name: 'tooth', scope: 'individual', points_value: 5 },
         ]);
       }),
     );

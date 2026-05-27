@@ -63,7 +63,7 @@ describe('Marketplace — individual rewards', () => {
     server.use(
       http.get('/api/marketplace/rewards', async () => {
         return HttpResponse.json([
-          { id: 1, title_el: 'Κινηματογράφος', title_en: 'Movie', description_el: null, description_en: null, icon_name: 'film', cost_stars: 20, is_collaborative: false },
+          { id: 1, title: 'Κινηματογράφος', description: null, icon_name: 'film', cost_stars: 20, is_collaborative: false },
         ]);
       }),
     );
@@ -78,7 +78,7 @@ describe('Marketplace — individual rewards', () => {
     server.use(
       http.get('/api/marketplace/rewards', async () => {
         return HttpResponse.json([
-          { id: 1, title_el: 'Ταξίδι', title_en: 'Trip', description_el: null, description_en: null, icon_name: 'plane', cost_stars: 100, is_collaborative: false },
+          { id: 1, title: 'Ταξίδι', description: null, icon_name: 'plane', cost_stars: 100, is_collaborative: false },
         ]);
       }),
     );
@@ -92,7 +92,7 @@ describe('Marketplace — individual rewards', () => {
     server.use(
       http.get('/api/marketplace/rewards', async () => {
         return HttpResponse.json([
-          { id: 1, title_el: 'Πάρκο', title_en: 'Park', description_el: 'Πεζοπορία', description_en: 'Hike', icon_name: 'trees', cost_stars: 30, is_collaborative: false },
+          { id: 1, title: 'Πάρκο', description: 'Πεζοπορία', icon_name: 'trees', cost_stars: 30, is_collaborative: false },
         ]);
       }),
     );
@@ -122,7 +122,7 @@ describe('Marketplace — collaborative rewards', () => {
     server.use(
       http.get('/api/marketplace/rewards', async () => {
         return HttpResponse.json([
-          { id: 2, title_el: 'Ψαθούλα', title_en: 'Trip', description_el: null, description_en: null, icon_name: 'ship', cost_stars: 500, is_collaborative: true, current_stars: 100, target_stars: 500, contributors: [{ user_id: 2, user_name: 'Maria', stars: 60 }, { user_id: 3, user_name: 'Nikos', stars: 40 }] },
+          { id: 2, title: 'Ψαθούλα', description: null, icon_name: 'ship', cost_stars: 500, is_collaborative: true, current_stars: 100, target_stars: 500, contributors: [{ user_id: 2, user_name: 'Maria', stars: 60 }, { user_id: 3, user_name: 'Nikos', stars: 40 }] },
         ]);
       }),
     );
@@ -137,7 +137,7 @@ describe('Marketplace — collaborative rewards', () => {
     server.use(
       http.get('/api/marketplace/rewards', async () => {
         return HttpResponse.json([
-          { id: 2, title_el: 'Ψαθούλα', title_en: 'Trip', description_el: null, description_en: null, icon_name: 'ship', cost_stars: 500, is_collaborative: true, current_stars: 100, target_stars: 500, contributors: [] },
+          { id: 2, title: 'Ψαθούλα', description: null, icon_name: 'ship', cost_stars: 500, is_collaborative: true, current_stars: 100, target_stars: 500, contributors: [] },
         ]);
       }),
     );
@@ -151,7 +151,7 @@ describe('Marketplace — collaborative rewards', () => {
     server.use(
       http.get('/api/marketplace/rewards', async () => {
         return HttpResponse.json([
-          { id: 2, title_el: 'Ψαθούλα', title_en: 'Trip', description_el: null, description_en: null, icon_name: 'ship', cost_stars: 500, is_collaborative: true, current_stars: 100, target_stars: 500, contributors: [] },
+          { id: 2, title: 'Ψαθούλα', description: null, icon_name: 'ship', cost_stars: 500, is_collaborative: true, current_stars: 100, target_stars: 500, contributors: [] },
         ]);
       }),
     );
@@ -167,7 +167,7 @@ describe('Marketplace — collaborative rewards', () => {
     server.use(
       http.get('/api/marketplace/rewards', async () => {
         return HttpResponse.json([
-          { id: 2, title_el: 'Ολοκληρωμένο', title_en: 'Done', description_el: null, description_en: null, icon_name: 'trophy', cost_stars: 100, is_collaborative: true, current_stars: 100, target_stars: 100, contributors: [{ user_id: 2, user_name: 'Maria', stars: 100 }] },
+          { id: 2, title: 'Ολοκληρωμένο', description: null, icon_name: 'trophy', cost_stars: 100, is_collaborative: true, current_stars: 100, target_stars: 100, contributors: [{ user_id: 2, user_name: 'Maria', stars: 100 }] },
         ]);
       }),
     );
@@ -182,8 +182,8 @@ describe('Marketplace — collaborative rewards', () => {
     server.use(
       http.get('/api/marketplace/rewards', async () => {
         return HttpResponse.json([
-          { id: 1, title_el: 'Μοναδικό', title_en: 'Solo', description_el: null, description_en: null, icon_name: 'star', cost_stars: 20, is_collaborative: false },
-          { id: 2, title_el: 'Ομαδικό', title_en: 'Team', description_el: null, description_en: null, icon_name: 'trophy', cost_stars: 500, is_collaborative: true, current_stars: 100, target_stars: 500, contributors: [] },
+          { id: 1, title: 'Μοναδικό', description: null, icon_name: 'star', cost_stars: 20, is_collaborative: false },
+          { id: 2, title: 'Ομαδικό', description: null, icon_name: 'trophy', cost_stars: 500, is_collaborative: true, current_stars: 100, target_stars: 500, contributors: [] },
         ]);
       }),
     );

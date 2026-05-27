@@ -13,11 +13,10 @@ const server = setupServer();
 const TRANSLATIONS: Record<string, Record<string, string>> = {
   'nav.approvals': { el: 'Εγκρίσεις', en: 'Approvals' },
   'common.loading': { el: 'Φόρτωση…', en: 'Loading…' },
-  'admin.approve': { el: 'Έγκριση', en: 'Approve' },
-  'admin.decline': { el: 'Απόρριψη', en: 'Decline' },
+  'btn.approve': { el: 'Έγκριση', en: 'Approve' },
+  'btn.decline': { el: 'Απόρριψη', en: 'Decline' },
   'admin.reason_placeholder': { el: 'Λόγος (προαιρετικό)', en: 'Reason (optional)' },
-  'chore.title_el': { el: 'Βούρτσισμα', en: 'Brush Teeth' },
-  'chore.title_en': { el: 'Brush Teeth', en: 'Brush Teeth' },
+  'chore.label': { el: 'Εργάκι', en: 'Chore' },
 };
 
 function renderApprovals() {
@@ -57,7 +56,7 @@ describe('ApprovalsPage', () => {
     server.use(
       http.get('/api/admin/pending-claims', async () => {
         return HttpResponse.json([
-          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title_el: 'Βούρτσισμα', chore_title_en: 'Brush Teeth', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
+          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title: 'Βούρτσισμα', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
         ]);
       }),
     );
@@ -72,7 +71,7 @@ describe('ApprovalsPage', () => {
     server.use(
       http.get('/api/admin/pending-claims', async () => {
         return HttpResponse.json([
-          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title_el: 'Βούρτσισμα', chore_title_en: 'Brush Teeth', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
+          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title: 'Βούρτσισμα', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
         ]);
       }),
     );
@@ -91,7 +90,7 @@ describe('ApprovalsPage', () => {
         if (getCalled) return HttpResponse.json([]);
         getCalled = true;
         return HttpResponse.json([
-          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title_el: 'Βούρτσισμα', chore_title_en: 'Brush Teeth', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
+          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title: 'Βούρτσισμα', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
         ]);
       }),
       http.post('/api/admin/pending-claims/1/approve', async () => {
@@ -100,7 +99,7 @@ describe('ApprovalsPage', () => {
     );
     renderApprovals();
     await screen.findByText('Maria');
-    const btn = screen.getByRole('button', { name: 'Έγκριση' });
+    const btn = screen.getByRole('button', { name: /Έγκριση/ });
     btn.focus();
     await user.keyboard('[Enter]');
     await screen.findByText('No pending claims');
@@ -115,7 +114,7 @@ describe('ApprovalsPage', () => {
         if (getCalled) return HttpResponse.json([]);
         getCalled = true;
         return HttpResponse.json([
-          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title_el: 'Βούρτσισμα', chore_title_en: 'Brush Teeth', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
+          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title: 'Βούρτσισμα', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
         ]);
       }),
       http.post('/api/admin/pending-claims/1/decline', async ({ request }) => {
@@ -129,7 +128,7 @@ describe('ApprovalsPage', () => {
     const textarea = screen.getByPlaceholderText('Λόγος (προαιρετικό)');
     await user.click(textarea);
     await user.type(textarea, 'Not done properly');
-    const btn = screen.getByRole('button', { name: 'Απόρριψη' });
+    const btn = screen.getByRole('button', { name: /Απόρριψη/ });
     btn.focus();
     await user.keyboard('[Enter]');
     await screen.findByText('No pending claims');
@@ -140,7 +139,7 @@ describe('ApprovalsPage', () => {
     server.use(
       http.get('/api/admin/pending-claims', async () => {
         return HttpResponse.json([
-          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title_el: 'Βούρτσισμα', chore_title_en: 'Brush Teeth', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
+          { id: 1, user_id: 2, user_name: 'Maria', user_avatar_kind: 'icon', user_avatar_value: 'fox', chore_id: 1, chore_icon: 'tooth', chore_title: 'Βούρτσισμα', points_value: 5, claimed_at: '2024-06-01T08:00:00' },
         ]);
       }),
     );

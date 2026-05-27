@@ -25,18 +25,18 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
     <div className="admin-card" style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
         <img
-          src={`/api/icons/svg/${claim.user_avatar_value}`}
+          src={claim.user_avatar_kind === 'image' ? claim.user_avatar_value : `/api/icons/svg/${claim.user_avatar_value}`}
           alt=""
-          style={{ width: 32, height: 32 }}
+          style={{ width: 32, height: 32, borderRadius: claim.user_avatar_kind === 'image' ? '50%' : 0, objectFit: 'cover' }}
         />
         <strong>{claim.user_name}</strong>
         <span style={{ color: 'var(--accent)' }}>+{claim.points_value} ⭐</span>
       </div>
       <div style={{ marginBottom: 8, fontSize: 14 }}>
-        <img src={`/api/icons/svg/${claim.chore_icon}`} alt="" style={{ width: 20, height: 20, verticalAlign: 'middle', marginRight: 6 }} />
+        <img src={claim.chore_icon.startsWith('/') ? claim.chore_icon : `/api/icons/svg/${claim.chore_icon}`} alt="" style={{ width: 20, height: 20, verticalAlign: 'middle', marginRight: 6 }} />
         {t('chore.label')}
         {' — '}
-        {claim.chore_title_el}
+        {claim.chore_title}
       </div>
       <textarea
         placeholder={t('admin.reason_placeholder')}
@@ -51,14 +51,16 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
           onClick={() => mutate.mutate('approve')}
           disabled={mutate.isPending}
         >
-          {t('admin.approve')}
+          <span className="btn-icon">✓</span>
+          <span className="btn-text">{t('btn.approve')}</span>
         </button>
         <button
           className="admin-btn admin-btn-danger"
           onClick={() => mutate.mutate('decline')}
           disabled={mutate.isPending}
         >
-          {t('admin.decline')}
+          <span className="btn-icon">✕</span>
+          <span className="btn-text">{t('btn.decline')}</span>
         </button>
       </div>
     </div>
@@ -73,7 +75,7 @@ export function ApprovalsPage() {
   });
 
   if (isLoading) return <div>{t('common.loading')}</div>;
-  if (error) return <div style={{ color: '#e55' }}>Error loading claims: {error.message || String(error)}</div>;
+  if (error) return <div style={{ color: '#e55' }}>Error loading claims: {error instanceof Error ? error.message : String(error)}</div>;
 
   return (
     <div>

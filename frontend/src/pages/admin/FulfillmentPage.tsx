@@ -6,6 +6,7 @@ import { useState } from 'react';
 import './AdminPage.css';
 
 function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
+  const t = useT();
   const qc = useQueryClient();
   const mutate = useMutation({
     mutationFn: () => markFulfilled(entry.id),
@@ -20,7 +21,7 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
       <td>
         <img src={`/api/icons/svg/${entry.reward_icon}`} alt="" style={{ width: 24, height: 24 }} />
       </td>
-      <td>{entry.reward_title_el}</td>
+      <td>{entry.reward_title}</td>
       <td>{entry.user_name}</td>
       <td>{entry.stars_contributed}</td>
       <td>{new Date(entry.claimed_at).toLocaleString()}</td>
@@ -30,7 +31,8 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
           onClick={() => mutate.mutate()}
           disabled={mutate.isPending}
         >
-          Mark Fulfilled
+          <span className="btn-icon">✓</span>
+          <span className="btn-text">{t('btn.mark_fulfilled')}</span>
         </button>
       </td>
     </tr>
@@ -71,9 +73,9 @@ export function FulfillmentPage() {
           <table className="admin-table">
           <thead>
             <tr>
-              <th>Icon</th>
-              <th>Reward</th>
-              <th>User</th>
+              <th>{t('chore.icon')}</th>
+              <th>{t('nav.rewards')}</th>
+              <th>{t('nav.users')}</th>
               <th>Stars</th>
               <th>Claimed</th>
               {tab === 'claimed' && <th>Actions</th>}
@@ -88,9 +90,9 @@ export function FulfillmentPage() {
               : (data as FulfillmentEntry[])?.map((entry) => (
                   <tr key={entry.id}>
                     <td>
-                      <img src={`/api/icons/svg/${entry.reward_icon}`} alt="" style={{ width: 24, height: 24 }} />
+                   <img src={`/api/icons/svg/${entry.reward_icon}`} alt="" style={{ width: 24, height: 24 }} />
                     </td>
-                    <td>{entry.reward_title_el}</td>
+                    <td>{entry.reward_title}</td>
                     <td>{entry.user_name}</td>
                     <td>{entry.stars_contributed}</td>
                     <td>{new Date(entry.claimed_at).toLocaleString()}</td>

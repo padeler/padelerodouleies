@@ -58,7 +58,7 @@ describe('KidHistory', () => {
         return HttpResponse.json({
           total: 1,
           entries: [
-            { id: 1, action_type: 'chore_approved', points_delta: 5, ref_table: 'chore', ref_id: 1, admin_note: null, timestamp: '2024-06-01T08:00:00', chore_title_el: 'Βούρτσισμα', chore_title_en: 'Brush Teeth' },
+            { id: 1, action_type: 'chore_approved', points_delta: 5, ref_table: 'chore', ref_id: 1, admin_note: null, timestamp: '2024-06-01T08:00:00', chore_title: 'Βούρτσισμα' },
           ],
         });
       }),
@@ -78,7 +78,7 @@ describe('KidHistory', () => {
         return HttpResponse.json({
           total: 1,
           entries: [
-            { id: 1, action_type: 'chore_declined', points_delta: -5, ref_table: null, ref_id: null, admin_note: 'Not done properly', timestamp: '2024-06-01T10:00:00', chore_title_el: null, chore_title_en: null },
+            { id: 1, action_type: 'chore_declined', points_delta: -5, ref_table: null, ref_id: null, admin_note: 'Not done properly', timestamp: '2024-06-01T10:00:00', chore_title: null },
           ],
         });
       }),
@@ -136,7 +136,7 @@ describe('KidHistory', () => {
         return HttpResponse.json({
           total: 1,
           entries: [
-            { id: 1, action_type: 'chore_approved', points_delta: 5, ref_table: 'chore', ref_id: 1, admin_note: null, timestamp: '2024-06-01T08:00:00', chore_title_el: 'Βούρτσισμα Δοντιών', chore_title_en: 'Brush Teeth' },
+            { id: 1, action_type: 'chore_approved', points_delta: 5, ref_table: 'chore', ref_id: 1, admin_note: null, timestamp: '2024-06-01T08:00:00', chore_title: 'Βούρτσισμα Δοντιών' },
           ],
         });
       }),

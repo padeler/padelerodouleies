@@ -28,10 +28,8 @@ def list_marketplace_rewards(
     for r in rewards:
         data = {
             "id": r.id,
-            "title_el": r.title_el,
-            "title_en": r.title_en,
-            "description_el": r.description_el,
-            "description_en": r.description_en,
+            "title": r.title,
+            "description": r.description,
             "icon_name": r.icon_name,
             "cost_stars": r.cost_stars,
             "is_collaborative": r.is_collaborative,

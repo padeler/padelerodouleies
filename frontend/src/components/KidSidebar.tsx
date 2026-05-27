@@ -3,10 +3,10 @@ import { useT } from '../i18n/store';
 import './KidSidebar.css';
 
 const navItems = [
-  { path: '/dashboard/chores', key: 'nav.chores' },
-  { path: '/dashboard/marketplace', key: 'nav.marketplace' },
-  { path: '/dashboard/history', key: 'nav.history' },
-  { path: '/dashboard/leaderboard', key: 'nav.leaderboard' },
+  { path: '/dashboard/chores', key: 'nav.chores', icon: '📋' },
+  { path: '/dashboard/marketplace', key: 'nav.marketplace', icon: '🏪' },
+  { path: '/dashboard/history', key: 'nav.history', icon: '📜' },
+  { path: '/dashboard/leaderboard', key: 'nav.leaderboard', icon: '🏆' },
 ];
 
 export function KidSidebar({ onClose }: { onClose?: () => void } = {}) {
@@ -29,7 +29,8 @@ export function KidSidebar({ onClose }: { onClose?: () => void } = {}) {
               to={item.path}
               className={({ isActive }) => (isActive ? 'kid-nav-active' : '')}
             >
-              {t(item.key)}
+              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-text">{t(item.key)}</span>
             </NavLink>
           </li>
         ))}

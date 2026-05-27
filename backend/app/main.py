@@ -22,6 +22,11 @@ AVATAR_DIR = Path(__file__).parent.parent.parent / "data" / "avatars"
 AVATAR_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/avatars", StaticFiles(directory=str(AVATAR_DIR)), name="avatars")
 
+# Mount chore images directory
+CHORE_IMAGE_DIR = Path(__file__).parent.parent.parent / "data" / "chore-images"
+CHORE_IMAGE_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/chore-images", StaticFiles(directory=str(CHORE_IMAGE_DIR)), name="chore-images")
+
 # Register routers
 from app.api.i18n import router as i18n_router
 from app.api.bootstrap import router as bootstrap_router

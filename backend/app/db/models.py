@@ -10,7 +10,6 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
-    Float,
     ForeignKey,
     Integer,
     String,
@@ -26,7 +25,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=False)
+    name = Column(String(100), nullable=False, unique=True)
     avatar_kind = Column(String(10), nullable=False, default="icon")  # "icon" | "image"
     avatar_value = Column(String(255), nullable=False, default="user")
     pin_hash = Column(String(255), nullable=True)  # NULL for first-run before bootstrap
@@ -47,16 +46,14 @@ class Chore(Base):
     __tablename__ = "chores"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    title_el = Column(String(200), nullable=False)
-    title_en = Column(String(200), nullable=False)
-    description_el = Column(String(500), nullable=True)
-    description_en = Column(String(500), nullable=True)
+    title = Column(String(200), nullable=False)
+    description = Column(String(500), nullable=True)
     icon_name = Column(String(100), nullable=False)
     scope = Column(String(20), nullable=False, default="individual")  # "individual" | "pooled"
     points_value = Column(Integer, nullable=False)
     is_repeating = Column(Boolean, nullable=False, default=True)
-    start_time = Column(Time, nullable=True)  # NULL for non-repeating chores
-    window_hours = Column(Integer, nullable=True)  # NULL for non-repeating chores
+    start_time = Column(Time, nullable=True)  # NULL for one-time or flexible chores
+    window_hours = Column(Integer, nullable=True)  # NULL for one-time or flexible chores
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
@@ -67,10 +64,8 @@ class Reward(Base):
     __tablename__ = "rewards"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    title_el = Column(String(200), nullable=False)
-    title_en = Column(String(200), nullable=False)
-    description_el = Column(String(500), nullable=True)
-    description_en = Column(String(500), nullable=True)
+    title = Column(String(200), nullable=False)
+    description = Column(String(500), nullable=True)
     icon_name = Column(String(100), nullable=False)
     cost_stars = Column(Integer, nullable=False)
     is_collaborative = Column(Boolean, nullable=False, default=False)

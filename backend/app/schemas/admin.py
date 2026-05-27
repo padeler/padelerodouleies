@@ -8,10 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field
 # -- Chore schemas --
 
 class ChoreCreate(BaseModel):
-    title_el: str = Field(min_length=1, max_length=200)
-    title_en: str = Field(min_length=1, max_length=200)
-    description_el: str | None = None
-    description_en: str | None = None
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = None
     icon_name: str
     scope: str = "individual"
     points_value: int = Field(gt=0)
@@ -21,10 +19,8 @@ class ChoreCreate(BaseModel):
 
 
 class ChoreUpdate(BaseModel):
-    title_el: str | None = None
-    title_en: str | None = None
-    description_el: str | None = None
-    description_en: str | None = None
+    title: str | None = None
+    description: str | None = None
     icon_name: str | None = None
     scope: str | None = None
     points_value: int | None = Field(default=None, gt=0)
@@ -37,10 +33,8 @@ class ChoreUpdate(BaseModel):
 class ChoreRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    title_el: str
-    title_en: str
-    description_el: str | None
-    description_en: str | None
+    title: str
+    description: str | None
     icon_name: str
     scope: str
     points_value: int
@@ -54,20 +48,16 @@ class ChoreRead(BaseModel):
 # -- Reward schemas --
 
 class RewardCreate(BaseModel):
-    title_el: str = Field(min_length=1, max_length=200)
-    title_en: str = Field(min_length=1, max_length=200)
-    description_el: str | None = None
-    description_en: str | None = None
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = None
     icon_name: str
     cost_stars: int = Field(gt=0)
     is_collaborative: bool = False
 
 
 class RewardUpdate(BaseModel):
-    title_el: str | None = None
-    title_en: str | None = None
-    description_el: str | None = None
-    description_en: str | None = None
+    title: str | None = None
+    description: str | None = None
     icon_name: str | None = None
     cost_stars: int | None = Field(default=None, gt=0)
     is_collaborative: bool | None = None
@@ -77,10 +67,8 @@ class RewardUpdate(BaseModel):
 class RewardRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    title_el: str
-    title_en: str
-    description_el: str | None
-    description_en: str | None
+    title: str
+    description: str | None
     icon_name: str
     cost_stars: int
     is_collaborative: bool
@@ -138,8 +126,7 @@ class PendingClaimRead(BaseModel):
     user_avatar_value: str
     chore_id: int
     chore_icon: str
-    chore_title_el: str
-    chore_title_en: str
+    chore_title: str
     points_value: int
     claimed_at: datetime
 
@@ -154,8 +141,7 @@ class FulfillmentRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     reward_id: int
-    reward_title_el: str
-    reward_title_en: str
+    reward_title: str
     reward_icon: str
     user_id: int
     user_name: str
@@ -178,3 +164,4 @@ class HistoryRead(BaseModel):
     ref_id: int | None
     admin_note: str | None
     timestamp: datetime
+    action_label: str | None = None

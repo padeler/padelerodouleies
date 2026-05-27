@@ -2,10 +2,8 @@
 
 export interface Chore {
   id: number;
-  title_el: string;
-  title_en: string;
-  description_el: string | null;
-  description_en: string | null;
+  title: string;
+  description: string | null;
   icon_name: string;
   scope: 'individual' | 'pooled';
   points_value: number;
@@ -18,10 +16,8 @@ export interface Chore {
 
 export interface Reward {
   id: number;
-  title_el: string;
-  title_en: string;
-  description_el: string | null;
-  description_en: string | null;
+  title: string;
+  description: string | null;
   icon_name: string;
   cost_stars: number;
   is_collaborative: boolean;
@@ -48,8 +44,7 @@ export interface PendingClaim {
   user_avatar_value: string;
   chore_id: number;
   chore_icon: string;
-  chore_title_el: string;
-  chore_title_en: string;
+  chore_title: string;
   points_value: number;
   claimed_at: string;
 }
@@ -57,8 +52,7 @@ export interface PendingClaim {
 export interface FulfillmentEntry {
   id: number;
   reward_id: number;
-  reward_title_el: string;
-  reward_title_en: string;
+  reward_title: string;
   reward_icon: string;
   user_id: number;
   user_name: string;
@@ -73,6 +67,7 @@ export interface HistoryEntry {
   user_id: number;
   user_name: string;
   action_type: string;
+  action_label: string | null;
   points_delta: number;
   ref_table: string | null;
   ref_id: number | null;
@@ -92,8 +87,7 @@ export type AvatarSelection = { kind: 'icon' | 'image'; value: string };
 
 export interface VisibleChore {
   id: number;
-  title_el: string;
-  title_en: string;
+  title: string;
   icon_name: string;
   scope: string;
   points_value: number;
@@ -107,18 +101,15 @@ export interface KidHistoryEntry {
   ref_id: number | null;
   admin_note: string | null;
   timestamp: string;
-  chore_title_el?: string;
-  chore_title_en?: string;
+  chore_title?: string;
   chore_icon?: string;
   chore_points_value?: number;
 }
 
 export interface MarketplaceReward {
   id: number;
-  title_el: string;
-  title_en: string;
-  description_el: string | null;
-  description_en: string | null;
+  title: string;
+  description: string | null;
   icon_name: string;
   cost_stars: number;
   is_collaborative: boolean;
@@ -142,4 +133,5 @@ export type WSEvent =
   | { event: 'visible_chores_changed'; user_id: number }
   | { event: 'collab_progress_changed'; reward_id: number; current: number; target: number; contributions: Array<{ user_id: number; user_name: string; stars: number }> }
   | { event: 'fulfillment_queue_changed' }
-  | { event: 'history_changed'; user_id: number };
+  | { event: 'history_changed'; user_id: number }
+  | { event: 'chores_changed' };

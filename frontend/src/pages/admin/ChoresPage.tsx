@@ -6,6 +6,13 @@ import { useState } from 'react';
 import { ChoreModal } from '../../components/ChoreModal';
 import './AdminPage.css';
 
+function ChoreIcon({ icon_name }: { icon_name: string }) {
+  if (icon_name.startsWith('/')) {
+    return <img src={icon_name} alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} />;
+  }
+  return <img src={`/api/icons/svg/${icon_name}`} alt="" style={{ width: 24, height: 24 }} />;
+}
+
 export function ChoresPage() {
   const t = useT();
   const [editing, setEditing] = useState<Chore | null>(null);
@@ -33,19 +40,19 @@ export function ChoresPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <h2 className="admin-page-title" style={{ marginBottom: 0 }}>{t('nav.chores')}</h2>
         <button className="admin-btn admin-btn-primary" onClick={() => setCreating(true)}>
-          {t('chore.new')}
+          <span className="btn-icon">+</span>
+          <span className="btn-text">{t('chore.new')}</span>
         </button>
       </div>
       <div className="admin-table-wrap">
         <table className="admin-table">
         <thead>
           <tr>
-            <th>Icon</th>
-            <th>Title (EL)</th>
-            <th>Title (EN)</th>
-            <th>Points</th>
-            <th>Scope</th>
-            <th>Active</th>
+            <th>{t('chore.icon')}</th>
+            <th>{t('chore.title_placeholder')}</th>
+            <th>{t('chore.points')}</th>
+            <th>{t('chore.scope')}</th>
+            <th>{t('common.enabled')}</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -53,32 +60,34 @@ export function ChoresPage() {
           {(data as Chore[])?.map((chore) => (
             <tr key={chore.id}>
               <td>
-                <img src={`/api/icons/svg/${chore.icon_name}`} alt="" style={{ width: 24, height: 24 }} />
+                <ChoreIcon icon_name={chore.icon_name} />
               </td>
-              <td>{chore.title_el}</td>
-              <td>{chore.title_en}</td>
+              <td>{chore.title}</td>
               <td>{chore.points_value}</td>
-              <td>{chore.scope}</td>
+              <td>{chore.scope === 'individual' ? t('chore.scope_individual') : t('chore.scope_pooled')}</td>
               <td>
                 <span className={`status-badge ${chore.is_active ? 'active' : 'inactive'}`}>
-                  {chore.is_active ? 'Active' : 'Inactive'}
+                  {chore.is_active ? t('common.enabled') : t('common.disabled')}
                 </span>
               </td>
               <td className="actions">
-                <button className="admin-btn" onClick={() => setEditing(chore)}>
-                  {t('common.edit')}
+                <button className="admin-btn" onClick={() => setEditing(chore)} title={t('btn.edit')}>
+                  <span className="btn-icon">✎</span>
+                  <span className="btn-text">{t('btn.edit')}</span>
                 </button>
-                <button className="admin-btn" onClick={() => handleToggleActive(chore)}>
-                  {chore.is_active ? 'Disable' : 'Enable'}
+                <button className="admin-btn" onClick={() => handleToggleActive(chore)} title={chore.is_active ? t('btn.disable') : t('btn.enable')}>
+                  <span className="btn-icon">{chore.is_active ? '👁' : '👁‍🗨'}</span>
+                  <span className="btn-text">{chore.is_active ? t('btn.disable') : t('btn.enable')}</span>
                 </button>
-                <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(chore)}>
-                  {t('common.delete')}
+                <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(chore)} title={t('btn.delete')}>
+                  <span className="btn-icon">🗑</span>
+                  <span className="btn-text">{t('btn.delete')}</span>
                 </button>
               </td>
             </tr>
           ))}
           {data?.length === 0 && (
-            <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>No chores yet</td></tr>
+            <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>No chores yet</td></tr>
           )}
         </tbody>
       </table>

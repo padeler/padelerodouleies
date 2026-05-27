@@ -52,6 +52,9 @@ export function useRealtime() {
         case 'fulfillment_queue_changed':
           queryClient.invalidateQueries({ queryKey: ['fulfillment'] });
           break;
+        case 'chores_changed':
+          queryClient.invalidateQueries({ queryKey: ['chores'] });
+          break;
       }
     };
     window.addEventListener('ws-event', handler);

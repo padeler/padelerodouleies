@@ -1,5 +1,6 @@
 .kid-sidebar {
   width: 160px;
+  height: 100%;
   min-height: 100vh;
   background: linear-gradient(180deg, #4a1a6b 0%, #2d1050 100%);
   border-right: 3px solid #7b2ff7;
@@ -44,6 +45,8 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .kid-sidebar li {
@@ -73,4 +76,30 @@
   color: #f0c36d !important;
   background: rgba(240, 195, 109, 0.15) !important;
   font-weight: 700 !important;
+}
+
+.nav-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.nav-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 540px) {
+  .nav-text {
+    display: none;
+  }
+  .kid-sidebar a {
+    justify-content: center;
+    padding: 12px;
+    margin: 0 4px;
+  }
+  .nav-icon {
+    font-size: 24px;
+  }
 }

@@ -1,15 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getVisibleChores, claimChore } from '../../api/client';
-import { useT, useLocale } from '../../i18n/store';
+import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { VisibleChore } from '../../lib/types';
 import './DashboardChores.css';
 
 function ChoreCard({ chore }: { chore: VisibleChore }) {
   const t = useT();
-  const locale = useLocale();
   const queryClient = useQueryClient();
-  const title = locale === 'en' ? chore.title_en : chore.title_el;
 
   const mutation = useMutation({
     mutationFn: () => claimChore(chore.id),
@@ -27,7 +25,7 @@ function ChoreCard({ chore }: { chore: VisibleChore }) {
           className="chore-icon"
         />
       </div>
-      <h3 className="chore-title">{title}</h3>
+      <h3 className="chore-title">{chore.title}</h3>
       <div className="chore-points">+{chore.points_value} ⭐</div>
       <button
         className="chore-claim-btn"

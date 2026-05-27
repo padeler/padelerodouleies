@@ -5,12 +5,12 @@ import { useT } from '../i18n/store';
 import './AdminSidebar.css';
 
 const navItems = [
-  { path: '/admin/approvals', key: 'nav.approvals' },
-  { path: '/admin/chores', key: 'nav.chores' },
-  { path: '/admin/rewards', key: 'nav.rewards' },
-  { path: '/admin/users', key: 'nav.users' },
-  { path: '/admin/fulfillment', key: 'nav.fulfillment' },
-  { path: '/admin/activity', key: 'nav.activity' },
+  { path: '/admin/approvals', key: 'nav.approvals', icon: '✓' },
+  { path: '/admin/chores', key: 'nav.chores', icon: '📋' },
+  { path: '/admin/rewards', key: 'nav.rewards', icon: '🎁' },
+  { path: '/admin/users', key: 'nav.users', icon: '👤' },
+  { path: '/admin/fulfillment', key: 'nav.fulfillment', icon: '📦' },
+  { path: '/admin/activity', key: 'nav.activity', icon: '📊' },
 ];
 
 export function AdminSidebar({ onClose }: { onClose?: () => void } = {}) {
@@ -39,7 +39,8 @@ export function AdminSidebar({ onClose }: { onClose?: () => void } = {}) {
               to={item.path}
               className={({ isActive }) => (isActive ? 'admin-nav-active' : '')}
             >
-              {t(item.key)}
+              <span className="nav-icon">{item.icon}</span>
+              <span className="nav-text">{t(item.key)}</span>
               {item.path === 'approvals' && (data?.count ?? 0) > 0 && (
                 <span className="admin-badge">{data?.count ?? 0}</span>
               )}

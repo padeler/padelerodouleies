@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-Phases 1–4 complete. Phase 5 M5.1 (responsive polish & accessibility) complete. Remaining: M5.2 (Dockerfile), M5.3 (docker-compose), M5.4 (LAN testing), M5.5 (handover docs). Frontend has 113 Vitest tests + 9 Playwright responsive tests. When asked to implement features, treat `PLAN.md` as the authoritative roadmap and `README.md` as the spec; if either disagrees with code that gets written later, the code wins but flag the drift.
+Phases 1–4 complete. Phase 5 M5.1 (responsive polish & accessibility) complete. Schema update: Chore/Reward models now use single `title`/`description` fields (removed `*_el`/`*_en` pairs), `Chore.start_time` is nullable, `User.username` is unique case-insensitive, `HistoryLedger` has `action_label` column. Remaining: M5.2 (Dockerfile), M5.3 (docker-compose), M5.4 (LAN testing), M5.5 (handover docs). Frontend has 113 Vitest tests (all passing) + 9 Playwright responsive tests. When asked to implement features, treat `PLAN.md` as the authoritative roadmap and `README.md` as the spec; if either disagrees with code that gets written later, the code wins but flag the drift.
 
 ## Stack & Architecture
 
@@ -24,7 +24,7 @@ These are non-obvious rules that must hold across any feature work:
 2. **Chore visibility is computed on-the-fly from `datetime.now()`** at dashboard render time, against the chore's `start_time` + `window_hours` and any existing same-day `CHORE_HISTORY` row. There is **no background scheduler / cron** materializing daily chore instances. Do not introduce one without discussion.
 3. **Chore scope is either `individual` (per-user instance) or `pooled` (first-come-first-served, disappears once claimed by anyone).** This affects every dashboard query that lists active chores.
 4. **The history ledger is append-only and human-visible.** When an admin retroactively declines an approved claim, the system subtracts stars *and* writes a negative-delta row that the child sees in their timeline with the admin's reason text. Never silently mutate a child's balance — every delta must have a corresponding ledger entry.
-5. **Bilingual by design.** Default locale is Greek (`el`), secondary is English (`en`). All static UI strings live in a central `translations.py`; admin-created content (chore/reward titles) stores both `*_el` and `*_en` columns with fallback. New user-visible strings must go through the translation layer, not be hardcoded.
+5. **Bilingual by design, single-title content.** Default locale is Greek (`el`), secondary is English (`en`). All static UI strings live in a central `translations.py`. Admin-created content (chore/reward titles) uses a single `title`/`description` field — the admin types in whatever language they prefer, no bilingual columns. New user-visible strings must go through the translation layer, not be hardcoded.
 6. **Collaborative rewards** pool stars from multiple users toward a shared target with a combined progress bar — distinct from individual rewards which deduct from one balance. The `is_collaborative` flag on `REWARDS` drives different UI and ledger logic.
 
 ## Implementation Phases (from PLAN.md)
@@ -41,8 +41,8 @@ Work is sequenced as: (1) DB models + i18n scaffold → (2) Fast-Switcher auth +
 
 ## Testing
 
-- **Frontend:** Vitest (v3.2.4) + jsdom + React Testing Library + MSW. Run `npm test` in `frontend/`. Tests live in `src/**/*.test.{ts,tsx}`. Test config in `vitest.config.ts`, setup in `tests/setup.ts`.
-- **E2E:** Playwright in `frontend/tests/responsive.spec.ts`. Requires backend running on :8000 and frontend on :5173. Run `npx playwright test` in `frontend/`.
+- **Frontend:** Vitest (v3.2.4) + jsdom + React Testing Library + MSW. Run `npm test` in `frontend/`. Tests live in `src/**/*.test.{ts,tsx}`. Test config in `vitest.config.ts`, setup in `tests/setup.ts`. 113 tests across 15 files, all passing.
+- **E2E:** Playwright in `frontend/tests/responsive.spec.ts`. Requires backend running on :8000 and frontend on :5173. Run `npx playwright test` in `frontend/`. 9 responsive tests.
 - **Backend:** pytest + httpx for FastAPI test client. Run `pytest` in `backend/`.
 - MSW handlers registered via `server.use()` are NOT consumed after a single match — use a closure variable to track call count for sequential response patterns.
 - React 19 + testing-library compatibility: jsdom over happy-dom, `expect.extend(matchers)` pattern for jest-dom, `@testing-library/user-event` for mutation flows that require proper event sequencing.

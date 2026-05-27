@@ -11,6 +11,15 @@ const server = setupServer();
 
 const TRANSLATIONS: Record<string, Record<string, string>> = {
   'nav.activity': { el: 'Δραστηριότητα', en: 'Activity' },
+  'nav.users': { el: 'Χρήστες', en: 'Users' },
+  'chore.scope': { el: 'Επίπεδο', en: 'Scope' },
+  'history.empty': { el: 'Καμία δραστηριότητα', en: 'No activity yet' },
+  'history.action_label_approved': { el: 'Εγκρίθηκε', en: 'Approved' },
+  'history.action_label_declined': { el: 'Αρνήθηκε', en: 'Declined' },
+  'history.action_label_manual': { el: 'Χειροκίνητη ρύθμιση', en: 'Manual adjustment' },
+  'history.action_label_purchase': { el: 'Αγορά', en: 'Purchase' },
+  'history.action_label_refund': { el: 'Επιστροφή', en: 'Refund' },
+  'btn.clear': { el: 'Εκκαθάριση', en: 'Clear' },
   'common.loading': { el: 'Φόρτωση…', en: 'Loading…' },
 };
 
@@ -95,7 +104,7 @@ describe('ActivityPage', () => {
     );
     renderActivityPage();
     await waitFor(() => {
-      expect(screen.getByText('No activity yet')).toBeInTheDocument();
+      expect(screen.getByText('Καμία δραστηριότητα')).toBeInTheDocument();
     });
   });
 
@@ -145,7 +154,7 @@ describe('ActivityPage', () => {
     );
     renderActivityPage();
     await waitFor(() => {
-      expect(screen.getByText('Clear')).toBeInTheDocument();
+      expect(screen.getByText(/Εκκαθάριση/)).toBeInTheDocument();
     });
   });
 });

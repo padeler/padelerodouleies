@@ -1,6 +1,7 @@
 .kid-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .kid-main {
@@ -8,6 +9,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  overflow: hidden;
 }
 
 .kid-content {
@@ -47,6 +49,7 @@
   .kid-sidebar {
     width: 260px;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+    height: 100%;
   }
 
   .sidebar-backdrop {
