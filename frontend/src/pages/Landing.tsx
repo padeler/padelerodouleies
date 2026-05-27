@@ -21,7 +21,7 @@ function AvatarTile({ user, onSelected }: { user: UserListItem; onSelected: (id:
 
   const avatarSrc =
     user.avatar_kind === 'image'
-      ? `/avatars/${user.avatar_value}`
+      ? user.avatar_value
       : `/api/icons/svg/${user.avatar_value}`;
 
   return (

@@ -2,8 +2,9 @@ import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
-import { getTranslations } from './api/client';
+import { getTranslations, updateTheme } from './api/client';
 import { useI18nStore } from './i18n/store';
+import { useAuthStore } from './state/authStore';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -14,6 +15,33 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function applyTheme(theme: string) {
+  const html = document.documentElement;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const effective = theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
+  html.setAttribute('data-theme', effective);
+  console.log('[Theme] applied data-theme:', effective, '(preferred:', theme + ')');
+}
+
+function ThemeWatcher() {
+  const user = useAuthStore((s) => s.user);
+  const theme = user?.preferred_theme ?? 'system';
+
+  useEffect(() => {
+    applyTheme(theme);
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => {
+      if (theme === 'system') {
+        applyTheme('system');
+      }
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [theme]);
+
+  return null;
+}
 
 function Boot() {
   const setTranslations = useI18nStore((s) => s.setTranslations);
@@ -43,6 +71,7 @@ function Boot() {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
+      <ThemeWatcher />
       <Boot />
     </QueryClientProvider>
   </StrictMode>,

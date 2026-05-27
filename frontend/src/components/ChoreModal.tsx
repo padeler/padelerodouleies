@@ -17,7 +17,7 @@ const choreSchema = z.object({
   scope: z.enum(['individual', 'pooled']),
   points_value: z.number().int().min(1),
   is_repeating: z.boolean(),
-  start_time: z.string().optional(),
+  start_time: z.string().nullable().optional(),
   window_hours: z.number().int().min(1).max(24).optional(),
 });
 
@@ -41,7 +41,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     scope: chore?.scope ?? 'individual',
     points_value: chore?.points_value ?? 5,
     is_repeating: chore?.is_repeating ?? true,
-    start_time: chore?.start_time ?? '',
+    start_time: chore?.start_time ?? undefined,
     window_hours: chore?.window_hours ?? undefined,
   };
 
@@ -54,10 +54,12 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
 
   const mutate = useMutation({
     mutationFn: async (data: ChoreForm) => {
+      const payload = { ...data };
+      if (payload.start_time === '') delete payload.start_time;
       if (chore) {
-        return updateChore(chore.id, data);
+        return updateChore(chore.id, payload);
       }
-      return createChore(data);
+      return createChore(payload);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['chores'] });

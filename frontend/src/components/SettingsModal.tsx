@@ -1,6 +1,13 @@
 import { useState, useCallback } from 'react';
-import { changePin } from '../api/client';
+import { changePin, updateTheme } from '../api/client';
+import { useAuth } from '../hooks/useAuth';
 import './SettingsModal.css';
+
+const THEMES = [
+  { value: 'system', label: 'System', icon: '💻' },
+  { value: 'light', label: 'Light', icon: '☀️' },
+  { value: 'dark', label: 'Dark', icon: '🌙' },
+];
 
 interface SettingsModalProps {
   open: boolean;
@@ -8,6 +15,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ open, onClose }: SettingsModalProps) {
+  const { user, setUser } = useAuth();
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -50,6 +58,20 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     [currentPin, newPin, confirmPin, onClose],
   );
 
+  const handleThemeChange = useCallback(
+    async (theme: string) => {
+      try {
+        await updateTheme(theme);
+        if (user) {
+          setUser({ ...user, preferred_theme: theme });
+        }
+      } catch (err) {
+        console.error('[Settings] failed to update theme:', err);
+      }
+    },
+    [user, setUser],
+  );
+
   const handleClose = useCallback(() => {
     setCurrentPin('');
     setNewPin('');
@@ -65,59 +87,79 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
     <div className="settings-overlay" onClick={handleClose}>
       <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
         <div className="settings-header">
-          <h2>Change PIN</h2>
+          <h2>Settings</h2>
           <button className="close-btn" type="button" onClick={handleClose}>
             ✕
           </button>
         </div>
 
-        {success ? (
-          <div className="success-msg">PIN updated!</div>
-        ) : (
-          <form onSubmit={handleSubmit} className="settings-form">
-            <label className="form-group">
-              <span>Current PIN</span>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={currentPin}
-                onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                placeholder="1234"
-              />
-            </label>
+        <div className="settings-section">
+          <h3>Theme</h3>
+          <div className="theme-selector">
+            {THEMES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                className={`theme-option ${user?.preferred_theme === t.value ? 'active' : ''}`}
+                onClick={() => handleThemeChange(t.value)}
+              >
+                <span className="theme-icon">{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
-            <label className="form-group">
-              <span>New PIN</span>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                placeholder="5678"
-              />
-            </label>
+        <div className="settings-section">
+          <h3>Change PIN</h3>
+          {success ? (
+            <div className="success-msg">PIN updated!</div>
+          ) : (
+            <form onSubmit={handleSubmit} className="settings-form">
+              <label className="form-group">
+                <span>Current PIN</span>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={currentPin}
+                  onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="1234"
+                />
+              </label>
 
-            <label className="form-group">
-              <span>Confirm New PIN</span>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                placeholder="5678"
-              />
-            </label>
+              <label className="form-group">
+                <span>New PIN</span>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="5678"
+                />
+              </label>
 
-            {error && <div className="settings-error">{error}</div>}
+              <label className="form-group">
+                <span>Confirm New PIN</span>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="5678"
+                />
+              </label>
 
-            <button type="submit" className="settings-submit" disabled={loading}>
-              {loading ? 'Saving…' : 'Save'}
-            </button>
-          </form>
-        )}
+              {error && <div className="settings-error">{error}</div>}
+
+              <button type="submit" className="settings-submit" disabled={loading}>
+                {loading ? 'Saving…' : 'Save'}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

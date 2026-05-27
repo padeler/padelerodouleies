@@ -36,6 +36,7 @@ def _to_dict(user: User) -> dict[str, Any]:
         "role": user.role,
         "current_stars": user.current_stars,
         "preferred_locale": user.preferred_locale,
+        "preferred_theme": user.preferred_theme,
     }
 
 
@@ -116,6 +117,23 @@ def update_locale(
     current_user.preferred_locale = req.locale  # type: ignore[assignment]
     db.commit()
     return JSONResponse(content={"locale": req.locale})
+
+
+class _ThemeRequest(BaseModel):
+    theme: str
+
+
+@router.post("/me/theme")
+def update_theme(
+    req: _ThemeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> JSONResponse:
+    if req.theme not in ("system", "light", "dark"):
+        return JSONResponse(status_code=400, content={"detail": "Invalid theme"})
+    current_user.preferred_theme = req.theme  # type: ignore[assignment]
+    db.commit()
+    return JSONResponse(content={"theme": req.theme})
 
 
 @router.post("/me/pin")

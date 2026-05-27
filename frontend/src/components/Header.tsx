@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { logout } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/store';
@@ -10,11 +11,15 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
   const t = useT();
   const navigate = useNavigate();
   const { user, clearUser } = useAuth();
+  const queryClient = useQueryClient();
   const [showSettings, setShowSettings] = useState(false);
 
   const handleLogout = async () => {
+    console.log('[Header] logout started');
     await logout();
+    queryClient.clear();
     clearUser();
+    console.log('[Header] navigating to /');
     navigate('/');
   };
 

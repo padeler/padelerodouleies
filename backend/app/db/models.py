@@ -32,6 +32,7 @@ class User(Base):
     role = Column(String(10), nullable=False, default="user")  # "admin" | "user"
     current_stars = Column(Integer, nullable=False, default=0)
     preferred_locale = Column(String(5), nullable=False, default="el")
+    preferred_theme = Column(String(10), nullable=False, default="system")
     failed_pin_attempts = Column(Integer, nullable=False, default=0)
     locked_until = Column(DateTime, nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)

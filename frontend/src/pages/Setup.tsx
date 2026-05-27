@@ -4,7 +4,7 @@ import { bootstrapSetup } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import './Setup.css';
 
-const AVATAR_ICONS = ['shield', 'fox', 'unicorn', 'dragon', 'owl', 'lion', 'butterfly', 'robot', 'star', 'heart'];
+const AVATAR_ICONS = ['shield', 'fox', 'unicorn', 'crown', 'ghost', 'rabbit', 'rocket', 'gem', 'star', 'trophy'];
 
 export function Setup() {
   const navigate = useNavigate();

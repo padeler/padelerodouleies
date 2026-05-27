@@ -16,6 +16,7 @@ class LoginResponse(BaseModel):
     role: str
     current_stars: int
     preferred_locale: str
+    preferred_theme: str = "system"
 
 
 class UserPublic(BaseModel):

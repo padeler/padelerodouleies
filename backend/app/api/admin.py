@@ -378,6 +378,13 @@ def delete_admin_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(404, "User not found")
+    if user.id == _admin.id:
+        raise HTTPException(400, "Cannot delete yourself")
+    active_admins = db.query(User).filter(
+        User.role == 'admin', User.is_active == True
+    ).count()
+    if user.role == 'admin' and active_admins <= 1:
+        raise HTTPException(400, "Cannot delete the last admin")
     user.is_active = False
     db.commit()
     return {"message": "Deleted"}

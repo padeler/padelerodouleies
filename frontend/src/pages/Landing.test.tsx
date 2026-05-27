@@ -111,7 +111,7 @@ describe('Landing', () => {
     server.use(
       http.get('/api/auth/users', async () => {
         return HttpResponse.json([
-          { id: 1, name: 'Photo Kid', avatar_kind: 'image', avatar_value: 'abc123.webp', role: 'user' },
+          { id: 1, name: 'Photo Kid', avatar_kind: 'image', avatar_value: '/avatars/abc123.webp', role: 'user' },
         ]);
       }),
       http.get('/api/bootstrap/status', async () => {

@@ -48,6 +48,25 @@ export function PinPad({ onComplete, onCancel, onWrong, lockedSeconds }: PinPadP
     onCancel();
   }, [onCancel, countdown]);
 
+  // Keyboard support for PIN input
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (countdown > 0) return;
+      if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        handleDigit(e.key);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleBackspace();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCancel();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleDigit, handleBackspace, handleCancel, countdown]);
+
   const handleWrong = useCallback(() => {
     setShaking(true);
     setDigits('');

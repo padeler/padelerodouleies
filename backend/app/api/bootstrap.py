@@ -49,6 +49,7 @@ def bootstrap_setup(req: BootstrapSetupRequest, db: Session = Depends(get_sessio
         role=str(user.role),
         current_stars=int(user.current_stars),
         preferred_locale=str(user.preferred_locale),
+        preferred_theme=str(user.preferred_theme),
     )
 
     resp = JSONResponse(status_code=201, content=data.model_dump())

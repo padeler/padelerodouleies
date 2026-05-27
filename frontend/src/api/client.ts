@@ -34,6 +34,7 @@ export async function login(userId: number, pin: string) {
     role: string;
     current_stars: number;
     preferred_locale: string;
+    preferred_theme: string;
   }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ user_id: userId, pin }),
@@ -53,6 +54,7 @@ export async function getMe() {
     role: string;
     current_stars: number;
     preferred_locale: string;
+    preferred_theme: string;
   }>('/auth/me');
 }
 
@@ -70,6 +72,13 @@ export async function updateLocale(locale: string) {
   return request<{ locale: string }>('/auth/me/locale', {
     method: 'POST',
     body: JSON.stringify({ locale }),
+  });
+}
+
+export async function updateTheme(theme: string) {
+  return request<{ theme: string }>('/auth/me/theme', {
+    method: 'POST',
+    body: JSON.stringify({ theme }),
   });
 }
 
@@ -93,6 +102,7 @@ export async function bootstrapSetup(name: string, avatarKind: string, avatarVal
     role: string;
     current_stars: number;
     preferred_locale: string;
+    preferred_theme: string;
   }>('/bootstrap/setup', {
     method: 'POST',
     body: JSON.stringify({ name, avatar_kind: avatarKind, avatar_value: avatarValue, pin }),

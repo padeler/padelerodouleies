@@ -9,7 +9,6 @@ _sockets: dict[int, list[tuple[WebSocket, str]]] = {}
 
 
 async def connect(websocket: WebSocket, user_id: int, role: str) -> None:
-    await websocket.accept()
     _sockets.setdefault(user_id, []).append((websocket, role))
 
 

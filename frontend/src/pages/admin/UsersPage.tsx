@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAdminUsers, deleteAdminUser, resetUserPin } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { AdminUser } from '../../lib/types';
+import { useAuth } from '../../hooks/useAuth';
 import { useState } from 'react';
 import { UserModal } from '../../components/UserModal';
 import { AdjustStarsModal } from '../../components/AdjustStarsModal';
@@ -16,6 +17,7 @@ function AvatarCell(user: AdminUser) {
 
 export function UsersPage() {
   const t = useT();
+  const { user: currentUser } = useAuth();
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [creating, setCreating] = useState(false);
   const [adjusting, setAdjusting] = useState<AdminUser | null>(null);
@@ -91,7 +93,7 @@ export function UsersPage() {
                     <span className="btn-icon">🔑</span>
                     <span className="btn-text">{t('btn.reset_pin')}</span>
                   </button>
-                  <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(user)} title={t('btn.delete')}>
+                  <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(user)} title={t('btn.delete')} style={{ display: currentUser?.id === user.id ? 'none' : undefined }}>
                     <span className="btn-icon">🗑</span>
                     <span className="btn-text">{t('btn.delete')}</span>
                   </button>

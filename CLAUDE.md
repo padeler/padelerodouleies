@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-Phases 1–4 complete. Phase 5 M5.1 (responsive polish & accessibility) complete. Schema update: Chore/Reward models now use single `title`/`description` fields (removed `*_el`/`*_en` pairs), `Chore.start_time` is nullable, `User.username` is unique case-insensitive, `HistoryLedger` has `action_label` column. Remaining: M5.2 (Dockerfile), M5.3 (docker-compose), M5.4 (LAN testing), M5.5 (handover docs). Frontend has 113 Vitest tests (all passing) + 9 Playwright responsive tests. When asked to implement features, treat `PLAN.md` as the authoritative roadmap and `README.md` as the spec; if either disagrees with code that gets written later, the code wins but flag the drift.
+Phases 1–4 complete. Phase 5 M5.1 (responsive polish & accessibility) complete. Schema update: Chore/Reward models now use single `title`/`description` fields (removed `*_el`/`*_en` pairs), `Chore.start_time` is nullable, `User.username` is unique case-insensitive, `HistoryLedger` has `action_label` column, `User` has `preferred_theme` column (`system`/`light`/`dark`). Bugs fixed: missing setup icons, user self-deletion, chore 422 on missing start_time, image avatar double-prefix on login page, logout stale redirect, WebSocket double-accept error. Features added: theme system (user-controlled dark/light/system), keyboard PIN input, lazy icon loading. Remaining: M5.2 (Dockerfile), M5.3 (docker-compose), M5.4 (LAN testing), M5.5 (handover docs). Frontend has 113 Vitest tests (all passing) + 60 backend pytest tests. When asked to implement features, treat `PLAN.md` as the authoritative roadmap and `README.md` as the spec; if either disagrees with code that gets written later, the code wins but flag the drift.
 
 ## Stack & Architecture
 
@@ -26,6 +26,9 @@ These are non-obvious rules that must hold across any feature work:
 4. **The history ledger is append-only and human-visible.** When an admin retroactively declines an approved claim, the system subtracts stars *and* writes a negative-delta row that the child sees in their timeline with the admin's reason text. Never silently mutate a child's balance — every delta must have a corresponding ledger entry.
 5. **Bilingual by design, single-title content.** Default locale is Greek (`el`), secondary is English (`en`). All static UI strings live in a central `translations.py`. Admin-created content (chore/reward titles) uses a single `title`/`description` field — the admin types in whatever language they prefer, no bilingual columns. New user-visible strings must go through the translation layer, not be hardcoded.
 6. **Collaborative rewards** pool stars from multiple users toward a shared target with a combined progress bar — distinct from individual rewards which deduct from one balance. The `is_collaborative` flag on `REWARDS` drives different UI and ledger logic.
+7. **Theme system** is user-controlled per account. `User.preferred_theme` stores `system`/`light`/`dark`. The frontend `ThemeWatcher` in `main.tsx` applies `data-theme` to `<html>`. CSS uses both `@media (prefers-color-scheme: dark)` (browser default) and `html[data-theme="dark"]` (user choice). When testing, the theme attribute takes visual precedence over media queries.
+8. **User deletion** is guarded: users cannot delete themselves, and the last active admin cannot be deleted. Backend raises 400; frontend hides the delete button for the current session user.
+9. **WebSocket** accept is only called once in `main.py`; `broadcaster.connect()` does NOT call `accept()` again.
 
 ## Implementation Phases (from PLAN.md)
 
@@ -43,7 +46,7 @@ Work is sequenced as: (1) DB models + i18n scaffold → (2) Fast-Switcher auth +
 
 - **Frontend:** Vitest (v3.2.4) + jsdom + React Testing Library + MSW. Run `npm test` in `frontend/`. Tests live in `src/**/*.test.{ts,tsx}`. Test config in `vitest.config.ts`, setup in `tests/setup.ts`. 113 tests across 15 files, all passing.
 - **E2E:** Playwright in `frontend/tests/responsive.spec.ts`. Requires backend running on :8000 and frontend on :5173. Run `npx playwright test` in `frontend/`. 9 responsive tests.
-- **Backend:** pytest + httpx for FastAPI test client. Run `pytest` in `backend/`.
+- **Backend:** pytest + httpx for FastAPI test client. Run `pytest` in `backend/`. 60 tests, all passing. Tests use the file database with an autouse fixture that deletes all rows after each test.
 - MSW handlers registered via `server.use()` are NOT consumed after a single match — use a closure variable to track call count for sequential response patterns.
 - React 19 + testing-library compatibility: jsdom over happy-dom, `expect.extend(matchers)` pattern for jest-dom, `@testing-library/user-event` for mutation flows that require proper event sequencing.
 - Responsive breakpoint: `useIsMobile()` uses `< 768px` (not `<=`). CSS media queries use `max-width: 768px`. One-pixel off-by-one at exactly 768px is acceptable.

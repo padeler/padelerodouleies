@@ -97,7 +97,7 @@ async def test_visible_chores_endpoint(kid_client):
     client, kid_id = kid_client
     db = LocalSession()
     chore = Chore(
-        title_el="Βούρτσισμα", title_en="Brush teeth",
+        title="Βούρτσισμα",
         icon_name="tooth", scope="individual",
         points_value=5, is_repeating=True,
         start_time=time(6, 0), window_hours=24, is_active=True,
@@ -159,7 +159,7 @@ async def test_marketplace_reward_redeem(kid_client):
     old_stars = kid.current_stars
 
     reward = Reward(
-        title_el="Βραβείο", title_en="Reward",
+        title="Βραβείο",
         icon_name="gift", cost_stars=10,
         is_collaborative=False, is_enabled=True,
     )
@@ -178,7 +178,7 @@ async def test_insufficient_stars(kid_client):
     client, kid_id = kid_client
     db = LocalSession()
     reward = Reward(
-        title_el="Άτοπο", title_en="Too expensive",
+        title="Άτοπο",
         icon_name="star", cost_stars=999,
         is_collaborative=False, is_enabled=True,
     )
@@ -197,7 +197,7 @@ async def test_pooled_chore_double_claim(kid_client, kid2_client):
 
     db = LocalSession()
     chore = Chore(
-        title_el="Κοινό", title_en="Pooled chore",
+        title="Κοινό",
         icon_name="bed", scope="pooled",
         points_value=3, is_repeating=True,
         start_time=time(6, 0), window_hours=24, is_active=True,
@@ -220,7 +220,7 @@ async def test_collaborative_contribute(kid_client, kid2_client):
 
     db = LocalSession()
     reward = Reward(
-        title_el="Ομαδικό", title_en="Collab",
+        title="Ομαδικό",
         icon_name="star", cost_stars=999,
         is_collaborative=True, is_enabled=True,
     )
@@ -255,7 +255,7 @@ async def test_redeem_rejects_collaborative(kid_client):
     client, _ = kid_client
     db = LocalSession()
     reward = Reward(
-        title_el="Ομαδικό2", title_en="Collab2",
+        title="Ομαδικό2",
         icon_name="heart", cost_stars=30,
         is_collaborative=True, is_enabled=True,
     )
@@ -272,7 +272,7 @@ async def test_contribute_rejects_individual(kid_client):
     client, _ = kid_client
     db = LocalSession()
     reward = Reward(
-        title_el="Ατομικό", title_en="Individual",
+        title="Ατομικό",
         icon_name="gift", cost_stars=10,
         is_collaborative=False, is_enabled=True,
     )

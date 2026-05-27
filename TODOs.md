@@ -1,17 +1,63 @@
 # Unstructured list of TODOs/bugs from using the application
 
-## Completed
-- [x] Chores can also have no specific time frame — start_time is now nullable
-- [x] No need for EN and EL titles — single title field, admin uses any language they like
-- [x] Many icons are still missing — icon catalog expanded
-- [x] Username should be unique (case insensitive) — enforced on create/update
-- [x] Activity tab Action column — now shows user-friendly labels instead of raw action_type strings
-- [x] Frontend test suite — 113 Vitest tests all passing
-
-## Remaining
-- [x] When selecting a time the clock should be 24h format — replaced native input with custom 24h TimePicker24h component (hour/minute dropdowns)
-- [x] Image upload fails even for images <2MB — fixed stale backend/data/ DB symlink, uploads work via curl
-- [x] The side panel when you scroll down does not extend all the way — added height:100% to sidebar wrappers
-- [x] When creating new chores it should also be possible to upload an image for the icon — verified working
-- [x] Chore deletion does not work (Delete button) — verified working (soft delete via is_active=False)
-- [x] All buttons should have icons and when the screen space is too limited only the icon should be visible on the button — added .btn-icon/.btn-text to all modals, tabs, logout button
+- [x] Many icons in the setup screen are missing — FIXED: replaced 6 non-existent icons with existing SVGs
+- [x] a user should not be able to delete himself — FIXED: backend guard + frontend hides delete button
+- [x] on create user all icons are fetched and this is slow — FIXED: added loading="lazy" to icon images
+- [x] on "new chore" if start time is not set the server responds 422 — FIXED: empty string → null conversion
+- [x] When a user has image for icon (not one of the svgs) it does not show on the login page — FIXED: removed double-prefix
+- [x] Themes should be added controlled by the each user in their settings — FIXED: system/light/dark toggle
+- [x] when a user logsout it takes him back to the entry page without reloading it — FIXED: React Query cache clear on logout
+- [x] The pin pad for entering the password should work with keyboard input as well — FIXED: keydown listener added
+- [x] as a user logged in browsing the dashboard throws the following exceptions on the backend: 
+```bash
+    INFO:     connection open
+    INFO:     connection closed
+    INFO:     127.0.0.1:36486 - "WebSocket /ws" [accepted]
+    ERROR:    Exception in ASGI application
+    Traceback (most recent call last):
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/uvicorn/protocols/websockets/websockets_impl.py", line 239, in run_asgi
+        result = await self.app(self.scope, self.asgi_receive, self.asgi_send)  # type: ignore[func-returns-value]
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 63, in __call__
+        return await self.app(scope, receive, send)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/fastapi/applications.py", line 1159, in __call__
+        await super().__call__(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/applications.py", line 90, in __call__
+        await self.middleware_stack(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 151, in __call__
+        await self.app(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+        await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+        raise exc
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+        await app(scope, receive, sender)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+        await self.app(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__
+        await self.middleware_stack(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/routing.py", line 680, in app
+        await route.handle(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/routing.py", line 350, in handle
+        await self.app(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 160, in app
+        await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+        raise exc
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+        await app(scope, receive, sender)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 157, in app
+        await func(session)
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 764, in app
+        await dependant.call(**solved_result.values)
+    File "/home/padeler/work/padelerodouleies/backend/app/main.py", line 90, in websocket_endpoint
+        await broadcaster.connect(ws, user.id, user.role)
+    File "/home/padeler/work/padelerodouleies/backend/app/realtime/broadcaster.py", line 12, in connect
+        await websocket.accept()
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/websockets.py", line 110, in accept
+        await self.send({"type": "websocket.accept", "subprotocol": subprotocol, "headers": headers})
+    File "/home/padeler/work/padelerodouleies/backend/.venv/lib/python3.12/site-packages/starlette/websockets.py", line 80, in send
+        raise RuntimeError(
+    RuntimeError: Expected ASGI message "websocket.send" or "websocket.close", but got 'websocket.accept'"
+```

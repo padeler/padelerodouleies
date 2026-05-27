@@ -178,12 +178,21 @@ async def test_logout(authenticated_client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_list_users(async_client: AsyncClient) -> None:
     """GET /api/auth/users returns public user info without PIN data."""
+    from app.db.engine import LocalSession
+    from app.db.models import User
+    from app.security import pins as pin_utils
+    db = LocalSession()
+    db.add(User(name="ListUser", role="user", pin_hash=pin_utils.hash_pin("1234")))
+    db.commit()
+    db.close()
+
     resp = await async_client.get("/api/auth/users")
     assert resp.status_code == 200
     data = resp.json()
     assert isinstance(data, list)
-    # At least the seeded users should be present
     assert len(data) >= 1
+    assert data[0]["name"] == "ListUser"
+    assert "pin_hash" not in data[0]
 
 
 @pytest.mark.asyncio

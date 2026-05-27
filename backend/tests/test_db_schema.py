@@ -28,8 +28,7 @@ def test_users_table_structure() -> None:
 def test_chore_table_structure() -> None:
     session = _get_in_memory_session()
     chore = Chore(
-        title_el="Βούρτσισμα Δοντιών",
-        title_en="Brush Teeth",
+        title="Βούρτσισμα Δοντιών",
         icon_name="tooth",
         scope="individual",
         points_value=5,
@@ -39,15 +38,14 @@ def test_chore_table_structure() -> None:
     session.add(chore)
     session.commit()
     assert chore.id is not None
-    assert chore.description_el is None
+    assert chore.description is None
     assert chore.is_active is True
 
 
 def test_reward_table_structure() -> None:
     session = _get_in_memory_session()
     reward = Reward(
-        title_el="Ώρα Screen Time",
-        title_en="Screen Time Hour",
+        title="Ώρα Screen Time",
         icon_name="monitor",
         cost_stars=20,
         is_collaborative=False,
@@ -69,12 +67,12 @@ def test_seed_users_and_query() -> None:
     session.add_all([admin, kid1, kid2])
     session.commit()
 
-    chore1 = Chore(title_el="Πρωινό", title_en="Morning", icon_name="sun", scope="individual", points_value=5, is_repeating=True, is_active=True)
-    chore2 = Chore(title_el="Δishes", title_en="Dishes", icon_name="plate", scope="pooled", points_value=10, is_repeating=True, is_active=True)
+    chore1 = Chore(title="Πρωινό", icon_name="sun", scope="individual", points_value=5, is_repeating=True, is_active=True)
+    chore2 = Chore(title="Δishes", icon_name="plate", scope="pooled", points_value=10, is_repeating=True, is_active=True)
     session.add_all([chore1, chore2])
     session.commit()
 
-    reward1 = Reward(title_el="Προσομοίωση", title_en="Doll", icon_name="gift", cost_stars=30, is_collaborative=False, is_enabled=True)
+    reward1 = Reward(title="Προσομοίωση", icon_name="gift", cost_stars=30, is_collaborative=False, is_enabled=True)
     session.add(reward1)
     session.commit()
 

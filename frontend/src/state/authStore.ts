@@ -8,6 +8,7 @@ export interface AuthUser {
   role: 'admin' | 'user';
   current_stars: number;
   preferred_locale: string;
+  preferred_theme: string;
 }
 
 interface AuthState {

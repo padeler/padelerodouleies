@@ -44,7 +44,7 @@ async def test_pending_count_requires_admin(async_client: AsyncClient):
 async def test_pending_count(async_client: AsyncClient, _db: Session):
     admin = _seed_admin(_db)
     kid = _seed_kid(_db)
-    chore = Chore(title_el="Χ", title_en="X", icon_name="star", points_value=5)
+    chore = Chore(title="Χ", icon_name="star", points_value=5)
     _db.add(chore)
     _db.commit()
     _db.refresh(chore)
@@ -69,14 +69,13 @@ async def test_chore_crud(async_client: AsyncClient, _db: Session):
 
     # Create
     resp = await async_client.post("/api/admin/chores", json={
-        "title_el": "Βούρτσισμα",
-        "title_en": "Brushing",
+        "title": "Βούρτσισμα",
         "icon_name": "star",
         "points_value": 5,
     }, cookies=cookie)
     assert resp.status_code == 201
     data = resp.json()
-    assert data["title_el"] == "Βούρτσισμα"
+    assert data["title"] == "Βούρτσισμα"
     assert data["points_value"] == 5
 
     # List
@@ -99,8 +98,7 @@ async def test_chore_crud(async_client: AsyncClient, _db: Session):
 
     # Create with invalid data
     resp = await async_client.post("/api/admin/chores", json={
-        "title_el": "Test",
-        "title_en": "Test",
+        "title": "Test",
         "icon_name": "star",
         "points_value": -1,
     }, cookies=cookie)
@@ -112,8 +110,7 @@ async def test_reward_crud(async_client: AsyncClient, _db: Session):
     cookie = await _login(async_client, admin.id, "1111")
 
     resp = await async_client.post("/api/admin/rewards", json={
-        "title_el": "Βραβείο",
-        "title_en": "Reward",
+        "title": "Βραβείο",
         "icon_name": "gift",
         "cost_stars": 20,
     }, cookies=cookie)
@@ -133,7 +130,7 @@ async def test_reward_crud(async_client: AsyncClient, _db: Session):
 async def test_approve_claim(async_client: AsyncClient, _db: Session):
     admin = _seed_admin(_db)
     kid = _seed_kid(_db)
-    chore = Chore(title_el="Χ", title_en="X", icon_name="star", points_value=5)
+    chore = Chore(title="Χ", icon_name="star", points_value=5)
     _db.add(chore)
     _db.commit()
     _db.refresh(chore)
@@ -164,7 +161,7 @@ async def test_approve_claim(async_client: AsyncClient, _db: Session):
 async def test_decline_claim(async_client: AsyncClient, _db: Session):
     admin = _seed_admin(_db)
     kid = _seed_kid(_db)
-    chore = Chore(title_el="Χ", title_en="X", icon_name="star", points_value=5)
+    chore = Chore(title="Χ", icon_name="star", points_value=5)
     _db.add(chore)
     _db.commit()
     _db.refresh(chore)
