@@ -75,7 +75,7 @@
   color: var(--text);
   min-height: 48px;
   min-width: 48px;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
 }

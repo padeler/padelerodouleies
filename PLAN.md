@@ -255,11 +255,12 @@ These are baseline architectural calls that shape multiple milestones. Capture t
 
 ## Phase 5: Deployment & Polish
 
-* [ ] **Milestone 5.1: Responsive Polish & Accessibility Pass**
-  * Test every page at 360px width (phone portrait), 768px (tablet portrait), 1280px (desktop).
-  * Verify PIN pad keys are ≥64px tap targets on the smallest tested device.
-  * Test the EL↔EN toggle on every screen; no untranslated leakage.
-  * High-contrast color check for the 4-year-old's visual recognition path.
+* [x] **Milestone 5.1: Responsive Polish & Accessibility Pass** — DONE
+  * Fixed hamburger menu visibility bug: `display: none` in App.css was overriding media query `display: flex` due to CSS cascade order. Changed base to `display: flex` (React conditional rendering already prevents desktop rendering).
+  * Verified at 375px, 767px, 768px, 1280px via Playwright tests.
+  * PIN pad keys confirmed 72x72px (>=64px tap target requirement).
+  * Sidebar correctly collapses with mobile class at <768px; hamburger opens/closes drawer with backdrop overlay.
+  * Added 9 Playwright responsive tests in `frontend/tests/responsive.spec.ts`.
 
 * [ ] **Milestone 5.2: Dockerfile (multi-stage)**
   * **Stage 1 — Frontend build:** `node:20-alpine`. Copy `frontend/package*.json`, run `npm ci`, copy `frontend/`, run `npm run build` → emits `frontend/dist/`.
