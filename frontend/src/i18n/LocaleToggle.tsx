@@ -1,5 +1,6 @@
 import React from 'react';
 import { useI18nStore } from './store';
+import './LocaleToggle.css';
 
 const LocaleToggle: React.FC = () => {
   const { locale, setLocale } = useI18nStore();
@@ -7,15 +8,9 @@ const LocaleToggle: React.FC = () => {
 
   return (
     <button
+      className="locale-toggle"
       onClick={() => setLocale(next)}
-      style={{
-        padding: '4px 12px',
-        border: '1px solid #ccc',
-        borderRadius: 4,
-        background: '#fff',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-      }}
+      type="button"
     >
       {next.toUpperCase()}
     </button>

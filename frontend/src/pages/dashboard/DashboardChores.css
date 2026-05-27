@@ -159,3 +159,58 @@
   font-size: 18px;
   color: var(--text);
 }
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .dashboard-chores {
+    padding: 16px;
+  }
+
+  .chore-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+  }
+
+  .chore-card {
+    padding: 16px;
+  }
+
+  .chore-icon-wrap {
+    width: 64px;
+    height: 64px;
+  }
+
+  .chore-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .chore-title {
+    font-size: 14px;
+  }
+
+  .chore-claim-btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    min-width: 120px;
+  }
+
+  .dashboard-greeting h2 {
+    font-size: 22px;
+  }
+
+  .stars-display {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chore-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-chores {
+    padding: 12px;
+  }
+}

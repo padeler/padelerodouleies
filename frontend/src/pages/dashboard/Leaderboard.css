@@ -105,3 +105,70 @@
   font-weight: 800;
   color: #f0c36d;
 }
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .leaderboard-page {
+    padding: 16px;
+  }
+
+  .podium {
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .podium-block {
+    width: 80px;
+  }
+
+  .podium-avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .podium-avatar-img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .podium-label {
+    font-size: 24px;
+  }
+
+  .podium-name {
+    font-size: 12px;
+  }
+
+  .podium-stars {
+    font-size: 14px;
+  }
+
+  .leaderboard-row {
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .leaderboard-page {
+    padding: 12px;
+  }
+
+  .podium-block {
+    width: 64px;
+  }
+
+  .podium-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .podium-avatar-img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .podium-label {
+    font-size: 20px;
+  }
+}

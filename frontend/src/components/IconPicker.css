@@ -81,3 +81,22 @@
   width: 100%;
   height: 100%;
 }
+
+/* Responsive - larger touch targets on mobile */
+
+@media (max-width: 768px) {
+  .icon-picker-tile {
+    width: 48px;
+    height: 48px;
+  }
+
+  .icon-picker-chip {
+    min-height: 40px;
+    padding: 6px 12px;
+  }
+
+  .icon-picker-search {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS zoom on input focus */
+  }
+}

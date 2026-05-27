@@ -13,7 +13,7 @@ const navItems = [
   { path: '/admin/activity', key: 'nav.activity' },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ onClose }: { onClose?: () => void } = {}) {
   const t = useT();
   const { data } = useQuery({
     queryKey: ['pending-count'],
@@ -24,7 +24,14 @@ export function AdminSidebar() {
 
   return (
     <nav className="admin-sidebar">
-      <div className="admin-sidebar-brand">{t('nav.admin')}</div>
+      <div className="admin-sidebar-brand">
+        <span>{t('nav.admin')}</span>
+        {onClose && (
+          <button className="sidebar-close" type="button" onClick={onClose} aria-label="Close menu">
+            ✕
+          </button>
+        )}
+      </div>
       <ul>
         {navItems.map((item) => (
           <li key={item.path}>

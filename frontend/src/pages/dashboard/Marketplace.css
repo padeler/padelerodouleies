@@ -269,3 +269,55 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .marketplace-page {
+    padding: 16px;
+  }
+
+  .reward-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+  }
+
+  .collab-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .reward-card {
+    padding: 16px;
+  }
+
+  .reward-icon-wrap {
+    width: 52px;
+    height: 52px;
+  }
+
+  .reward-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .reward-title {
+    font-size: 14px;
+  }
+
+  .collab-modal {
+    min-width: 280px;
+    max-width: 90vw;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .reward-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .marketplace-page {
+    padding: 12px;
+  }
+}

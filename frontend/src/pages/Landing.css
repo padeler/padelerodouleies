@@ -25,6 +25,40 @@
 @media (max-width: 768px) {
   .avatar-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .avatar-circle {
+    width: 64px;
+    height: 64px;
+  }
+
+  .avatar-name {
+    font-size: 14px;
+  }
+
+  .landing-title {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 360px) {
+  .avatar-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .avatar-circle {
+    width: 56px;
+    height: 56px;
+  }
+
+  .avatar-name {
+    font-size: 13px;
+  }
+
+  .landing-title {
+    font-size: 18px;
   }
 }
 

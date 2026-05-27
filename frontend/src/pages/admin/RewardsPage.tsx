@@ -35,7 +35,8 @@ export function RewardsPage() {
           {t('reward.new')}
         </button>
       </div>
-      <table className="admin-table">
+      <div className="admin-table-wrap">
+        <table className="admin-table">
         <thead>
           <tr>
             <th>{t('reward.table.icon')}</th>
@@ -80,6 +81,7 @@ export function RewardsPage() {
           )}
         </tbody>
       </table>
+      </div>
       {creating && <RewardModal onClose={() => setCreating(false)} />}
       {editing && <RewardModal reward={editing} onClose={() => setEditing(null)} />}
     </div>

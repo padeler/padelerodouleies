@@ -67,6 +67,64 @@
   color: var(--text-h);
 }
 
+.hamburger-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text);
+  min-height: 48px;
+  min-width: 48px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.hamburger-btn:hover {
+  color: var(--text-h);
+}
+
+/* Responsive header */
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 10px 16px;
+  }
+
+  .user-name {
+    font-size: 16px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .user-stars {
+    font-size: 14px;
+  }
+
+  .logout-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-header {
+    padding: 8px 12px;
+  }
+
+  .user-name {
+    max-width: 80px;
+    font-size: 14px;
+  }
+
+  .logout-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+}
+
 .admin-layout,
 .dashboard-layout {
   min-height: 100vh;

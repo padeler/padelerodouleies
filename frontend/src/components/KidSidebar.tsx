@@ -9,12 +9,19 @@ const navItems = [
   { path: '/dashboard/leaderboard', key: 'nav.leaderboard' },
 ];
 
-export function KidSidebar() {
+export function KidSidebar({ onClose }: { onClose?: () => void } = {}) {
   const t = useT();
 
   return (
     <nav className="kid-sidebar">
-      <div className="kid-sidebar-brand">{t('nav.dashboard')}</div>
+      <div className="kid-sidebar-brand">
+        <span>{t('nav.dashboard')}</span>
+        {onClose && (
+          <button className="sidebar-close" type="button" onClick={onClose} aria-label="Close menu">
+            ✕
+          </button>
+        )}
+      </div>
       <ul>
         {navItems.map((item) => (
           <li key={item.path}>

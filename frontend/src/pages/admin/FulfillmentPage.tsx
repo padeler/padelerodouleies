@@ -67,7 +67,8 @@ export function FulfillmentPage() {
       {(data as FulfillmentEntry[])?.length === 0 ? (
         <div style={{ color: 'var(--text-muted, #888)' }}>No entries</div>
       ) : (
-        <table className="admin-table">
+        <div className="admin-table-wrap">
+          <table className="admin-table">
           <thead>
             <tr>
               <th>Icon</th>
@@ -98,6 +99,7 @@ export function FulfillmentPage() {
                 ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

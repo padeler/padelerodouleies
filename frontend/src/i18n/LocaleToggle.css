@@ -1,0 +1,17 @@
+.locale-toggle {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  min-height: 40px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.locale-toggle:hover {
+  border-color: var(--accent);
+  color: var(--text-h);
+}

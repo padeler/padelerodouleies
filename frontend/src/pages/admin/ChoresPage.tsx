@@ -36,7 +36,8 @@ export function ChoresPage() {
           {t('chore.new')}
         </button>
       </div>
-      <table className="admin-table">
+      <div className="admin-table-wrap">
+        <table className="admin-table">
         <thead>
           <tr>
             <th>Icon</th>
@@ -81,6 +82,7 @@ export function ChoresPage() {
           )}
         </tbody>
       </table>
+      </div>
       {creating && <ChoreModal onClose={() => setCreating(false)} />}
       {editing && <ChoreModal chore={editing} onClose={() => setEditing(null)} />}
     </div>

@@ -6,7 +6,7 @@ import { useT } from '../i18n/store';
 import LocaleToggle from '../i18n/LocaleToggle';
 import { SettingsModal } from './SettingsModal';
 
-export function Header() {
+export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {}) {
   const t = useT();
   const navigate = useNavigate();
   const { user, clearUser } = useAuth();
@@ -22,6 +22,16 @@ export function Header() {
     <>
       <header className="app-header">
         <div className="header-left">
+          {onToggleSidebar && (
+            <button
+              className="hamburger-btn"
+              type="button"
+              onClick={onToggleSidebar}
+              aria-label="Toggle menu"
+            >
+              ☰
+            </button>
+          )}
           <span className="user-name">{user?.name}</span>
           <span className="user-stars">{user?.current_stars ?? 0} ⭐</span>
         </div>

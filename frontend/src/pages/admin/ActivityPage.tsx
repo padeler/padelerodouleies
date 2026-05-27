@@ -90,7 +90,8 @@ export function ActivityPage() {
         </div>
         <button className="admin-btn" onClick={clearFilters}>Clear</button>
       </div>
-      <table className="admin-table">
+      <div className="admin-table-wrap">
+        <table className="admin-table">
         <thead>
           <tr>
             <th>Time</th>
@@ -119,6 +120,7 @@ export function ActivityPage() {
           )}
         </tbody>
       </table>
+      </div>
       <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-muted, #888)' }}>
         Total: {data?.total} entries
       </div>

@@ -18,6 +18,26 @@
   color: #f0c36d;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-close {
+  background: none;
+  border: none;
+  color: #e0d4f5;
+  font-size: 20px;
+  cursor: pointer;
+  min-height: 48px;
+  min-width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-close:hover {
+  color: #fff;
 }
 
 .kid-sidebar ul {

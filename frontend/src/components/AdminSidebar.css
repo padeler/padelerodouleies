@@ -18,6 +18,26 @@
   color: var(--accent);
   border-bottom: 1px solid var(--border);
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-close {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  min-height: 48px;
+  min-width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-close:hover {
+  color: var(--text-h);
 }
 
 .admin-sidebar ul {

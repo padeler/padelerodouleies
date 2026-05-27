@@ -192,3 +192,62 @@
   background: rgba(238, 85, 85, 0.15);
   color: #e55;
 }
+
+/* Table overflow wrapper for mobile */
+
+.admin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .admin-btn {
+    min-height: 48px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .admin-table {
+    font-size: 13px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 8px 6px;
+  }
+
+  .admin-table .actions {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .modal-content {
+    min-width: 280px;
+    max-width: 90vw;
+    padding: 20px;
+  }
+
+  .admin-form-actions {
+    flex-direction: column;
+  }
+
+  .admin-form-actions button {
+    width: 100%;
+  }
+
+  .admin-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page-title {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-table {
+    font-size: 12px;
+  }
+}

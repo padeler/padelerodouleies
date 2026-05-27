@@ -114,3 +114,37 @@
   display: block;
   margin-bottom: 16px;
 }
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .kid-history {
+    padding: 16px;
+  }
+
+  .history-timeline {
+    padding-left: 24px;
+  }
+
+  .history-content {
+    padding: 12px 14px;
+  }
+
+  .history-points {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .kid-history {
+    padding: 12px;
+  }
+
+  .history-timeline {
+    padding-left: 20px;
+  }
+
+  .history-content {
+    padding: 10px 12px;
+  }
+}
