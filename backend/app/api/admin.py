@@ -558,21 +558,33 @@ def list_history(
         q = q.filter(HistoryLedger.timestamp <= to_date)
     total = q.count()
     rows = q.order_by(HistoryLedger.timestamp.desc()).limit(limit).offset(offset).all()
-    return {
-        "total": total,
-        "entries": [
-            {
-                "id": r.id,
-                "user_id": r.user_id,
-                "user_name": r.user.name,
-                "action_type": r.action_type,
-                "action_label": ACTION_LABELS.get(r.action_type, r.action_type),
-                "points_delta": r.points_delta,
-                "ref_table": r.ref_table,
-                "ref_id": r.ref_id,
-                "admin_note": r.admin_note,
-                "timestamp": r.timestamp.isoformat(),
-            }
-            for r in rows
-        ],
-    }
+
+    entries = []
+    for r in rows:
+        entry: dict[str, Any] = {
+            "id": r.id,
+            "user_id": r.user_id,
+            "user_name": r.user.name,
+            "user_avatar_kind": r.user.avatar_kind,
+            "user_avatar_value": r.user.avatar_value,
+            "action_type": r.action_type,
+            "action_label": ACTION_LABELS.get(r.action_type, r.action_type),
+            "points_delta": r.points_delta,
+            "ref_table": r.ref_table,
+            "ref_id": r.ref_id,
+            "admin_note": r.admin_note,
+            "timestamp": r.timestamp.isoformat(),
+        }
+        if r.ref_table == "chore" and r.ref_id:
+            chore = db.query(Chore).filter(Chore.id == r.ref_id).first()
+            if chore:
+                entry["item_title"] = chore.title
+                entry["item_icon"] = chore.icon_name
+        elif r.ref_table == "reward" and r.ref_id:
+            reward = db.query(Reward).filter(Reward.id == r.ref_id).first()
+            if reward:
+                entry["item_title"] = reward.title
+                entry["item_icon"] = reward.icon_name
+        entries.append(entry)
+
+    return {"total": total, "entries": entries}

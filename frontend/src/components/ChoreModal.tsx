@@ -41,6 +41,9 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
   const qc = useQueryClient();
   const [iconTab, setIconTab] = useState<'icon' | 'upload'>(chore?.icon_name?.startsWith('/') ? 'upload' : 'icon');
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState<string | null>(
+    chore?.icon_name?.startsWith('/') ? chore.icon_name : null
+  );
 
   const defaultValues: ChoreForm = {
     title: chore?.title ?? '',
@@ -97,9 +100,12 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     try {
       const resp = await uploadChoreImage(file);
       setValue('icon_name', resp.url);
-      setIconTab('icon');
+      setUploadedPreviewUrl(resp.url);
+      toast.success(t('common.success'));
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      setUploadError(msg);
+      toast.error(msg);
     }
   };
 
@@ -151,6 +157,13 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
             ) : (
               <div>
                 <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={handleImageUpload} />
+                {uploadedPreviewUrl && (
+                  <img
+                    src={uploadedPreviewUrl}
+                    alt="Preview"
+                    style={{ display: 'block', width: 64, height: 64, objectFit: 'cover', borderRadius: 8, marginTop: 8 }}
+                  />
+                )}
                 {uploadError && <div className="field-error">{uploadError}</div>}
               </div>
             )}

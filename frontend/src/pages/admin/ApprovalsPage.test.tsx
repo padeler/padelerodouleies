@@ -13,10 +13,15 @@ const server = setupServer();
 const TRANSLATIONS: Record<string, Record<string, string>> = {
   'nav.approvals': { el: 'Εγκρίσεις', en: 'Approvals' },
   'common.loading': { el: 'Φόρτωση…', en: 'Loading…' },
+  'common.error': { el: 'Σφάλμα', en: 'Error' },
   'btn.approve': { el: 'Έγκριση', en: 'Approve' },
   'btn.decline': { el: 'Απόρριψη', en: 'Decline' },
   'admin.reason_placeholder': { el: 'Λόγος (προαιρετικό)', en: 'Reason (optional)' },
-  'chore.label': { el: 'Εργάκι', en: 'Chore' },
+  'chore.label': { el: 'Δουλειά', en: 'Chore' },
+  'chore.approved': { el: 'Εγκρίθηκε', en: 'Approved' },
+  'chore.declined': { el: 'Απορρίφθηκε', en: 'Declined' },
+  'approvals.no_pending': { el: 'Δεν υπάρχουν εκκρεμείς αιτήσεις', en: 'Δεν υπάρχουν εκκρεμείς αιτήσεις' },
+  'approvals.error_loading': { el: 'Σφάλμα κατά τη φόρτωση αιτήσεων', en: 'Error loading claims' },
 };
 
 function renderApprovals() {
@@ -48,7 +53,7 @@ describe('ApprovalsPage', () => {
     );
     renderApprovals();
     await waitFor(() => {
-      expect(screen.getByText('No pending claims')).toBeInTheDocument();
+      expect(screen.getByText('Δεν υπάρχουν εκκρεμείς αιτήσεις')).toBeInTheDocument();
     });
   });
 
@@ -102,7 +107,7 @@ describe('ApprovalsPage', () => {
     const btn = screen.getByRole('button', { name: /Έγκριση/ });
     btn.focus();
     await user.keyboard('[Enter]');
-    await screen.findByText('No pending claims');
+    await screen.findByText('Δεν υπάρχουν εκκρεμείς αιτήσεις');
   });
 
   it('declining sends admin note', async () => {
@@ -131,7 +136,7 @@ describe('ApprovalsPage', () => {
     const btn = screen.getByRole('button', { name: /Απόρριψη/ });
     btn.focus();
     await user.keyboard('[Enter]');
-    await screen.findByText('No pending claims');
+    await screen.findByText('Δεν υπάρχουν εκκρεμείς αιτήσεις');
     expect(capturedNote).toBe('Not done properly');
   });
 

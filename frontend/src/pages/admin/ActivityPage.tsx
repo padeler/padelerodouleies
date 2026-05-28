@@ -13,6 +13,28 @@ const actionTypes = [
   { value: 'reward_refund', key: 'history.action_label_refund' },
 ];
 
+function UserAvatar({ kind, value, name }: { kind: 'icon' | 'image'; value: string; name: string }) {
+  const src = kind === 'image' ? value : `/api/icons/svg/${value}`;
+  return (
+    <img
+      src={src}
+      alt={name}
+      style={{ width: 28, height: 28, borderRadius: kind === 'image' ? '50%' : 0, objectFit: 'cover', verticalAlign: 'middle', marginRight: 6 }}
+    />
+  );
+}
+
+function ItemIcon({ icon }: { icon: string }) {
+  const src = icon.startsWith('/') ? icon : `/api/icons/svg/${icon}`;
+  return (
+    <img
+      src={src}
+      alt=""
+      style={{ width: 24, height: 24, verticalAlign: 'middle', marginRight: 4 }}
+    />
+  );
+}
+
 export function ActivityPage() {
   const t = useT();
   const [userId, setUserId] = useState<number | undefined>(undefined);
@@ -44,6 +66,9 @@ export function ActivityPage() {
     setToDate('');
   };
 
+  const inputStyle = { padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg-s, rgba(255,255,255,0.05))', color: 'var(--text)' };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' } as const;
+
   if (isLoading) return <div>{t('common.loading')}</div>;
 
   return (
@@ -51,47 +76,47 @@ export function ActivityPage() {
       <h2 className="admin-page-title">{t('nav.activity')}</h2>
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' }}>{t('nav.users')}</label>
+          <label style={labelStyle}>{t('nav.users')}</label>
           <select
             value={userId ?? ''}
             onChange={(e) => setUserId(e.target.value ? Number(e.target.value) : undefined)}
-            style={{ padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg-s, rgba(255,255,255,0.05))', color: 'var(--text)' }}
+            style={inputStyle}
           >
-            <option value="">All</option>
+            <option value="">{t('activity.all')}</option>
             {(users as AdminUser[])?.map((u) => (
               <option key={u.id} value={u.id}>{u.name}</option>
             ))}
           </select>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' }}>{t('chore.scope')}</label>
+          <label style={labelStyle}>{t('activity.action')}</label>
           <select
             value={actionType}
             onChange={(e) => setActionType(e.target.value)}
-            style={{ padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg-s, rgba(255,255,255,0.05))', color: 'var(--text)' }}
+            style={inputStyle}
           >
-            <option value="">All</option>
+            <option value="">{t('activity.all')}</option>
             {actionTypes.map((at) => (
               <option key={at.value} value={at.value}>{t(at.key)}</option>
             ))}
           </select>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' }}>From</label>
+          <label style={labelStyle}>{t('activity.from')}</label>
           <input
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            style={{ padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg-s, rgba(255,255,255,0.05))', color: 'var(--text)' }}
+            style={inputStyle}
           />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted, #888)' }}>To</label>
+          <label style={labelStyle}>{t('activity.to')}</label>
           <input
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            style={{ padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg-s, rgba(255,255,255,0.05))', color: 'var(--text)' }}
+            style={inputStyle}
           />
         </div>
         <button className="admin-btn" onClick={clearFilters}>
@@ -101,37 +126,47 @@ export function ActivityPage() {
       </div>
       <div className="admin-table-wrap">
         <table className="admin-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>{t('nav.users')}</th>
-            <th>Action</th>
-            <th>Delta</th>
-            <th>Note</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(data?.entries as HistoryEntry[])?.map((entry) => (
-            <tr key={entry.id}>
-              <td>{new Date(entry.timestamp).toLocaleString()}</td>
-              <td>{entry.user_name}</td>
-              <td>{entry.action_label || entry.action_type}</td>
-              <td style={{ color: entry.points_delta >= 0 ? '#4c8' : '#e55' }}>
-                {entry.points_delta > 0 ? '+' : ''}{entry.points_delta}
-              </td>
-              <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {entry.admin_note || '—'}
-              </td>
+          <thead>
+            <tr>
+              <th>{t('activity.time')}</th>
+              <th>{t('nav.users')}</th>
+              <th>{t('activity.action')}</th>
+              <th>{t('activity.item')}</th>
+              <th>{t('activity.delta')}</th>
+              <th>{t('activity.note')}</th>
             </tr>
-          ))}
-          {!data?.entries?.length && (
-            <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('history.empty')}</td></tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {(data?.entries as HistoryEntry[])?.map((entry) => (
+              <tr key={entry.id}>
+                <td>{new Date(entry.timestamp).toLocaleString()}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  {entry.user_avatar_kind && (
+                    <UserAvatar kind={entry.user_avatar_kind} value={entry.user_avatar_value} name={entry.user_name} />
+                  )}
+                  {entry.user_name}
+                </td>
+                <td>{entry.action_label || entry.action_type}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  {entry.item_icon && <ItemIcon icon={entry.item_icon} />}
+                  {entry.item_title ?? '—'}
+                </td>
+                <td style={{ color: entry.points_delta >= 0 ? '#4c8' : '#e55' }}>
+                  {entry.points_delta > 0 ? '+' : ''}{entry.points_delta}
+                </td>
+                <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {entry.admin_note || '—'}
+                </td>
+              </tr>
+            ))}
+            {!data?.entries?.length && (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('history.empty')}</td></tr>
+            )}
+          </tbody>
+        </table>
       </div>
       <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-muted, #888)' }}>
-        Total: {data?.total} entries
+        {t('activity.total', { count: String(data?.total ?? 0) })}
       </div>
     </div>
   );

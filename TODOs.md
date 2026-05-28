@@ -1,9 +1,0 @@
-- [ ] when i am logged in and i.e in the /dashboard, if i change the url to / i am greeted again with the login screen although i am logged in.
-- [ ] when a chore is claimed by a user, the fireworks animation should play (even though the stars are pending)
-- [ ] History should also show icons for the chores
-- [ ] Going to the "Leaderboard" should show fireworks if the user is first second or third in place.
-- [ ] When an admin presses "decline" on a chore in admin/aprovals it still shows the fireworks and a popup says approved
-- [ ] when a chore is declined it should reapear in the available chores if the contitions of the chore havent expired (i.e valid time etc)
-- [ ] as admin when I click "Mark Fulfilled" the fireworks animation and toast notification appears twice.
-- [ ] as admin on  "new chore" when i try to upload an image for the icon it fails with the message "getField is not a function"
-- [ ] as admin on "new chore" when i select an svg icon initially no category tab is selected and all tabs are shown. It shouls preselect the first category

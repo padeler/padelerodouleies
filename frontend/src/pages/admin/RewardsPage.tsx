@@ -27,7 +27,7 @@ export function RewardsPage() {
   };
 
   const handleDelete = async (reward: Reward) => {
-    if (!window.confirm(`Delete "${reward.title}" permanently? This cannot be undone.`)) return;
+    if (!window.confirm(t('common.confirm_delete', { title: reward.title }))) return;
     try {
       await deleteReward(reward.id);
       notifySuccess(t('common.delete') + ' ✓');
@@ -57,7 +57,7 @@ export function RewardsPage() {
             <th>{t('reward.table.cost')}</th>
             <th>{t('reward.table.collaborative')}</th>
             <th>{t('common.enabled')}</th>
-            <th>Actions</th>
+            <th>{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody>

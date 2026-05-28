@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { getUsers, login, getBootstrapStatus, getPendingStars } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
+import { useT } from '../i18n/store';
 import { PinPad } from '../components/PinPad';
 import './Landing.css';
 
@@ -36,6 +37,7 @@ function AvatarTile({ user, onSelected }: { user: UserListItem; onSelected: (id:
 }
 
 export function Landing() {
+  const t = useT();
   const navigate = useNavigate();
   const { setUser, selectedUserId, clearUser, setSelectedUserId } = useAuth();
   const [showPin, setShowPin] = useState(false);
@@ -96,7 +98,7 @@ export function Landing() {
 
   return (
     <div className="landing">
-      <h1 className="landing-title">Select your profile</h1>
+      <h1 className="landing-title">{t('login.select_profile')}</h1>
       {users && (
         <div className="avatar-grid">
           {users.map((user) => (

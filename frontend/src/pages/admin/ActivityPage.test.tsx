@@ -21,6 +21,15 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   'history.action_label_refund': { el: 'Επιστροφή', en: 'Refund' },
   'btn.clear': { el: 'Εκκαθάριση', en: 'Clear' },
   'common.loading': { el: 'Φόρτωση…', en: 'Loading…' },
+  'activity.time': { el: 'Ώρα', en: 'Time' },
+  'activity.action': { el: 'Ενέργεια', en: 'Action' },
+  'activity.delta': { el: 'Αλλαγή', en: 'Delta' },
+  'activity.note': { el: 'Σημείωση', en: 'Note' },
+  'activity.item': { el: 'Αντικείμενο', en: 'Item' },
+  'activity.all': { el: 'Όλα', en: 'All' },
+  'activity.from': { el: 'Από', en: 'From' },
+  'activity.to': { el: 'Έως', en: 'To' },
+  'activity.total': { el: 'Σύνολο: {count} εγγραφές', en: 'Total: {count} entries' },
 };
 
 function renderActivityPage() {
@@ -90,7 +99,7 @@ describe('ActivityPage', () => {
       expect(tbody).toHaveTextContent('Good behavior');
       expect(tbody).toHaveTextContent('+5');
     });
-    expect(screen.getByText('Total: 2 entries')).toBeInTheDocument();
+    expect(screen.getByText('Σύνολο: 2 εγγραφές')).toBeInTheDocument();
   });
 
   it('shows empty message when no activity', async () => {

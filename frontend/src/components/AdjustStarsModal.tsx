@@ -7,13 +7,11 @@ import { useT } from '../i18n/store';
 import type { AdminUser } from '../lib/types';
 import { notifySuccess, notifyCelebration, notifyError } from '../lib/notify';
 
-const schema = z.object({
-  direction: z.enum(['+', '-']),
-  amount: z.number().int().min(1),
-  description: z.string().min(3, 'At least 3 characters'),
-});
-
-type Form = z.infer<typeof schema>;
+type Form = {
+  direction: '+' | '-';
+  amount: number;
+  description: string;
+};
 
 interface AdjustStarsModalProps {
   user: AdminUser;
@@ -23,6 +21,12 @@ interface AdjustStarsModalProps {
 export function AdjustStarsModal({ user, onClose }: AdjustStarsModalProps) {
   const t = useT();
   const qc = useQueryClient();
+
+  const schema = z.object({
+    direction: z.enum(['+', '-']),
+    amount: z.number().int().min(1),
+    description: z.string().min(3, t('stars.note_min_chars')),
+  });
 
   const { control, handleSubmit, formState: { errors } } = useForm<Form>({
     resolver: zodResolver(schema),
@@ -57,8 +61,8 @@ export function AdjustStarsModal({ user, onClose }: AdjustStarsModalProps) {
           <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Controller name="direction" control={control} render={({ field }) => (
               <select {...field}>
-                <option value="+">+ Add</option>
-                <option value="-">− Remove</option>
+                <option value="+">+ {t('stars.add')}</option>
+                <option value="-">− {t('stars.remove')}</option>
               </select>
             )} />
             <Controller name="amount" control={control} render={({ field }) => (

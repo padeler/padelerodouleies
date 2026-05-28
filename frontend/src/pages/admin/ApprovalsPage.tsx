@@ -84,13 +84,13 @@ export function ApprovalsPage() {
   });
 
   if (isLoading) return <div>{t('common.loading')}</div>;
-  if (error) return <div style={{ color: '#e55' }}>Error loading claims: {error instanceof Error ? error.message : String(error)}</div>;
+  if (error) return <div style={{ color: '#e55' }}>{t('approvals.error_loading')}: {error instanceof Error ? error.message : String(error)}</div>;
 
   return (
     <div>
       <h2 className="admin-page-title">{t('nav.approvals')}</h2>
       {data?.length === 0 ? (
-        <div style={{ color: 'var(--text-muted, #888)' }}>No pending claims</div>
+        <div style={{ color: 'var(--text-muted, #888)' }}>{t('approvals.no_pending')}</div>
       ) : (
         (data as PendingClaim[])?.map((claim) => (
           <ClaimCard key={claim.id} claim={claim} />

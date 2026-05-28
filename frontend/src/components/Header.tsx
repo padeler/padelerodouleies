@@ -41,7 +41,7 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
           {user?.role !== 'admin' && (
             <>
               {user?.pending_stars > 0 && (
-                <span className="user-pending-stars" title="Pending stars">
+                <span className="user-pending-stars" title={t('chore.pending_stars')}>
                   {user.pending_stars}☆
                 </span>
               )}

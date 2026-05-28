@@ -35,7 +35,7 @@ export function ChoresPage() {
   };
 
   const handleDelete = async (chore: Chore) => {
-    if (!window.confirm(`Delete "${chore.title}" permanently? This cannot be undone.`)) return;
+    if (!window.confirm(t('common.confirm_delete', { title: chore.title }))) return;
     try {
       await deleteChore(chore.id);
       notifySuccess(t('common.delete') + ' ✓');
@@ -65,7 +65,7 @@ export function ChoresPage() {
             <th>{t('chore.points')}</th>
             <th>{t('chore.scope')}</th>
             <th>{t('common.enabled')}</th>
-            <th>Actions</th>
+            <th>{t('common.actions')}</th>
           </tr>
         </thead>
         <tbody>
@@ -99,7 +99,7 @@ export function ChoresPage() {
             </tr>
           ))}
           {data?.length === 0 && (
-            <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>No chores yet</td></tr>
+            <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('chore.table.empty')}</td></tr>
           )}
         </tbody>
       </table>

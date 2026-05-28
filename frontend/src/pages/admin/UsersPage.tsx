@@ -38,14 +38,14 @@ export function UsersPage() {
   };
 
   const handleResetPin = async (user: AdminUser) => {
-    const pin = prompt('Enter new 4-digit PIN for ' + user.name);
+    const pin = prompt(t('user.reset_pin_prompt', { name: user.name }));
     try {
       if (pin && /^\d{4}$/.test(pin)) {
         await resetUserPin(user.id, pin);
         notifySuccess(t('pin_reset.success'));
         refetch();
       } else if (pin) {
-        notifyError('PIN must be exactly 4 digits.');
+        notifyError(t('pin_reset.must_be_4_digits'));
       }
     } catch (err) {
       notifyError(err instanceof Error ? err.message : t('common.error'));
@@ -72,7 +72,7 @@ export function UsersPage() {
               <th>{t('user.table.role')}</th>
               <th>{t('user.table.stars')}</th>
               <th>{t('user.table.active')}</th>
-              <th>Actions</th>
+              <th>{t('common.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -82,7 +82,7 @@ export function UsersPage() {
                 <td>{user.name}</td>
                 <td>
                   <span className={`status-badge ${user.role === 'admin' ? 'active' : ''}`}>
-                    {user.role}
+                    {user.role === 'admin' ? t('user.role_admin') : t('user.role_user')}
                   </span>
                 </td>
                 <td>{user.current_stars} ⭐</td>

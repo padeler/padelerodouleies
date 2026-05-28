@@ -2,11 +2,13 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bootstrapSetup } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
+import { useT } from '../i18n/store';
 import './Setup.css';
 
 const AVATAR_ICONS = ['shield', 'fox', 'unicorn', 'crown', 'ghost', 'rabbit', 'rocket', 'gem', 'star', 'trophy'];
 
 export function Setup() {
+  const t = useT();
   const navigate = useNavigate();
   const { setUser } = useAuth();
   const [name, setName] = useState('');
@@ -22,15 +24,15 @@ export function Setup() {
       setError('');
 
       if (!name.trim()) {
-        setError('Please enter your name');
+        setError(t('setup.error_name'));
         return;
       }
       if (pin !== confirmPin) {
-        setError('PINs do not match');
+        setError(t('bootstrap.pin_mismatch'));
         return;
       }
       if (!/^\d{4}$/.test(pin)) {
-        setError('PIN must be exactly 4 digits');
+        setError(t('setup.error_pin_digits'));
         return;
       }
 
@@ -40,32 +42,32 @@ export function Setup() {
         setUser({ ...user, role: user.role as 'admin' | 'user' });
         navigate('/admin');
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Setup failed');
+        setError(err instanceof Error ? err.message : t('setup.error_failed'));
       } finally {
         setLoading(false);
       }
     },
-    [name, avatar, pin, confirmPin, setUser, navigate],
+    [name, avatar, pin, confirmPin, setUser, navigate, t],
   );
 
   return (
     <div className="setup">
       <form className="setup-form" onSubmit={handleSubmit}>
-        <h1>Create Admin Account</h1>
+        <h1>{t('login.first_run_title')}</h1>
 
         <label className="form-group">
-          <span>Name</span>
+          <span>{t('bootstrap.name')}</span>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t('bootstrap.name')}
             autoFocus
           />
         </label>
 
         <label className="form-group">
-          <span>Avatar</span>
+          <span>{t('bootstrap.avatar')}</span>
           <div className="avatar-select">
             {AVATAR_ICONS.map((icon) => (
               <button
@@ -81,7 +83,7 @@ export function Setup() {
         </label>
 
         <label className="form-group">
-          <span>PIN (4 digits)</span>
+          <span>{t('bootstrap.pin')}</span>
           <input
             type="password"
             inputMode="numeric"
@@ -93,7 +95,7 @@ export function Setup() {
         </label>
 
         <label className="form-group">
-          <span>Confirm PIN</span>
+          <span>{t('bootstrap.pin_confirm')}</span>
           <input
             type="password"
             inputMode="numeric"
@@ -107,7 +109,7 @@ export function Setup() {
         {error && <div className="setup-error">{error}</div>}
 
         <button type="submit" className="setup-submit" disabled={loading}>
-          {loading ? 'Creating…' : 'Create Account'}
+          {loading ? t('setup.creating') : t('setup.create')}
         </button>
       </form>
     </div>

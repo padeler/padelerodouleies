@@ -10,7 +10,7 @@
       "steady"
     ],
     "keywords_el": [
-      "γυάλο",
+      "άγκυρα",
       "θάλασσα",
       "δύναμη"
     ]
@@ -48,6 +48,22 @@
     ]
   },
   {
+    "name": "armchair",
+    "category": "tidying",
+    "svg_ref": "icons/svg/armchair.svg",
+    "keywords_en": [
+      "armchair",
+      "chair",
+      "living room",
+      "furniture"
+    ],
+    "keywords_el": [
+      "πολυθρόνα",
+      "καρέκλα",
+      "έπιπλα"
+    ]
+  },
+  {
     "name": "award",
     "category": "avatars",
     "svg_ref": "icons/svg/award.svg",
@@ -58,9 +74,25 @@
       "winner"
     ],
     "keywords_el": [
+      "βραβείο",
       "επίτευγμα",
-      "badge",
       "νίκη"
+    ]
+  },
+  {
+    "name": "baby",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/baby.svg",
+    "keywords_en": [
+      "baby",
+      "infant",
+      "care",
+      "diaper"
+    ],
+    "keywords_el": [
+      "μωρό",
+      "φροντίδα",
+      "πάνα"
     ]
   },
   {
@@ -77,6 +109,22 @@
       "σακίδιο",
       "σχολείο",
       "βιβλία"
+    ]
+  },
+  {
+    "name": "bandage",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/bandage.svg",
+    "keywords_en": [
+      "bandage",
+      "wound",
+      "first aid",
+      "boo-boo"
+    ],
+    "keywords_el": [
+      "επίδεσμος",
+      "τραύμα",
+      "πρώτες βοήθειες"
     ]
   },
   {
@@ -124,7 +172,7 @@
       "reminder"
     ],
     "keywords_el": [
-      "κάμπανα",
+      "κωδωνάριο",
       "ειδοποίηση",
       "υπενθύμιση"
     ]
@@ -141,7 +189,7 @@
     ],
     "keywords_el": [
       "ποδήλατο",
-      "κατάθεση"
+      "τακτοποίηση"
     ]
   },
   {
@@ -155,9 +203,9 @@
       "feathers"
     ],
     "keywords_el": [
-      "πτερό",
+      "πουλί",
       "ζώο",
-      "φέτες"
+      "φτερά"
     ]
   },
   {
@@ -177,6 +225,22 @@
     ]
   },
   {
+    "name": "boom-box",
+    "category": "rewards",
+    "svg_ref": "icons/svg/boom-box.svg",
+    "keywords_en": [
+      "boom box",
+      "music",
+      "speaker",
+      "radio"
+    ],
+    "keywords_el": [
+      "ραδιόφωνο",
+      "μουσική",
+      "ηχείο"
+    ]
+  },
+  {
     "name": "box",
     "category": "tidying",
     "svg_ref": "icons/svg/box.svg",
@@ -188,8 +252,42 @@
     ],
     "keywords_el": [
       "κουτί",
-      "εργαλεία",
-      "κατάθεση"
+      "παιχνίδια",
+      "αποθήκευση"
+    ]
+  },
+  {
+    "name": "brain",
+    "category": "school",
+    "svg_ref": "icons/svg/brain.svg",
+    "keywords_en": [
+      "brain",
+      "think",
+      "learn",
+      "study",
+      "smart"
+    ],
+    "keywords_el": [
+      "μυαλό",
+      "σκέψη",
+      "μάθηση",
+      "έξυπνο"
+    ]
+  },
+  {
+    "name": "brush",
+    "category": "tidying",
+    "svg_ref": "icons/svg/brush.svg",
+    "keywords_en": [
+      "brush",
+      "paint",
+      "clean",
+      "sweep"
+    ],
+    "keywords_el": [
+      "βούρτσα",
+      "σκούπισμα",
+      "χρώμα"
     ]
   },
   {
@@ -205,7 +303,7 @@
     "keywords_el": [
       "έντομο",
       "φύση",
-      "κριμίδι"
+      "έρπετο"
     ]
   },
   {
@@ -235,7 +333,7 @@
       "numbers"
     ],
     "keywords_el": [
-      "υπολογιστής",
+      "αριθμομηχανή",
       "μαθηματικά",
       "αριθμοί"
     ]
@@ -253,7 +351,23 @@
     "keywords_el": [
       "γλυκό",
       "ζαχαρωτό",
-      "λάχτα"
+      "καραμέλα"
+    ]
+  },
+  {
+    "name": "candy-cane",
+    "category": "rewards",
+    "svg_ref": "icons/svg/candy-cane.svg",
+    "keywords_en": [
+      "candy cane",
+      "sweet",
+      "christmas",
+      "treat"
+    ],
+    "keywords_el": [
+      "καλαμάκι καραμέλας",
+      "γλυκό",
+      "χριστούγεννα"
     ]
   },
   {
@@ -266,8 +380,8 @@
       "forbidden"
     ],
     "keywords_el": [
-      "όχι γλυκό",
-      "απαγόρευση"
+      "όχι γλυκά",
+      "απαγορευμένο"
     ]
   },
   {
@@ -314,7 +428,6 @@
     "keywords_el": [
       "γάτα",
       "ζώο",
-      "γιάτα",
       "γατάκι"
     ]
   },
@@ -347,7 +460,7 @@
     ],
     "keywords_el": [
       "κλαπέτο",
-      "βιντεο",
+      "βίντεο",
       "σινεμά"
     ]
   },
@@ -362,7 +475,7 @@
       "notes"
     ],
     "keywords_el": [
-      "συνόλου",
+      "πρόχειρο",
       "λίστα",
       "σημειώσεις"
     ]
@@ -378,8 +491,8 @@
       "rain"
     ],
     "keywords_el": [
-      "νεφέλα",
-      "ούρανο",
+      "σύννεφο",
+      "ουρανός",
       "καιρός"
     ]
   },
@@ -397,6 +510,39 @@
       "καφές",
       "ποτό",
       "πρωινό"
+    ]
+  },
+  {
+    "name": "coins",
+    "category": "rewards",
+    "svg_ref": "icons/svg/coins.svg",
+    "keywords_en": [
+      "coins",
+      "money",
+      "allowance",
+      "earn"
+    ],
+    "keywords_el": [
+      "νομίσματα",
+      "χρήματα",
+      "επίδομα",
+      "κέρδος"
+    ]
+  },
+  {
+    "name": "compass",
+    "category": "school",
+    "svg_ref": "icons/svg/compass.svg",
+    "keywords_en": [
+      "compass",
+      "geometry",
+      "math",
+      "circle"
+    ],
+    "keywords_el": [
+      "διαβήτης",
+      "γεωμετρία",
+      "μαθηματικά"
     ]
   },
   {
@@ -446,7 +592,7 @@
       "στέμμα",
       "βασιλιάς",
       "βασιλίσσα",
-      "διοίκηση"
+      "διαχειριστής"
     ]
   },
   {
@@ -479,8 +625,24 @@
     "keywords_el": [
       "σκύλος",
       "ζώο",
-      "περπάτημα",
-      "σκαμπά"
+      "βόλτα",
+      "κουτάβι"
+    ]
+  },
+  {
+    "name": "door-open",
+    "category": "tidying",
+    "svg_ref": "icons/svg/door-open.svg",
+    "keywords_en": [
+      "door",
+      "room",
+      "tidy",
+      "close"
+    ],
+    "keywords_el": [
+      "πόρτα",
+      "δωμάτιο",
+      "τακτοποίηση"
     ]
   },
   {
@@ -493,7 +655,7 @@
       "hydrate"
     ],
     "keywords_el": [
-      "στάγος",
+      "σταγόνα",
       "υγρασία"
     ]
   },
@@ -511,6 +673,38 @@
       "σταγόνες",
       "νερό",
       "σαπούνι"
+    ]
+  },
+  {
+    "name": "dumbbell",
+    "category": "pets",
+    "svg_ref": "icons/svg/dumbbell.svg",
+    "keywords_en": [
+      "dumbbell",
+      "exercise",
+      "sport",
+      "fitness"
+    ],
+    "keywords_el": [
+      "αλτήρας",
+      "άσκηση",
+      "γυμναστική"
+    ]
+  },
+  {
+    "name": "ear",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/ear.svg",
+    "keywords_en": [
+      "ear",
+      "hearing",
+      "clean",
+      "care"
+    ],
+    "keywords_el": [
+      "αυτί",
+      "ακοή",
+      "καθαριότητα"
     ]
   },
   {
@@ -541,8 +735,56 @@
     ],
     "keywords_el": [
       "γόμα",
-      "διόρθωση",
-      "σφάλμα"
+      "διόρθωση"
+    ]
+  },
+  {
+    "name": "eye",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/eye.svg",
+    "keywords_en": [
+      "eye",
+      "sight",
+      "glasses",
+      "care"
+    ],
+    "keywords_el": [
+      "μάτι",
+      "όραση",
+      "φροντίδα"
+    ]
+  },
+  {
+    "name": "fan",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/fan.svg",
+    "keywords_en": [
+      "fan",
+      "air",
+      "ventilation",
+      "fresh"
+    ],
+    "keywords_el": [
+      "ανεμιστήρας",
+      "αέρας",
+      "αερισμός"
+    ]
+  },
+  {
+    "name": "fence",
+    "category": "pets",
+    "svg_ref": "icons/svg/fence.svg",
+    "keywords_en": [
+      "fence",
+      "garden",
+      "yard",
+      "outside"
+    ],
+    "keywords_el": [
+      "φράχτης",
+      "κήπος",
+      "αυλή",
+      "εξωτερικό"
     ]
   },
   {
@@ -555,7 +797,7 @@
       "fun"
     ],
     "keywords_el": [
-      "τροχός",
+      "ρόδα",
       "θέαμα",
       "διασκέδαση"
     ]
@@ -572,8 +814,8 @@
     ],
     "keywords_el": [
       "αρχείο",
-      "εγγραφή",
-      "έκθεση"
+      "έγγραφο",
+      "αναφορά"
     ]
   },
   {
@@ -604,7 +846,7 @@
     ],
     "keywords_el": [
       "ψάρι",
-      "ακτάριο",
+      "ενυδρείο",
       "ζώο"
     ]
   },
@@ -635,9 +877,9 @@
       "plant"
     ],
     "keywords_el": [
-      "άνθος",
+      "λουλούδι",
       "κήπος",
-      "φυτέυμα"
+      "φυτό"
     ]
   },
   {
@@ -656,6 +898,22 @@
     ]
   },
   {
+    "name": "footprints",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/footprints.svg",
+    "keywords_en": [
+      "footprints",
+      "feet",
+      "shoes",
+      "clean"
+    ],
+    "keywords_el": [
+      "πατημασιές",
+      "πόδια",
+      "παπούτσια"
+    ]
+  },
+  {
     "name": "fox",
     "category": "avatars",
     "svg_ref": "icons/svg/fox.svg",
@@ -668,7 +926,7 @@
     "keywords_el": [
       "αλεπού",
       "ζώο",
-      "προφίλ"
+      "έξυπνο"
     ]
   },
   {
@@ -682,10 +940,9 @@
       "console"
     ],
     "keywords_el": [
-      "πανό",
-      "παίγνιο",
-      "κόναο",
-      "οθόνη"
+      "χειριστήριο",
+      "παιχνίδι",
+      "κονσόλα"
     ]
   },
   {
@@ -701,7 +958,7 @@
     "keywords_el": [
       "κόσμημα",
       "διαμάντι",
-      "τιμη"
+      "πολύτιμο"
     ]
   },
   {
@@ -716,8 +973,8 @@
     ],
     "keywords_el": [
       "φάντασμα",
-      "χαζο",
-      "πνεύμα"
+      "πνεύμα",
+      "διασκεδαστικό"
     ]
   },
   {
@@ -733,7 +990,7 @@
     "keywords_el": [
       "δώρο",
       "βραβείο",
-      "επίτευγμα"
+      "παρουσίαση"
     ]
   },
   {
@@ -753,6 +1010,38 @@
     ]
   },
   {
+    "name": "glasses",
+    "category": "parent",
+    "svg_ref": "icons/svg/glasses.svg",
+    "keywords_en": [
+      "glasses",
+      "spectacles",
+      "see",
+      "observe"
+    ],
+    "keywords_el": [
+      "γυαλιά",
+      "παρατήρηση",
+      "βλέπω"
+    ]
+  },
+  {
+    "name": "globe",
+    "category": "school",
+    "svg_ref": "icons/svg/globe.svg",
+    "keywords_en": [
+      "globe",
+      "world",
+      "geography",
+      "earth"
+    ],
+    "keywords_el": [
+      "υδρόγειος",
+      "γεωγραφία",
+      "κόσμος"
+    ]
+  },
+  {
     "name": "graduation-cap",
     "category": "school",
     "svg_ref": "icons/svg/graduation-cap.svg",
@@ -763,9 +1052,9 @@
       "school"
     ],
     "keywords_el": [
-      "ακονδιλίο",
+      "αποφοίτηση",
       "εκπαίδευση",
-      "αντιδρόση"
+      "σχολείο"
     ]
   },
   {
@@ -780,8 +1069,8 @@
     ],
     "keywords_el": [
       "κιθάρα",
-      "εργαλείο",
-      "μουσική"
+      "μουσική",
+      "μαθήματα"
     ]
   },
   {
@@ -798,6 +1087,22 @@
       "χέρι",
       "χέρια",
       "πλύσιμο"
+    ]
+  },
+  {
+    "name": "hand-coins",
+    "category": "parent",
+    "svg_ref": "icons/svg/hand-coins.svg",
+    "keywords_en": [
+      "coins",
+      "money",
+      "reward",
+      "allowance"
+    ],
+    "keywords_el": [
+      "νομίσματα",
+      "χρήματα",
+      "επίδομα"
     ]
   },
   {
@@ -829,6 +1134,40 @@
     ]
   },
   {
+    "name": "heart",
+    "category": "pets",
+    "svg_ref": "icons/svg/heart.svg",
+    "keywords_en": [
+      "heart",
+      "love",
+      "care",
+      "affection",
+      "pet"
+    ],
+    "keywords_el": [
+      "καρδιά",
+      "αγάπη",
+      "φροντίδα",
+      "ζώο"
+    ]
+  },
+  {
+    "name": "house",
+    "category": "tidying",
+    "svg_ref": "icons/svg/house.svg",
+    "keywords_en": [
+      "house",
+      "home",
+      "chores",
+      "clean"
+    ],
+    "keywords_el": [
+      "σπίτι",
+      "οικία",
+      "δουλειές"
+    ]
+  },
+  {
     "name": "ice-cream",
     "category": "rewards",
     "svg_ref": "icons/svg/ice-cream.svg",
@@ -841,7 +1180,39 @@
     "keywords_el": [
       "παγωτό",
       "γλυκό",
-      "λαχτα"
+      "επιδόρπιο"
+    ]
+  },
+  {
+    "name": "ice-cream-cone",
+    "category": "rewards",
+    "svg_ref": "icons/svg/ice-cream-cone.svg",
+    "keywords_en": [
+      "ice cream cone",
+      "sweet",
+      "dessert",
+      "trip"
+    ],
+    "keywords_el": [
+      "χωνάκι παγωτού",
+      "έξοδος",
+      "γλυκό"
+    ]
+  },
+  {
+    "name": "joystick",
+    "category": "rewards",
+    "svg_ref": "icons/svg/joystick.svg",
+    "keywords_en": [
+      "joystick",
+      "game",
+      "arcade",
+      "play"
+    ],
+    "keywords_el": [
+      "χειριστήριο",
+      "αρκέιντ",
+      "παιχνίδι"
     ]
   },
   {
@@ -857,7 +1228,39 @@
     "keywords_el": [
       "κλειδί",
       "πρόσβαση",
-      "διοίκηση"
+      "διαχειριστής"
+    ]
+  },
+  {
+    "name": "lamp",
+    "category": "tidying",
+    "svg_ref": "icons/svg/lamp.svg",
+    "keywords_en": [
+      "lamp",
+      "light",
+      "room",
+      "bedside"
+    ],
+    "keywords_el": [
+      "λάμπα",
+      "φωτισμός",
+      "δωμάτιο"
+    ]
+  },
+  {
+    "name": "laugh",
+    "category": "avatars",
+    "svg_ref": "icons/svg/laugh.svg",
+    "keywords_en": [
+      "laugh",
+      "happy",
+      "joy",
+      "funny"
+    ],
+    "keywords_el": [
+      "γέλιο",
+      "χαρά",
+      "αστείο"
     ]
   },
   {
@@ -903,9 +1306,8 @@
       "locked"
     ],
     "keywords_el": [
-      "κλειδώ",
-      "ασφάλεια",
-      "συνθηματικό"
+      "κλειδαριά",
+      "ασφάλεια"
     ]
   },
   {
@@ -919,9 +1321,9 @@
       "locked"
     ],
     "keywords_el": [
-      "κλειδώ",
+      "κλειδαριά",
       "ασφάλεια",
-      "κλειδαριά"
+      "κλειδαρότρυπα"
     ]
   },
   {
@@ -935,9 +1337,25 @@
       "treat"
     ],
     "keywords_el": [
-      "βιβλίνα",
+      "γλειφιτζούρι",
       "γλυκό",
       "ζαχαρωτό"
+    ]
+  },
+  {
+    "name": "luggage",
+    "category": "rewards",
+    "svg_ref": "icons/svg/luggage.svg",
+    "keywords_en": [
+      "luggage",
+      "travel",
+      "trip",
+      "holiday"
+    ],
+    "keywords_el": [
+      "αποσκευές",
+      "ταξίδι",
+      "διακοπές"
     ]
   },
   {
@@ -952,8 +1370,8 @@
     ],
     "keywords_el": [
       "χάρτης",
-      "απειρα",
-      "ταξίδια"
+      "εξερεύνηση",
+      "ταξίδι"
     ]
   },
   {
@@ -982,7 +1400,7 @@
       "broadcast"
     ],
     "keywords_el": [
-      "μεγαφωνό",
+      "μεγάφωνο",
       "ανακοίνωση",
       "μήνυμα"
     ]
@@ -1031,7 +1449,7 @@
     ],
     "keywords_el": [
       "βουνό",
-      "εκτός",
+      "εκδρομή",
       "φύση"
     ]
   },
@@ -1052,6 +1470,22 @@
     ]
   },
   {
+    "name": "notebook",
+    "category": "school",
+    "svg_ref": "icons/svg/notebook.svg",
+    "keywords_en": [
+      "notebook",
+      "notes",
+      "homework",
+      "journal"
+    ],
+    "keywords_el": [
+      "τετράδιο",
+      "σημειώσεις",
+      "εργασία"
+    ]
+  },
+  {
     "name": "package",
     "category": "tidying",
     "svg_ref": "icons/svg/package.svg",
@@ -1067,6 +1501,22 @@
     ]
   },
   {
+    "name": "paint-bucket",
+    "category": "avatars",
+    "svg_ref": "icons/svg/paint-bucket.svg",
+    "keywords_en": [
+      "paint",
+      "creative",
+      "artist",
+      "color"
+    ],
+    "keywords_el": [
+      "χρώμα",
+      "δημιουργικό",
+      "καλλιτέχνης"
+    ]
+  },
+  {
     "name": "paintbrush",
     "category": "school",
     "svg_ref": "icons/svg/paintbrush.svg",
@@ -1077,7 +1527,7 @@
       "brush"
     ],
     "keywords_el": [
-      "βούρτσα",
+      "πινέλο",
       "χρώμα",
       "τέχνη"
     ]
@@ -1109,8 +1559,8 @@
       "fun"
     ],
     "keywords_el": [
-      "παρτί",
-      "έορτη",
+      "πάρτι",
+      "γιορτή",
       "διασκέδαση"
     ]
   },
@@ -1125,7 +1575,7 @@
       "footprint"
     ],
     "keywords_el": [
-      "πατού",
+      "πατούσα",
       "ζώο",
       "αποτύπωμα"
     ]
@@ -1157,9 +1607,25 @@
       "school"
     ],
     "keywords_el": [
-      "μόλας",
+      "μολύβι",
       "γράφω",
       "σχολείο"
+    ]
+  },
+  {
+    "name": "pencil-line",
+    "category": "school",
+    "svg_ref": "icons/svg/pencil-line.svg",
+    "keywords_en": [
+      "pencil",
+      "write",
+      "practice",
+      "cursive"
+    ],
+    "keywords_el": [
+      "μολύβι",
+      "γράψιμο",
+      "εξάσκηση"
     ]
   },
   {
@@ -1213,6 +1679,22 @@
     ]
   },
   {
+    "name": "puzzle",
+    "category": "avatars",
+    "svg_ref": "icons/svg/puzzle.svg",
+    "keywords_en": [
+      "puzzle",
+      "smart",
+      "clever",
+      "think"
+    ],
+    "keywords_el": [
+      "παζλ",
+      "έξυπνο",
+      "σκέψη"
+    ]
+  },
+  {
     "name": "rabbit",
     "category": "pets",
     "svg_ref": "icons/svg/rabbit.svg",
@@ -1223,9 +1705,25 @@
       "hop"
     ],
     "keywords_el": [
-      "κουνάβι",
+      "κουνέλι",
       "ζώο",
-      "πηδάω"
+      "χαριτωμένο"
+    ]
+  },
+  {
+    "name": "receipt",
+    "category": "parent",
+    "svg_ref": "icons/svg/receipt.svg",
+    "keywords_en": [
+      "receipt",
+      "bill",
+      "expense",
+      "household"
+    ],
+    "keywords_el": [
+      "απόδειξη",
+      "λογαριασμός",
+      "νοικοκυριό"
     ]
   },
   {
@@ -1240,7 +1738,7 @@
     ],
     "keywords_el": [
       "ανακύκλωση",
-      "πανάλλαξη"
+      "οικολογικό"
     ]
   },
   {
@@ -1254,9 +1752,9 @@
       "fast"
     ],
     "keywords_el": [
-      "πυραύλος",
-      "χώρος",
-      "ταχύ"
+      "πύραυλος",
+      "διάστημα",
+      "ταχύτητα"
     ]
   },
   {
@@ -1270,7 +1768,7 @@
       "math"
     ],
     "keywords_el": [
-      "διαβήτης",
+      "χάρακας",
       "μέτρηση",
       "μαθηματικά"
     ]
@@ -1320,7 +1818,7 @@
     "keywords_el": [
       "ψαλίδι",
       "κόψιμο",
-      "εργασίες"
+      "χειροτεχνία"
     ]
   },
   {
@@ -1335,7 +1833,6 @@
     ],
     "keywords_el": [
       "ρυθμίσεις",
-      "τροχός",
       "διαμόρφωση"
     ]
   },
@@ -1350,9 +1847,25 @@
       "protect"
     ],
     "keywords_el": [
-      "στάυρο",
-      "διοίκηση",
+      "ασπίδα",
+      "διαχειριστής",
       "γονέας",
+      "προστασία"
+    ]
+  },
+  {
+    "name": "shield-check",
+    "category": "avatars",
+    "svg_ref": "icons/svg/shield-check.svg",
+    "keywords_en": [
+      "shield",
+      "trusted",
+      "reliable",
+      "protect"
+    ],
+    "keywords_el": [
+      "ασπίδα",
+      "αξιόπιστο",
       "προστασία"
     ]
   },
@@ -1367,10 +1880,26 @@
       "voyage"
     ],
     "keywords_el": [
-      "κάπι",
       "πλοίο",
-      "ταξίδια",
+      "κρουαζιέρα",
+      "ταξίδι",
       "θάλασσα"
+    ]
+  },
+  {
+    "name": "shirt",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/shirt.svg",
+    "keywords_en": [
+      "shirt",
+      "clothes",
+      "fold",
+      "laundry"
+    ],
+    "keywords_el": [
+      "πουκάμισο",
+      "ρούχα",
+      "δίπλωμα"
     ]
   },
   {
@@ -1385,8 +1914,8 @@
     ],
     "keywords_el": [
       "τσάντα",
-      "βόλτες",
-      "κατάθεση"
+      "ψώνια",
+      "τακτοποίηση"
     ]
   },
   {
@@ -1417,9 +1946,41 @@
       "skeleton"
     ],
     "keywords_el": [
-      "κεφαλόποδο",
-      "τραβό",
+      "κρανίο",
+      "δροσερό",
       "σκελετός"
+    ]
+  },
+  {
+    "name": "smile",
+    "category": "avatars",
+    "svg_ref": "icons/svg/smile.svg",
+    "keywords_en": [
+      "smile",
+      "happy",
+      "face",
+      "cheerful"
+    ],
+    "keywords_el": [
+      "χαμόγελο",
+      "χαρούμενο",
+      "πρόσωπο"
+    ]
+  },
+  {
+    "name": "sofa",
+    "category": "tidying",
+    "svg_ref": "icons/svg/sofa.svg",
+    "keywords_en": [
+      "sofa",
+      "couch",
+      "living room",
+      "tidy"
+    ],
+    "keywords_el": [
+      "καναπές",
+      "σαλόνι",
+      "τακτοποίηση"
     ]
   },
   {
@@ -1433,23 +1994,23 @@
       "tidy"
     ],
     "keywords_el": [
-      "λαμπείρα",
+      "λάμψη",
       "καθαριότητα",
       "τάξη"
     ]
   },
   {
     "name": "spray-can",
-    "category": "tidying",
+    "category": "hygiene",
     "svg_ref": "icons/svg/spray-can.svg",
     "keywords_en": [
       "spray",
       "clean",
-      "sprinkle"
+      "disinfect"
     ],
     "keywords_el": [
       "σπρέι",
-      "καθαριότητα"
+      "καθαριστικό"
     ]
   },
   {
@@ -1463,9 +2024,9 @@
       "plant"
     ],
     "keywords_el": [
-      "βλαστός",
+      "βλαστάρι",
       "ανάπτυξη",
-      "φύτευμα"
+      "φύτεμα"
     ]
   },
   {
@@ -1480,10 +2041,42 @@
       "badge"
     ],
     "keywords_el": [
-      "άστρο",
+      "αστέρι",
       "πόντοι",
       "βραβείο",
       "λάμψη"
+    ]
+  },
+  {
+    "name": "stethoscope",
+    "category": "parent",
+    "svg_ref": "icons/svg/stethoscope.svg",
+    "keywords_en": [
+      "stethoscope",
+      "health",
+      "doctor",
+      "medical"
+    ],
+    "keywords_el": [
+      "στηθοσκόπιο",
+      "υγεία",
+      "γιατρός"
+    ]
+  },
+  {
+    "name": "store",
+    "category": "rewards",
+    "svg_ref": "icons/svg/store.svg",
+    "keywords_en": [
+      "store",
+      "shop",
+      "buy",
+      "market"
+    ],
+    "keywords_el": [
+      "κατάστημα",
+      "αγορά",
+      "ψώνια"
     ]
   },
   {
@@ -1499,8 +2092,7 @@
     "keywords_el": [
       "ήλιος",
       "πρωί",
-      "ημέρα",
-      "αναστολή"
+      "ημέρα"
     ]
   },
   {
@@ -1519,6 +2111,39 @@
     ]
   },
   {
+    "name": "swords",
+    "category": "avatars",
+    "svg_ref": "icons/svg/swords.svg",
+    "keywords_en": [
+      "swords",
+      "warrior",
+      "brave",
+      "knight"
+    ],
+    "keywords_el": [
+      "σπαθιά",
+      "πολεμιστής",
+      "γενναίος",
+      "ιππότης"
+    ]
+  },
+  {
+    "name": "thermometer",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/thermometer.svg",
+    "keywords_en": [
+      "thermometer",
+      "temperature",
+      "fever",
+      "health"
+    ],
+    "keywords_el": [
+      "θερμόμετρο",
+      "πυρετός",
+      "υγεία"
+    ]
+  },
+  {
     "name": "ticket",
     "category": "rewards",
     "svg_ref": "icons/svg/ticket.svg",
@@ -1529,9 +2154,9 @@
       "pass"
     ],
     "keywords_el": [
-      "εισιτήρια",
-      "επίσκεψη",
-      "επίθεση"
+      "εισιτήριο",
+      "εκδήλωση",
+      "επίσκεψη"
     ]
   },
   {
@@ -1562,9 +2187,9 @@
       "throw away"
     ],
     "keywords_el": [
-      "απόβλητα",
-      "κούπα",
-      "κάδος"
+      "σκουπίδια",
+      "κάδος",
+      "πέταγμα"
     ]
   },
   {
@@ -1579,7 +2204,7 @@
     ],
     "keywords_el": [
       "δέντρα",
-      "δασύς",
+      "δάσος",
       "φύση",
       "πάρκο"
     ]
@@ -1595,7 +2220,7 @@
       "prize"
     ],
     "keywords_el": [
-      "κέρδος",
+      "κύπελλο",
       "νικητής",
       "βραβείο"
     ]
@@ -1611,9 +2236,25 @@
       "shell"
     ],
     "keywords_el": [
-      "χέλυ",
+      "χελώνα",
       "ζώο",
-      "κόχλι"
+      "καβούκι"
+    ]
+  },
+  {
+    "name": "tv",
+    "category": "rewards",
+    "svg_ref": "icons/svg/tv.svg",
+    "keywords_en": [
+      "tv",
+      "television",
+      "screen time",
+      "watch"
+    ],
+    "keywords_el": [
+      "τηλεόραση",
+      "οθόνη",
+      "χρόνος οθόνης"
     ]
   },
   {
@@ -1648,6 +2289,23 @@
     ]
   },
   {
+    "name": "users",
+    "category": "parent",
+    "svg_ref": "icons/svg/users.svg",
+    "keywords_en": [
+      "users",
+      "family",
+      "group",
+      "manage"
+    ],
+    "keywords_el": [
+      "χρήστες",
+      "οικογένεια",
+      "ομάδα",
+      "διαχείριση"
+    ]
+  },
+  {
     "name": "utensils",
     "category": "meals",
     "svg_ref": "icons/svg/utensils.svg",
@@ -1676,6 +2334,40 @@
     "keywords_el": [
       "κουτάλια",
       "εστιατόριο"
+    ]
+  },
+  {
+    "name": "volleyball",
+    "category": "pets",
+    "svg_ref": "icons/svg/volleyball.svg",
+    "keywords_en": [
+      "volleyball",
+      "sport",
+      "outdoor",
+      "ball"
+    ],
+    "keywords_el": [
+      "βόλεϊ",
+      "σπορ",
+      "εξωτερικό",
+      "μπάλα"
+    ]
+  },
+  {
+    "name": "washing-machine",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/washing-machine.svg",
+    "keywords_en": [
+      "laundry",
+      "washing machine",
+      "clothes",
+      "wash"
+    ],
+    "keywords_el": [
+      "πλυντήριο",
+      "ρούχα",
+      "πλύσιμο",
+      "μπουγάδα"
     ]
   },
   {
@@ -1722,8 +2414,8 @@
     ],
     "keywords_el": [
       "κρασί",
-      "επίσκεψη",
-      "υπογραφή"
+      "γιορτή",
+      "ποτό"
     ]
   },
   {
@@ -1739,7 +2431,7 @@
     "keywords_el": [
       "κεραυνός",
       "ενέργεια",
-      "ηλεκτρικό"
+      "ηλεκτρισμός"
     ]
   }
 ]

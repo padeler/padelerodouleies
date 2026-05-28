@@ -74,7 +74,7 @@ export function FulfillmentPage() {
         </button>
       </div>
       {(data as FulfillmentEntry[])?.length === 0 ? (
-        <div style={{ color: 'var(--text-muted, #888)' }}>No entries</div>
+        <div style={{ color: 'var(--text-muted, #888)' }}>{t('fulfillment.empty')}</div>
       ) : (
         <div className="admin-table-wrap">
           <table className="admin-table">
@@ -83,10 +83,10 @@ export function FulfillmentPage() {
               <th>{t('chore.icon')}</th>
               <th>{t('nav.rewards')}</th>
               <th>{t('nav.users')}</th>
-              <th>Stars</th>
-              <th>Claimed</th>
-              {tab === 'claimed' && <th>Actions</th>}
-              {tab === 'fulfilled' && <th>Fulfilled</th>}
+              <th>{t('user.table.stars')}</th>
+              <th>{t('reward.claimed')}</th>
+              {tab === 'claimed' && <th>{t('common.actions')}</th>}
+              {tab === 'fulfilled' && <th>{t('reward.fulfilled')}</th>}
             </tr>
           </thead>
           <tbody>

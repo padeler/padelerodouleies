@@ -8,9 +8,9 @@ import './SettingsModal.css';
 import './AvatarPicker.css';
 
 const THEMES = [
-  { value: 'system', label: 'System', icon: '💻' },
-  { value: 'light', label: 'Light', icon: '☀️' },
-  { value: 'dark', label: 'Dark', icon: '🌙' },
+  { value: 'system', key: 'settings.theme_system', icon: '💻' },
+  { value: 'light', key: 'settings.theme_light', icon: '☀️' },
+  { value: 'dark', key: 'settings.theme_dark', icon: '🌙' },
 ];
 
 interface SettingsModalProps {
@@ -229,7 +229,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
 
         {/* Theme Section */}
         <div className="settings-section">
-          <h3>Theme</h3>
+          <h3>{t('settings.theme')}</h3>
           <div className="theme-selector">
             {THEMES.map((themeOption) => (
               <button
@@ -239,7 +239,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
                 onClick={() => handleThemeChange(themeOption.value)}
               >
                 <span className="theme-icon">{themeOption.icon}</span>
-                <span>{themeOption.label}</span>
+                <span>{t(themeOption.key)}</span>
               </button>
             ))}
           </div>

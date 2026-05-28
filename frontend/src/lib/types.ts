@@ -68,11 +68,15 @@ export interface HistoryEntry {
   id: number;
   user_id: number;
   user_name: string;
+  user_avatar_kind: 'icon' | 'image';
+  user_avatar_value: string;
   action_type: string;
   action_label: string | null;
   points_delta: number;
   ref_table: string | null;
   ref_id: number | null;
+  item_title?: string;
+  item_icon?: string;
   admin_note: string | null;
   timestamp: string;
 }

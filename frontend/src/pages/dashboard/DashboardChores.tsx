@@ -90,7 +90,7 @@ export function DashboardChores() {
         {user?.role !== 'admin' && (
           <div className="stars-display">
             {pendingStars > 0 && (
-              <span className="pending-stars" title="Pending stars">{pendingStars}☆ </span>
+              <span className="pending-stars" title={t('chore.pending_stars')}>{pendingStars}☆ </span>
             )}
             <span className="confirmed-stars">{user?.current_stars ?? 0} ★</span>
           </div>

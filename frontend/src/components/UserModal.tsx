@@ -94,8 +94,8 @@ export function UserModal({ user, onClose }: UserModalProps) {
             <label>{t('user.role')}</label>
             <Controller name="role" control={control} render={({ field }) => (
               <select {...field}>
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
+                <option value="user">{t('user.role_user')}</option>
+                <option value="admin">{t('user.role_admin')}</option>
               </select>
             )} />
           </div>
