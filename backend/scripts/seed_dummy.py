@@ -108,7 +108,7 @@ def seed_chores(db, users):
             title="Βούρτσισμα δοντιών",
             description="Βούρτσισε τα δόντια σου πρωί και βράδυ",
             icon_name="tooth",
-            scope="individual",
+            claim_mode="each",
             points_value=5,
             is_repeating=True,
             start_time=time(7, 0),
@@ -120,7 +120,7 @@ def seed_chores(db, users):
             title="Τακτοποίηση κρεβατιού",
             description="Τακτοποίησε το κρεβάτι σου το πρωί",
             icon_name="bed",
-            scope="individual",
+            claim_mode="each",
             points_value=3,
             is_repeating=True,
             start_time=time(7, 30),
@@ -132,7 +132,7 @@ def seed_chores(db, users):
             title="Πλύσιμο πιάτων",
             description="Πλύνε τα πιάτα μετά το φαγητό",
             icon_name="plate",
-            scope="individual",
+            claim_mode="each",
             points_value=8,
             is_repeating=True,
             start_time=time(19, 30),
@@ -144,7 +144,7 @@ def seed_chores(db, users):
             title="Μάζεμα σχολικής τσάντας",
             description="Βάλε τα βιβλία σου στη τσάντα για αύριο",
             icon_name="backpack",
-            scope="individual",
+            claim_mode="each",
             points_value=4,
             is_repeating=True,
             start_time=time(20, 0),
@@ -156,7 +156,7 @@ def seed_chores(db, users):
             title="Διαβάσμα",
             description="Διάβασε για 30 λεπτά",
             icon_name="book",
-            scope="individual",
+            claim_mode="each",
             points_value=6,
             is_repeating=True,
             start_time=time(17, 0),
@@ -168,7 +168,7 @@ def seed_chores(db, users):
             title="Μπάνιο / Ντους",
             description="Κάνε ντους ή μπάνιο",
             icon_name="shower",
-            scope="individual",
+            claim_mode="each",
             points_value=5,
             is_repeating=True,
             start_time=time(18, 0),
@@ -181,7 +181,7 @@ def seed_chores(db, users):
             title="Σκούπισμα δωματίου",
             description="Σκούπισε και μάζεψε το δωμάτιό σου",
             icon_name="sparkles",
-            scope="individual",
+            claim_mode="each",
             points_value=10,
             is_repeating=True,
             repeat_days=["Mon", "Wed", "Fri"],
@@ -192,7 +192,7 @@ def seed_chores(db, users):
             title="Τακτοποίηση σαλονιού",
             description="Τακτοποίησε τον καναπέ και το σαλόνι",
             icon_name="sofa",
-            scope="pooled",
+            claim_mode="one",
             points_value=12,
             is_repeating=True,
             repeat_days=["Tue", "Thu", "Sat"],
@@ -203,7 +203,7 @@ def seed_chores(db, users):
             title="Τακτοποίηση αυλής",
             description="Μάζεψε τα πράγματα από την αυλή",
             icon_name="fence",
-            scope="individual",
+            claim_mode="each",
             points_value=15,
             is_repeating=True,
             repeat_days=["Sun"],
@@ -214,7 +214,7 @@ def seed_chores(db, users):
             title="Πλύσιμο μπάνιου",
             description="Καθάρισε τη μπανιέρα και τη λεκάνη",
             icon_name="bath",
-            scope="pooled",
+            claim_mode="one",
             points_value=20,
             is_repeating=True,
             repeat_days=["Sat"],
@@ -226,7 +226,7 @@ def seed_chores(db, users):
             title="Αλλαγή σεντονιών",
             description="Άλλαξε τα σεντόνια και μαξιλαροθήκες",
             icon_name="washing-machine",
-            scope="individual",
+            claim_mode="each",
             points_value=15,
             is_repeating=True,
             n_day_interval=7,
@@ -237,7 +237,7 @@ def seed_chores(db, users):
             title="Καθαρισμός παπουτσιών",
             description="Καθάρισε τα παπούτσια σου",
             icon_name="footprints",
-            scope="individual",
+            claim_mode="each",
             points_value=8,
             is_repeating=True,
             n_day_interval=3,
@@ -249,7 +249,7 @@ def seed_chores(db, users):
             title="Παλιά Δουλειά",
             description="Αυτή η δουλειά δεν είναι πλέον ενεργή",
             icon_name="archive",
-            scope="individual",
+            claim_mode="each",
             points_value=5,
             is_repeating=True,
             is_active=False,
@@ -260,7 +260,7 @@ def seed_chores(db, users):
             title="Γυμναστική",
             description="Κάνε τουλάχιστον 20 λεπτά άσκηση",
             icon_name="dumbbell",
-            scope="individual",
+            claim_mode="each",
             points_value=10,
             is_repeating=True,
             is_active=True,
@@ -363,19 +363,21 @@ def seed_rewards(db):
 
 
 def seed_claims(db, users, chores):
-    """Create pending claims for kids on active individual chores."""
+    """Create pending claims for kids on active chores."""
     maria, giorgos, eleni = users[1], users[2], users[3]
-    active_individual = [c for c in chores if c.is_active and c.scope == "individual"]
-    active_pooled = [c for c in chores if c.is_active and c.scope == "pooled"]
+    active_each = [c for c in chores if c.is_active and c.claim_mode == "each"]
+    active_one = [c for c in chores if c.is_active and c.claim_mode == "one"]
 
+    # each-mode: multiple kids can have independent pending claims on the same chore
     claims = [
-        PendingClaim(user_id=maria.id, chore_id=active_individual[0].id),
-        PendingClaim(user_id=giorgos.id, chore_id=active_individual[1].id),
-        PendingClaim(user_id=eleni.id, chore_id=active_individual[0].id),
-        PendingClaim(user_id=maria.id, chore_id=active_individual[4].id),
+        PendingClaim(user_id=maria.id, chore_id=active_each[0].id),
+        PendingClaim(user_id=giorgos.id, chore_id=active_each[1].id),
+        PendingClaim(user_id=eleni.id, chore_id=active_each[0].id),
+        PendingClaim(user_id=maria.id, chore_id=active_each[4].id),
     ]
-    if active_pooled:
-        claims.append(PendingClaim(user_id=giorgos.id, chore_id=active_pooled[0].id))
+    # one-mode: only one kid claims it for the period
+    if active_one:
+        claims.append(PendingClaim(user_id=giorgos.id, chore_id=active_one[0].id))
     for c in claims:
         db.add(c)
     db.commit()
