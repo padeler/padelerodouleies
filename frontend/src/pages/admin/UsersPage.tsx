@@ -4,6 +4,7 @@ import { useT } from '../../i18n/store';
 import type { AdminUser } from '../../lib/types';
 import { useAuth } from '../../hooks/useAuth';
 import { useState } from 'react';
+import { notifySuccess, notifyError } from '../../lib/notify';
 import { UserModal } from '../../components/UserModal';
 import { AdjustStarsModal } from '../../components/AdjustStarsModal';
 import './AdminPage.css';
@@ -27,17 +28,27 @@ export function UsersPage() {
   });
 
   const handleDelete = async (user: AdminUser) => {
-    await deleteAdminUser(user.id);
-    refetch();
+    try {
+      await deleteAdminUser(user.id);
+      notifySuccess(t('common.delete') + ' ✓');
+      refetch();
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t('common.error'));
+    }
   };
 
   const handleResetPin = async (user: AdminUser) => {
     const pin = prompt('Enter new 4-digit PIN for ' + user.name);
-    if (pin && /^\d{4}$/.test(pin)) {
-      await resetUserPin(user.id, pin);
-      refetch();
-    } else if (pin) {
-      alert('PIN must be exactly 4 digits.');
+    try {
+      if (pin && /^\d{4}$/.test(pin)) {
+        await resetUserPin(user.id, pin);
+        notifySuccess(t('pin_reset.success'));
+        refetch();
+      } else if (pin) {
+        notifyError('PIN must be exactly 4 digits.');
+      }
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t('common.error'));
     }
   };
 

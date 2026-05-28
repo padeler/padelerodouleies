@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { adjustStars } from '../api/client';
 import { useT } from '../i18n/store';
 import type { AdminUser } from '../lib/types';
+import { notifySuccess, notifyCelebration, notifyError } from '../lib/notify';
 
 const schema = z.object({
   direction: z.enum(['+', '-']),
@@ -38,9 +39,13 @@ export function AdjustStarsModal({ user, onClose }: AdjustStarsModalProps) {
       return adjustStars(user.id, delta, data.description);
     },
     onSuccess: () => {
+      notifyCelebration(t('stars.adjust') + ' ✓');
       qc.invalidateQueries({ queryKey: ['admin-users'] });
       qc.invalidateQueries({ queryKey: ['admin-history'] });
       onClose();
+    },
+    onError: (err) => {
+      notifyError(err.message || t('common.error'));
     },
   });
 

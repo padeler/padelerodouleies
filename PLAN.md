@@ -262,6 +262,10 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * Sidebar correctly collapses with mobile class at <768px; hamburger opens/closes drawer with backdrop overlay.
   * Added 9 Playwright responsive tests in `frontend/tests/responsive.spec.ts`.
 
+* [x] **Milestone 5.6: Chore Form Rework & Notification System** — DONE
+  * **Chore form UI reworked for touch screens:** Scope → toggle buttons (Individual/Pooled), Repeating → toggle button, Repeat Pattern → toggle buttons (Daily/Weekly) replacing radio buttons, "Every N Days" removed (weekday selector already covers school-day patterns), Window → preset toggle buttons (None, 1h, 2h, 4h, 8h) replacing number input.
+  * **Notification system added:** `react-hot-toast` for toast notifications + `canvas-confetti` for celebratory animations. Toast on: chore/reward/user CRUD, claim, approve/decline, star adjustments, fulfillment. Confetti on: approve claims, redeem rewards, contribute to collab goals, adjust stars, mark fulfilled. Mounted `<Toaster>` in `main.tsx`, helper functions in `src/lib/notify.ts`.
+
 * [ ] **Milestone 5.2: Dockerfile (multi-stage)**
   * **Stage 1 — Frontend build:** `node:20-alpine`. Copy `frontend/package*.json`, run `npm ci`, copy `frontend/`, run `npm run build` → emits `frontend/dist/`.
   * **Stage 2 — Backend build:** `python:3.12-slim`. Copy `backend/pyproject.toml`, install dependencies into a venv. (Optional separate stage helps Docker layer caching when only frontend changes.)

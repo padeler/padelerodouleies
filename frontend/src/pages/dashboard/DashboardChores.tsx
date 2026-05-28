@@ -3,6 +3,7 @@ import { getVisibleChores, claimChore, getPendingStars } from '../../api/client'
 import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { VisibleChore } from '../../lib/types';
+import { notifySuccess, notifyError } from '../../lib/notify';
 import './DashboardChores.css';
 
 function ChoreCard({ chore }: { chore: VisibleChore }) {
@@ -12,8 +13,12 @@ function ChoreCard({ chore }: { chore: VisibleChore }) {
   const mutation = useMutation({
     mutationFn: () => claimChore(chore.id),
     onSuccess: () => {
+      notifySuccess(t('chore.pending'));
       queryClient.invalidateQueries({ queryKey: ['visible-chores'] });
       queryClient.invalidateQueries({ queryKey: ['pending-stars'] });
+    },
+    onError: () => {
+      notifyError(chore.scope === 'pooled' ? t('chore.already_claimed') : t('error.generic'));
     },
   });
 

@@ -146,6 +146,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "chore.repeating": {"el": "Επαναλαμβανόμενο", "en": "Repeating"},
     "chore.start_time": {"el": "Ώρα έναρξης", "en": "Start time"},
     "chore.window": {"el": "Παρθύρο (ώρες)", "en": "Window (hours)"},
+    "chore.window_none": {"el": "Κανένα", "en": "None"},
     "chore.repeat_pattern": {"el": "Συχνότητα", "en": "Repeat pattern"},
     "chore.daily": {"el": "Καθημερινά", "en": "Daily"},
     "chore.weekly": {"el": "Εβδομαδιαία", "en": "Weekly"},

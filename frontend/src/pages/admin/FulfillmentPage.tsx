@@ -3,6 +3,7 @@ import { getFulfillmentQueue, markFulfilled } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { FulfillmentEntry } from '../../lib/types';
 import { useState } from 'react';
+import { notifySuccess, notifyCelebration, notifyError } from '../../lib/notify';
 import './AdminPage.css';
 
 function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
@@ -11,8 +12,12 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
   const mutate = useMutation({
     mutationFn: () => markFulfilled(entry.id),
     onSuccess: () => {
+      notifyCelebration(t('reward.fulfilled'));
       qc.invalidateQueries({ queryKey: ['fulfillment', 'claimed'] });
       qc.invalidateQueries({ queryKey: ['fulfillment', 'fulfilled'] });
+    },
+    onError: (err) => {
+      notifyError(err.message || t('common.error'));
     },
   });
 

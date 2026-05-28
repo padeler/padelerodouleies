@@ -3,6 +3,7 @@ import { getRewards, updateReward, deleteReward } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { Reward } from '../../lib/types';
 import { useState } from 'react';
+import { notifySuccess, notifyError } from '../../lib/notify';
 import { RewardModal } from '../../components/RewardModal';
 import './AdminPage.css';
 
@@ -16,14 +17,24 @@ export function RewardsPage() {
   });
 
   const handleToggle = async (reward: Reward) => {
-    await updateReward(reward.id, { is_enabled: !reward.is_enabled });
-    refetch();
+    try {
+      await updateReward(reward.id, { is_enabled: !reward.is_enabled });
+      notifySuccess(reward.is_enabled ? t('common.disabled') + ' ✓' : t('common.enabled') + ' ✓');
+      refetch();
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t('common.error'));
+    }
   };
 
   const handleDelete = async (reward: Reward) => {
     if (!window.confirm(`Delete "${reward.title}" permanently? This cannot be undone.`)) return;
-    await deleteReward(reward.id);
-    refetch();
+    try {
+      await deleteReward(reward.id);
+      notifySuccess(t('common.delete') + ' ✓');
+      refetch();
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t('common.error'));
+    }
   };
 
   if (isLoading) return <div>{t('common.loading')}</div>;

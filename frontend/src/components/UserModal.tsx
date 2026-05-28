@@ -7,6 +7,7 @@ import { createAdminUser, updateAdminUser } from '../api/client';
 import { useT } from '../i18n/store';
 import type { AdminUser, AvatarSelection } from '../lib/types';
 import { AvatarPicker } from './AvatarPicker';
+import { notifySuccess, notifyError } from '../lib/notify';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Required').max(100),
@@ -58,12 +59,14 @@ export function UserModal({ user, onClose }: UserModalProps) {
       } as any);
     },
     onSuccess: () => {
+      notifySuccess((user ? t('common.edit') : t('user.new')) + ' ✓');
       qc.invalidateQueries({ queryKey: ['admin-users'] });
       onClose();
     },
     onError: (err) => {
       if (err instanceof Error) {
         setServerError(err.message);
+        notifyError(err.message);
       }
     },
   });

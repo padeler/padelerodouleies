@@ -3,6 +3,7 @@ import { getChores, updateChore, deleteChore } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { Chore } from '../../lib/types';
 import { useState } from 'react';
+import { notifySuccess, notifyError } from '../../lib/notify';
 import { ChoreModal } from '../../components/ChoreModal';
 import './AdminPage.css';
 
@@ -24,14 +25,24 @@ export function ChoresPage() {
   });
 
   const handleToggleActive = async (chore: Chore) => {
-    await updateChore(chore.id, { is_active: !chore.is_active });
-    refetch();
+    try {
+      await updateChore(chore.id, { is_active: !chore.is_active });
+      notifySuccess(chore.is_active ? t('common.disabled') + ' ✓' : t('common.enabled') + ' ✓');
+      refetch();
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t('common.error'));
+    }
   };
 
   const handleDelete = async (chore: Chore) => {
     if (!window.confirm(`Delete "${chore.title}" permanently? This cannot be undone.`)) return;
-    await deleteChore(chore.id);
-    refetch();
+    try {
+      await deleteChore(chore.id);
+      notifySuccess(t('common.delete') + ' ✓');
+      refetch();
+    } catch (err) {
+      notifyError(err instanceof Error ? err.message : t('common.error'));
+    }
   };
 
   if (isLoading) return <div>{t('common.loading')}</div>;

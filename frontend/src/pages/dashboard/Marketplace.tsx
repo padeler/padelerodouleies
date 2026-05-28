@@ -4,6 +4,7 @@ import { getMarketplaceRewards, redeemReward, contributeReward } from '../../api
 import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { MarketplaceReward } from '../../lib/types';
+import { notifySuccess, notifyCelebration, notifyError } from '../../lib/notify';
 import './Marketplace.css';
 
 function RewardCard({ reward }: { reward: MarketplaceReward }) {
@@ -15,7 +16,11 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
   const redeemMutation = useMutation({
     mutationFn: () => redeemReward(reward.id),
     onSuccess: () => {
+      notifyCelebration(t('common.success'));
       queryClient.invalidateQueries({ queryKey: ['auth-me'] });
+    },
+    onError: () => {
+      notifyError(t('common.error'));
     },
   });
 
@@ -64,9 +69,13 @@ function CollabCard({ reward }: { reward: MarketplaceReward }) {
   const contributeMutation = useMutation({
     mutationFn: () => contributeReward(reward.id, contributeAmount),
     onSuccess: () => {
+      notifyCelebration(t('reward.contribute') + ' ✓');
       queryClient.invalidateQueries({ queryKey: ['auth-me'] });
       queryClient.invalidateQueries({ queryKey: ['marketplace-rewards'] });
       setShowModal(false);
+    },
+    onError: () => {
+      notifyError(t('common.error'));
     },
   });
 

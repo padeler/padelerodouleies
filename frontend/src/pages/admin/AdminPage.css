@@ -289,6 +289,46 @@
   border-color: #7b2ff7;
 }
 
+/* -- Toggle button groups (scope, repeating, repeat pattern, window) -- */
+
+.toggle-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toggle-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-s, rgba(255, 255, 255, 0.05));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.toggle-btn:hover {
+  border-color: var(--accent);
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* -- Day toggle row -- */
+
+.day-toggle-row {
+  display: flex;
+  gap: 8px;
+}
+
 @media (max-width: 360px) {
   .admin-table {
     font-size: 12px;

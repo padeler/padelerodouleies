@@ -6,6 +6,7 @@ import { createReward, updateReward } from '../api/client';
 import { useT } from '../i18n/store';
 import type { Reward } from '../lib/types';
 import { IconPicker } from './IconPicker';
+import { notifySuccess, notifyError } from '../lib/notify';
 
 const rewardSchema = z.object({
   title: z.string().min(1, 'Required').max(200),
@@ -49,8 +50,12 @@ export function RewardModal({ reward, onClose }: RewardModalProps) {
       return createReward(data);
     },
     onSuccess: () => {
+      notifySuccess((reward ? t('common.edit') : t('reward.new')) + ' ✓');
       qc.invalidateQueries({ queryKey: ['rewards'] });
       onClose();
+    },
+    onError: (err) => {
+      notifyError(err.message || t('common.error'));
     },
   });
 

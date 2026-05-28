@@ -2,7 +2,7 @@
 
 ### Home-Server Gamified Chore & Reward Web Application
 
-`padelerodouleies` is a self-hosted, lightweight, and highly visual web application designed to gamify household chores for two children (ages 4 and 9). The frontend is a **Vite + React + TypeScript** single-page app; the backend is a **FastAPI** service that also serves the built SPA assets. The whole stack runs locally inside a single Docker container on a home server, providing responsive, real-time access across family tablets, smartphones, and PCs.
+`padelerodouleies` is a self-hosted, lightweight, and highly visual web application designed to gamify household chores for two children (ages 4 and 9). The frontend is a **Vite + React + TypeScript** single-page app; the backend is a **FastAPI** service that also serves the built SPA assets. The whole stack runs locally inside a single Docker container on a home server, providing responsive, real-time access across family tablets, smartphones, and PCs. The admin panel features touch-friendly toggle buttons for all form inputs and a toast notification system with celebratory confetti animations for kid-facing events.
 
 The application balances a highly visual, zero-literacy interface for the 4-year-old with a text-and-numerical interface for the 9-year-old, managed completely by parental administrators via an authorization PIN system.
 
@@ -207,6 +207,10 @@ The authentication system is built to minimize friction on shared family tablets
 * **Success:** The keypad slides away, and the UI redirects to either the *Kid Dashboard* or the *Admin Control Panel*.
 * **Failure:** The PIN inputs shake visually, turn red, and clear instantly for a retry.
 
+### Notification System
+
+The application uses toast notifications for all admin actions (create, edit, delete chores/rewards/users, approve/decline claims, star adjustments, reward fulfillment) and celebratory confetti animations for kid-facing events (chore approvals, reward redemptions, collaborative goal contributions) to provide instant, engaging feedback without page reloads.
+
 
 
 #### Flow B: Updating a User PIN
@@ -226,8 +230,9 @@ The authentication system is built to minimize friction on shared family tablets
 * **Title:** `"Βούρτσισμα Δοντιών (Πρωί)"` / `"Brush Teeth (Morning)"`
 * **Icon Search:** The parent types *"Tooth"* into an autocomplete field; the app pulls from the local icon library and previews a `fa-teeth` toothbrush graphic.
 * **Points:** `5` Stars.
-* **Scope Picker:** Set to **Individual** (so both girls must complete it independently).
-* **Schedule Variables:** Set `Is_Repeating` to `True`, `Start_Time` to `07:00`, and `Window_Hours` to `4`.
+* **Scope Picker:** Toggle between **Individual** (so both girls must complete it independently) and **Pooled** (first-come, first-served).
+* **Repeating:** Toggle on/off with pattern selector (Daily or Weekly with specific day selection).
+* **Schedule Variables:** Set `Start_Time` to `07:00`, and `Window_Hours` via preset toggles (None, 1h, 2h, 4h, 8h).
 
 
 3. **Execution:** Tapping **"Save Chore"** inserts the master parameters into the `CHORES` database table.

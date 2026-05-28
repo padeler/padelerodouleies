@@ -3,6 +3,7 @@ import { getPendingClaims, approveClaim, declineClaim } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { PendingClaim } from '../../lib/types';
 import { useState } from 'react';
+import { notifySuccess, notifyCelebration, notifyError } from '../../lib/notify';
 import './AdminPage.css';
 
 function ClaimCard({ claim }: { claim: PendingClaim }) {
@@ -16,8 +17,12 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
       return declineClaim(claim.id, note || undefined);
     },
     onSuccess: () => {
+      notifyCelebration(t('chore.approved'));
       qc.invalidateQueries({ queryKey: ['pending-claims'] });
       qc.invalidateQueries({ queryKey: ['pending-count'] });
+    },
+    onError: (err) => {
+      notifyError(err.message || t('common.error'));
     },
   });
 

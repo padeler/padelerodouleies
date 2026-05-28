@@ -1,6 +1,12 @@
-- [x] I create a chore but as a user i cannot see it. I tried with and without specific hours.
-- [x] An admin should be able to set a chore to repeat every day or weekly, monthly or specific days every week.
-- [x] Chores that are completed should emediatelly add stars to the user. If an admin does not accept the chore later the stars are removed. The point is for the kid to see the rewarded stars emediatelly on their account balance.
-- [x] Chores should also be able to have uploaded images as icons
-- [x] the user's (and admin's) avatar should apear next to their name
-- [x] admins don't gather stars so its should not show next to their name
+- [x] The "create chore" screen has been reworked (done 2026-05-28)
+    - [x] Scope is now toggle buttons (Individual/Pooled)
+    - [x] Repeating is now a toggle button
+    - [x] Repeat Pattern is now toggle buttons (Daily/Weekly)
+    - [x] "Every N Days" removed, replaced with specific days of the week selection
+    - [x] Window is now toggle buttons with choices: None, 1h, 2h, 4h, 8h
+- [x] Notification system added (done 2026-05-28)
+    - [x] react-hot-toast for toast notifications
+    - [x] canvas-confetti for celebratory animations
+    - [x] Notifications on: chore claim, approve/decline, reward redeem/contribute, user/reward/chore CRUD, star adjustment, fulfillment
+    - [x] Confetti triggers on: approve claims, redeem rewards, contribute to collab goals, adjust stars, mark fulfilled
+

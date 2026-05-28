@@ -8,6 +8,7 @@ import { useT } from '../i18n/store';
 import type { Chore } from '../lib/types';
 import { IconPicker } from './IconPicker';
 import { TimePicker24h } from './TimePicker24h';
+import { toast } from 'react-hot-toast';
 import './TimePicker24h.css';
 
 const choreSchema = z.object({
@@ -18,14 +19,12 @@ const choreSchema = z.object({
   points_value: z.number().int().min(1),
   is_repeating: z.boolean(),
   start_time: z.string().nullable().optional(),
-  window_hours: z.number().int().min(1).max(24).optional(),
-  repeat_pattern: z.enum(['daily', 'weekly', 'every_n_days']),
+  window_hours: z.number().int().min(1).max(24).nullable(),
+  repeat_pattern: z.enum(['daily', 'weekly']),
   repeat_days: z.array(z.string()).optional(),
-  n_day_interval: z.number().int().min(1).max(30).optional(),
 });
 
-function getRepeatPattern(chore?: { n_day_interval?: number | null; repeat_days?: string[] | null }): 'daily' | 'weekly' | 'every_n_days' {
-  if (chore?.n_day_interval) return 'every_n_days';
+function getRepeatPattern(chore?: { repeat_days?: string[] | null }): 'daily' | 'weekly' {
   if (chore?.repeat_days?.length) return 'weekly';
   return 'daily';
 }
@@ -51,10 +50,9 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     points_value: chore?.points_value ?? 5,
     is_repeating: chore?.is_repeating ?? true,
     start_time: chore?.start_time ?? undefined,
-    window_hours: chore?.window_hours ?? undefined,
+    window_hours: chore?.window_hours ?? null,
     repeat_pattern: getRepeatPattern(chore),
     repeat_days: chore?.repeat_days ?? [],
-    n_day_interval: chore?.n_day_interval ?? undefined,
   };
 
   const { control, handleSubmit, formState: { errors }, watch } = useForm<ChoreForm>({
@@ -72,13 +70,10 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
       // Map repeat_pattern to backend fields
       if (payload.repeat_pattern === 'daily') {
         payload.repeat_days = null;
-        payload.n_day_interval = null;
       } else if (payload.repeat_pattern === 'weekly') {
         payload.repeat_days = payload.repeat_days || [];
-        payload.n_day_interval = null;
-      } else if (payload.repeat_pattern === 'every_n_days') {
-        payload.repeat_days = null;
       }
+      payload.n_day_interval = null;
       delete payload.repeat_pattern;
       if (chore) {
         return updateChore(chore.id, payload);
@@ -87,7 +82,11 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['chores'] });
+      toast.success(chore ? t('common.edit') + ' ✓' : t('chore.new') + ' ✓');
       onClose();
+    },
+    onError: (err) => {
+      toast.error(err.message || t('common.error'));
     },
   });
 
@@ -162,11 +161,20 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
           <div className="admin-form-group">
             <label>{t('chore.scope')}</label>
             <Controller name="scope" control={control} render={({ field }) => (
-              <select {...field}>
-                <option value="individual">{t('chore.scope_individual')}</option>
-                <option value="pooled">{t('chore.scope_pooled')}</option>
-              </select>
+              <div className="toggle-group">
+                {(['individual', 'pooled'] as const).map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    className={`toggle-btn ${field.value === val ? 'active' : ''}`}
+                    onClick={() => field.onChange(val)}
+                  >
+                    {val === 'individual' ? t('chore.scope_individual') : t('chore.scope_pooled')}
+                  </button>
+                ))}
+              </div>
             )} />
+            {errors.scope && <div className="field-error">{errors.scope.message}</div>}
           </div>
           <div className="admin-form-group">
             <label>{t('chore.points')}</label>
@@ -175,38 +183,45 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
             )} />
             {errors.points_value && <div className="field-error">{errors.points_value.message}</div>}
           </div>
-          <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Controller name="is_repeating" control={control} render={({ field }) => (
-              <input type="checkbox" checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />
-            )} />
-            <label style={{ margin: 0 }}>{t('chore.repeating')}</label>
+          <div className="admin-form-group">
+            <label>{t('chore.repeating')}</label>
+            <div className="toggle-group">
+              <button
+                type="button"
+                className={`toggle-btn ${watch('is_repeating') ? 'active' : ''}`}
+                onClick={() => {
+                  const { getField: getF } = control as any;
+                  getF('is_repeating')?.onChange(!isRepeating);
+                }}
+              >
+                {t('chore.repeating')}
+              </button>
+            </div>
           </div>
           {isRepeating && (
             <>
               <div className="admin-form-group">
                 <label>{t('chore.repeat_pattern')}</label>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  {(['daily', 'weekly', 'every_n_days'] as const).map((pattern) => (
-                    <label key={pattern} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <input
-                        type="radio"
-                        name="repeat_pattern"
-                        value={pattern}
-                        checked={repeatPattern === pattern}
-                        onChange={() => {
-                          const { getField: getF } = control as any;
-                          getF('repeat_pattern')?.onChange(pattern);
-                        }}
-                      />
-                      {pattern === 'daily' ? t('chore.daily') : pattern === 'weekly' ? t('chore.weekly') : t('chore.every_n_days')}
-                    </label>
+                <div className="toggle-group">
+                  {(['daily', 'weekly'] as const).map((pattern) => (
+                    <button
+                      key={pattern}
+                      type="button"
+                      className={`toggle-btn ${repeatPattern === pattern ? 'active' : ''}`}
+                      onClick={() => {
+                        const { getField: getF } = control as any;
+                        getF('repeat_pattern')?.onChange(pattern);
+                      }}
+                    >
+                      {pattern === 'daily' ? t('chore.daily') : t('chore.weekly')}
+                    </button>
                   ))}
                 </div>
               </div>
               {repeatPattern === 'weekly' && (
                 <div className="admin-form-group">
                   <label>{t('chore.repeat_days_label')}</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div className="day-toggle-row">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
                       const current = watch('repeat_days') || [];
                       return (
@@ -229,14 +244,6 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
                   </div>
                 </div>
               )}
-              {repeatPattern === 'every_n_days' && (
-                <div className="admin-form-group">
-                  <label>{t('chore.n_days_label')}</label>
-                  <Controller name="n_day_interval" control={control} render={({ field }) => (
-                    <input {...field} type="number" min={1} max={30} onChange={(e) => field.onChange(Number(e.target.value))} />
-                  )} />
-                </div>
-              )}
               <div className="admin-form-group">
                 <label>{t('chore.start_time')}</label>
                 <Controller name="start_time" control={control} render={({ field }) => (
@@ -245,9 +252,27 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
               </div>
               <div className="admin-form-group">
                 <label>{t('chore.window')}</label>
-                <Controller name="window_hours" control={control} render={({ field }) => (
-                  <input {...field} type="number" min={1} max={24} onChange={(e) => field.onChange(Number(e.target.value))} />
-                )} />
+                <div className="toggle-group">
+                  {([
+                    { label: t('chore.window_none'), value: null },
+                    { label: '1h', value: 1 },
+                    { label: '2h', value: 2 },
+                    { label: '4h', value: 4 },
+                    { label: '8h', value: 8 },
+                  ] as const).map((opt) => (
+                    <button
+                      key={String(opt.value)}
+                      type="button"
+                      className={`toggle-btn ${watch('window_hours') === opt.value ? 'active' : ''}`}
+                      onClick={() => {
+                        const { getField: getF } = control as any;
+                        getF('window_hours')?.onChange(opt.value);
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
                 {errors.window_hours && <div className="field-error">{errors.window_hours.message}</div>}
               </div>
             </>
