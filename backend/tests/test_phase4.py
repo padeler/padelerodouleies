@@ -98,7 +98,7 @@ async def test_visible_chores_endpoint(kid_client):
     db = LocalSession()
     chore = Chore(
         title="Βούρτσισμα",
-        icon_name="tooth", scope="individual",
+        icon_name="tooth", claim_mode="each",
         points_value=5, is_repeating=True,
         start_time=time(6, 0), window_hours=24, is_active=True,
     )
@@ -116,10 +116,12 @@ async def test_visible_chores_endpoint(kid_client):
     resp = await client.post(f"/api/dashboard/chores/{chore_id}/claim")
     assert resp.status_code == 200
 
-    # Should no longer be visible
+    # Should still appear but with status="pending" (claimed chores remain visible)
     resp = await client.get("/api/dashboard/visible-chores")
-    chore_ids = [c["id"] for c in resp.json()]
-    assert chore_id not in chore_ids
+    chores = resp.json()
+    matching = [c for c in chores if c["id"] == chore_id]
+    assert len(matching) == 1
+    assert matching[0]["status"] == "pending"
 
 
 async def test_kid_history_endpoint(kid_client):
@@ -191,14 +193,14 @@ async def test_insufficient_stars(kid_client):
     assert resp.status_code == 400
 
 
-async def test_pooled_chore_double_claim(kid_client, kid2_client):
+async def test_one_mode_chore_double_claim(kid_client, kid2_client):
     client1, kid1_id = kid_client
     client2, kid2_id = kid2_client
 
     db = LocalSession()
     chore = Chore(
         title="Κοινό",
-        icon_name="bed", scope="pooled",
+        icon_name="bed", claim_mode="one",
         points_value=3, is_repeating=True,
         start_time=time(6, 0), window_hours=24, is_active=True,
     )
@@ -292,7 +294,7 @@ def test_daily_chore_always_visible():
     chore = Chore(
         title="Daily",
         icon_name="star",
-        scope="individual",
+        claim_mode="each",
         points_value=5,
         is_repeating=True,
         is_active=True,
@@ -307,7 +309,7 @@ def test_weekly_chore_visible_on_matching_day():
     chore = Chore(
         title="Weekly",
         icon_name="brush",
-        scope="individual",
+        claim_mode="each",
         points_value=3,
         is_repeating=True,
         is_active=True,
@@ -323,7 +325,7 @@ def test_weekly_chore_hidden_on_non_matching_day():
     chore = Chore(
         title="Weekly",
         icon_name="brush",
-        scope="individual",
+        claim_mode="each",
         points_value=3,
         is_repeating=True,
         is_active=True,
@@ -340,7 +342,7 @@ def test_every_n_days_visible_on_schedule():
     chore = Chore(
         title="Every 7 days",
         icon_name="filter",
-        scope="individual",
+        claim_mode="each",
         points_value=10,
         is_repeating=True,
         is_active=True,
@@ -356,7 +358,7 @@ def test_every_n_days_hidden_off_schedule():
     chore = Chore(
         title="Every 7 days",
         icon_name="filter",
-        scope="individual",
+        claim_mode="each",
         points_value=10,
         is_repeating=True,
         is_active=True,
@@ -378,7 +380,7 @@ async def test_pending_stars_endpoint(kid_client, admin_client_p4):
     chore = Chore(
         title="Test Chore",
         icon_name="star",
-        scope="individual",
+        claim_mode="each",
         points_value=5,
         is_repeating=True,
         start_time=time(6, 0),

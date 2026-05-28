@@ -1,25 +1,29 @@
-"""Chore visibility engine — pure function for computing active chores."""
+"""Chore visibility engine — pure functions for computing active chores with claim status."""
 
 from datetime import date, datetime, time, timedelta
+from typing import Literal
 
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.models import Chore, HistoryLedger, PendingClaim
+from app.db.models import Chore, HistoryLedger, PendingClaim, User
 
 TZ = ZoneInfo("Europe/Athens")
 
+ClaimStatus = Literal["available", "pending", "approved"]
 
-def visible_chores_for(user_id: int, now: datetime, db: Session) -> list[Chore]:
-    """Return chores visible to the user right now.
 
-    A chore is visible when:
-    - it is active and repeating,
-    - the current local time falls inside today's window (start_time .. start_time + window_hours),
-      or the chore has no time window set (visible all day),
-    - no one (pooled) or the user (individual) has already claimed or been approved for this window.
+def chores_for_dashboard(user_id: int, now: datetime, db: Session) -> list[dict]:
+    """Return all in-window chores for today with claim status for the given user.
+
+    Each entry contains:
+      - chore: Chore ORM object
+      - status: "available" | "pending" | "approved"
+      - claimed_by: None or {"user_id", "name", "avatar_kind", "avatar_value"}
+
+    For claim_mode="each": status reflects this user's own claim state.
+    For claim_mode="one": status reflects any user's claim state (first-come-first-served).
     """
     local_now = now.replace(tzinfo=TZ) if now.tzinfo is None else now.astimezone(TZ)
     today = local_now.date()
@@ -31,23 +35,122 @@ def visible_chores_for(user_id: int, now: datetime, db: Session) -> list[Chore]:
         .all()
     )
 
-    result: list[Chore] = []
+    result: list[dict] = []
     for chore in active:
         if not _matches_day(chore, today):
             continue
         if not _is_in_window(chore.start_time, chore.window_hours, today, now_time):
             continue
-        if _is_already_done(chore, user_id, today, db):
-            continue
-        result.append(chore)
+        status, claimed_by = _get_claim_status(chore, user_id, today, db)
+        result.append({"chore": chore, "status": status, "claimed_by": claimed_by})
 
     return result
+
+
+def chore_is_available_for(user_id: int, chore: Chore, now: datetime, db: Session) -> bool:
+    """Return True if the chore is claimable by this user right now."""
+    local_now = now.replace(tzinfo=TZ) if now.tzinfo is None else now.astimezone(TZ)
+    today = local_now.date()
+    now_time = local_now.time()
+
+    if not chore.is_active or not chore.is_repeating:
+        return False
+    if not _matches_day(chore, today):
+        return False
+    if not _is_in_window(chore.start_time, chore.window_hours, today, now_time):
+        return False
+    status, _ = _get_claim_status(chore, user_id, today, db)
+    return status == "available"
+
+
+def _get_claim_status(
+    chore: Chore, user_id: int, today: date, db: Session
+) -> tuple[ClaimStatus, dict | None]:
+    """Return (status, claimed_by_info) for the given chore and user.
+
+    For claim_mode="one": checks any user's claim (first-come-first-served).
+    For claim_mode="each": checks only this user's claim.
+    """
+    day_start = _start_of(today)
+    day_end = _start_of(today + timedelta(days=1))
+
+    if chore.claim_mode == "one":
+        pending = (
+            db.query(PendingClaim)
+            .filter(
+                PendingClaim.chore_id == chore.id,
+                PendingClaim.claimed_at >= day_start,
+                PendingClaim.claimed_at < day_end,
+            )
+            .first()
+        )
+        if pending:
+            claimer = db.query(User).filter(User.id == pending.user_id).first()
+            return "pending", _user_info(claimer) if claimer else None
+
+        approved = (
+            db.query(HistoryLedger)
+            .filter(
+                HistoryLedger.ref_table == "chore",
+                HistoryLedger.ref_id == chore.id,
+                HistoryLedger.action_type == "chore_approved",
+                HistoryLedger.timestamp >= day_start,
+                HistoryLedger.timestamp < day_end,
+            )
+            .first()
+        )
+        if approved:
+            claimer = db.query(User).filter(User.id == approved.user_id).first()
+            return "approved", _user_info(claimer) if claimer else None
+
+        return "available", None
+
+    else:  # each
+        pending = (
+            db.query(PendingClaim)
+            .filter(
+                PendingClaim.chore_id == chore.id,
+                PendingClaim.user_id == user_id,
+                PendingClaim.claimed_at >= day_start,
+                PendingClaim.claimed_at < day_end,
+            )
+            .first()
+        )
+        if pending:
+            claimer = db.query(User).filter(User.id == pending.user_id).first()
+            return "pending", _user_info(claimer) if claimer else None
+
+        approved = (
+            db.query(HistoryLedger)
+            .filter(
+                HistoryLedger.ref_table == "chore",
+                HistoryLedger.ref_id == chore.id,
+                HistoryLedger.user_id == user_id,
+                HistoryLedger.action_type == "chore_approved",
+                HistoryLedger.timestamp >= day_start,
+                HistoryLedger.timestamp < day_end,
+            )
+            .first()
+        )
+        if approved:
+            claimer = db.query(User).filter(User.id == approved.user_id).first()
+            return "approved", _user_info(claimer) if claimer else None
+
+        return "available", None
+
+
+def _user_info(user: User) -> dict:
+    return {
+        "user_id": user.id,
+        "name": user.name,
+        "avatar_kind": user.avatar_kind,
+        "avatar_value": user.avatar_value,
+    }
 
 
 def _is_in_window(start: time | None, window: int | None, today: date, now: time) -> bool:
     """Check whether `now` falls inside [start, start + window_hours) on `today`, allowing wrap past midnight."""
     if start is None and window is None:
-        # No time window set → visible all day (24h window from midnight)
         return True
     if start is None or window is None:
         return False
@@ -57,7 +160,6 @@ def _is_in_window(start: time | None, window: int | None, today: date, now: time
     window_end = window_start + timedelta(hours=window)
     now_dt = _dt.combine(today, now).replace(tzinfo=TZ)
 
-    # If now is before window_start, the window might be yesterday's wrap-around.
     if now_dt < window_start:
         yesterday = today - timedelta(days=1)
         window_start = _dt.combine(yesterday, start).replace(tzinfo=TZ)
@@ -78,43 +180,8 @@ def _matches_day(chore: Chore, today: date) -> bool:
     return True
 
 
-def _is_already_done(chore: Chore, user_id: int, today: date, db: Session) -> bool:
-    """Check whether the chore is already claimed/approved for today's window."""
-    if chore.scope == "pooled":
-        target_user_id = None
-    else:
-        target_user_id = user_id
-
-    has_pending = False
-    if target_user_id is None:
-        has_pending = bool(
-            db.query(PendingClaim)
-            .filter(PendingClaim.chore_id == chore.id)
-            .filter(PendingClaim.claimed_at >= _start_of(today))
-            .filter(PendingClaim.claimed_at < _start_of(today + timedelta(days=1)))
-            .first()
-        )
-    else:
-        has_pending = bool(
-            db.query(PendingClaim)
-            .filter(PendingClaim.chore_id == chore.id, PendingClaim.user_id == target_user_id)
-            .filter(PendingClaim.claimed_at >= _start_of(today))
-            .filter(PendingClaim.claimed_at < _start_of(today + timedelta(days=1)))
-            .first()
-        )
-    if has_pending:
-        return True
-
-    has_approved = bool(
-        db.query(HistoryLedger)
-        .filter(HistoryLedger.ref_table == "chore", HistoryLedger.ref_id == chore.id)
-        .filter(HistoryLedger.action_type == "chore_approved")
-        .filter(HistoryLedger.timestamp >= _start_of(today))
-        .filter(HistoryLedger.timestamp < _start_of(today + timedelta(days=1)))
-        .first()
-    )
-    return has_approved
-
-
 def _start_of(d: date) -> datetime:
-    return datetime.combine(d, time.min).replace(tzinfo=TZ)
+    """Return Athens midnight for date d as a naive UTC datetime (for SQLite comparison)."""
+    from zoneinfo import ZoneInfo
+    athens_midnight = datetime.combine(d, time.min).replace(tzinfo=TZ)
+    return athens_midnight.astimezone(ZoneInfo("UTC")).replace(tzinfo=None)

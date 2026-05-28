@@ -18,7 +18,7 @@ These are baseline architectural calls that shape multiple milestones. Capture t
 - **First-run bootstrap:** When `USERS` is empty, the landing page replaces the avatar grid with a one-time admin-creation form (name, avatar, PIN, PIN confirm). Once submitted, the system seeds the first admin row and reloads into the normal Fast Switcher.
 - **Avatar storage:** A user's avatar is either an icon from the curated local library (e.g., `fa-fox`, `fa-unicorn`, `fa-shield`) or an admin-uploaded image (e.g., a photo of the child). The `User` row carries a discriminated pair: `avatar_kind` (`icon | image`) + `avatar_value` (icon name or relative file path). Uploaded files live at `/app/data/avatars/<uuid>.webp`, inside the bind-mounted data directory so they survive container rebuilds. Uploads are validated server-side (≤2 MB, MIME in `image/png|jpeg|webp`), re-encoded to WebP, center-cropped 1:1 and resized to 256×256 via Pillow. Chore and reward icons remain icon-library-only — uploads are for human avatars only.
 - **Localization persistence:** Each `USERS` row carries a `preferred_locale` column (`el` default). The header locale toggle updates session state immediately and writes through to the row on change so the choice survives login.
-- **Concurrency:** Pooled-chore claims and collaborative-reward contributions go through DB transactions with row-level locking (`SELECT … FOR UPDATE` or SQLite's `BEGIN IMMEDIATE`) to prevent double-claim / double-spend races.
+- **Concurrency:** `claim_mode="one"` chore claims and collaborative-reward contributions go through DB transactions with row-level locking (`SELECT … FOR UPDATE` or SQLite's `BEGIN IMMEDIATE`) to prevent double-claim / double-spend races.
 
 ---
 
@@ -35,7 +35,7 @@ These are baseline architectural calls that shape multiple milestones. Capture t
 * [x] **Milestone 1.2: Database Schema (SQLite + SQLAlchemy)** — DONE
   * Define ORM models matching `README.md` §Database Schema, with the cross-cutting refinements above:
     * `User`: `id`, `name`, `avatar_kind` (`icon | image`), `avatar_value` (icon name or relative file path under `/app/data/avatars/`), `pin_hash`, `role` (`admin | user`), `current_stars`, `preferred_locale`, `failed_pin_attempts`, `locked_until`, `created_at`.
-    * `Chore`: `id`, `title_el`, `title_en`, `description_el`, `description_en`, `icon_name`, `scope` (`individual | pooled`), `points_value`, `is_repeating`, `start_time` (time-of-day), `window_hours`, `is_active`, `created_at`.
+    * `Chore`: `id`, `title`, `description`, `icon_name`, `claim_mode` (`each | one`), `points_value`, `is_repeating`, `start_time` (time-of-day), `window_hours`, `repeat_days`, `n_day_interval`, `is_active`, `created_at`. Note: `title`/`description` are single-language fields (bilingual columns removed); `claim_mode` replaced the old `scope` (`individual`/`pooled`) — `each` means every kid can claim independently, `one` means first-come-first-served for the period.
     * `Reward`: `id`, `title_el`, `title_en`, `description_el`, `description_en`, `icon_name`, `cost_stars`, `is_collaborative`, `is_enabled`, `created_at`.
     * `HistoryLedger`: as defined in cross-cutting decisions.
     * `RewardLedger`: `id`, `reward_id`, `user_id`, `status` (`claimed | fulfilled | refunded`), `claimed_at`, `fulfilled_at`, `stars_contributed` (for collaborative — per-user contribution), `admin_note`.
@@ -187,22 +187,26 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * **Frontend:** React Router layout at `/dashboard` with nested routes: `/dashboard/chores` (default), `/dashboard/marketplace`, `/dashboard/history`, `/dashboard/leaderboard`. Top section: large avatar + name, animated star counter (`current_stars`). Sticky locale toggle + logout. The star counter subscribes to `stars_changed` events on the WebSocket (Milestone 4.8) and animates between the previous and new value using `framer-motion` or a CSS transition on a `tabular-nums` span.
   * *Test:* Logged-in kid sees her own avatar, name, and `current_stars` value. Sending a `stars_changed` event over the WebSocket re-renders the counter with the new value and triggers the animated transition (use Playwright or Vitest + an in-memory WebSocket mock).
 
-* [x] **Milestone 4.2: Dynamic Chore Visibility Engine** — DONE
-  * **Backend pure function** `visible_chores_for(user, now: datetime) -> list[Chore]` in `backend/app/services/chores.py`:
-    1. Filters `is_active=True` chores.
-    2. Computes each chore's current window using timezone-aware arithmetic: open at the local time `start_time` on the current local date; closed `window_hours` later (may extend past midnight).
-    3. Filters out chores already completed today (`PendingClaim` exists OR `HistoryLedger` row with `action_type='chore_approved'` AND timestamp inside the same window for individual chores; for pooled chores, filters out chores claimed by *any* user in the window).
-  * Pure, side-effect-free — easy to unit-test by injecting `now`.
-  * **Endpoint:** `GET /api/dashboard/visible-chores` calls `visible_chores_for(current_user, datetime.now(tz=...))` and returns the list. Called by the frontend on dashboard mount and after any successful claim mutation.
-  * *Test:* Cases against `visible_chores_for` directly with injected `now`: chore window 07:00–11:00, query at 06:59 (hidden), 07:00 (visible), 10:59 (visible), 11:01 (hidden). Wrap-around 22:00–02:00 queried at 01:00 next day must be visible. One integration test confirms `GET /api/dashboard/visible-chores` returns the same list as the pure function under the same fixture.
+* [x] **Milestone 4.2: Dynamic Chore Visibility Engine** — DONE (reworked)
+  * **Backend functions** in `backend/app/services/chores.py`:
+    * `chores_for_dashboard(user_id, now, db) -> list[dict]` — returns ALL in-window chores with `{chore, status, claimed_by}`. Status: `available` / `pending` / `approved`. For `claim_mode="each"` status reflects only this user's claim; for `claim_mode="one"` it reflects any user's claim.
+    * `chore_is_available_for(user_id, chore, now, db) -> bool` — used by the claim endpoint to gate submissions.
+    * `_start_of(d: date) -> datetime` — returns Athens midnight as a **naive UTC datetime** for correct string-comparison with SQLite's UTC-stored timestamps (timezone-aware datetimes cause SQLite string comparison failures for claims made between UTC midnight and Athens midnight).
+  * **Endpoint:** `GET /api/dashboard/visible-chores` returns all in-window chores (not just claimable ones) with `id`, `title`, `icon_name`, `claim_mode`, `points_value`, `status`, `claimed_by`. Frontend uses `status` to decide whether to show a claim button, a pending badge, or a "claimed by [name+avatar]" indicator.
+  * *Test:* After claiming an `each`-mode chore, the chore remains in the response with `status="pending"`. After claiming a `one`-mode chore, all other users see `status="pending"` with `claimed_by` populated.
 
-* [x] **Milestone 4.3: Chore Cards & Claim Flow** — DONE
-  * **Frontend:** Render each visible chore as a large colorful card: icon, localized title, `+N ⭐` badge, giant "Claim / Διεκδίκηση" button. On click, calls `POST /api/chores/{id}/claim`; button transitions to disabled "Pending… / Σε αναμονή" with a spinner; on success the card is removed from the list (TanStack Query invalidates `visible-chores`); on `409` (pooled-race loser) shows a "Someone else claimed this first!" toast.
-  * **Backend `POST /api/chores/{id}/claim`** (transactional, `BEGIN IMMEDIATE`):
-    * For pooled chores: re-check no `PendingClaim` or approved-today row exists for the chore, then insert `PendingClaim`. Race-loser raises a `409 Conflict`.
-    * For individual chores: same transactional insert but contention is only per-user — duplicate claim by the same user returns `409`, sibling claims remain independent.
-    * On success, broadcast `pending_claims_changed` (admin queue badge updates) and `visible_chores_changed` for the affected user (and for *all users* if the chore is pooled).
-  * *Test:* Claiming an individual chore inserts one `PendingClaim` and the same chore disappears from this user's dashboard (but stays visible for the sibling). For a pooled chore, two concurrent claim attempts: the first inserts a `PendingClaim` and returns `200`, the second returns `409` and surfaces the toast without creating a duplicate row.
+* [x] **Milestone 4.3: Chore Cards & Claim Flow** — DONE (reworked)
+  * **Frontend:** Each chore card renders based on `status`:
+    * `available` → shows "Claim / Διεκδίκηση" button.
+    * `pending` + my claim → shows "Awaiting approval" badge (blue).
+    * `approved` + my claim → shows "Approved!" badge (green).
+    * `pending`/`approved` + someone else's claim (`one`-mode only) → shows "Claimed by {name}" / "Done by {name}" with the claimant's avatar. No claim button.
+  * **Backend `POST /api/dashboard/chores/{id}/claim`:**
+    * Calls `chore_is_available_for()` — returns 409 if not available.
+    * Extra race guard for `claim_mode="one"`: re-checks no pending claim exists today before inserting.
+    * Broadcasts `visible_chores_changed` to `"all"` for `one`-mode, `"user"` for `each`-mode.
+  * Approve/decline in `api/admin.py` also broadcasts `visible_chores_changed` to `"all"` for `one`-mode (so the approved/available state propagates to all kids) or `"user"` for `each`-mode.
+  * *Test:* After claiming an `each`-mode chore, same chore stays in response with `status="pending"`. For `one`-mode, second kid's claim returns `409`.
 
 * [x] **Milestone 4.4: Kid History Timeline** — DONE
   * **Backend:** `GET /api/dashboard/history?limit=...&offset=...` returns the calling kid's own `HistoryLedger` rows joined with chore/reward summaries, newest first. Authorization scoped to `current_user.id` — no `user_id` query param accepted.
@@ -237,7 +241,7 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * **Event vocabulary** (used across earlier milestones, captured here as the canonical list):
     * `stars_changed` → `{ user_id, current_stars }` → audience: `all`.
     * `pending_claims_changed` → `{ count }` → audience: `admins`.
-    * `visible_chores_changed` → `{ user_id }` (frontend refetches its `visible-chores` query) → audience: `user` for individual chore claims, `all` for pooled chore claims.
+    * `visible_chores_changed` → `{ user_id }` (frontend refetches its `visible-chores` query) → audience: `user` for `each`-mode chore claims/approvals/declines, `all` for `one`-mode.
     * `collab_progress_changed` → `{ reward_id, current, contributions: [{user_id, stars}] }` → audience: `all`.
     * `fulfillment_queue_changed` → `{}` → audience: `admins`.
     * `history_changed` → `{ user_id }` (frontend refetches the kid's history) → audience: `user`.

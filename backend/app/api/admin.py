@@ -262,13 +262,14 @@ async def approve_claim_endpoint(
     db: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ) -> JSONResponse:
+    claim_for_mode = db.query(PendingClaim).filter(PendingClaim.id == claim_id).first()
+    chore_claim_mode = claim_for_mode.chore.claim_mode if claim_for_mode else "each"
     try:
         result = approve_claim(claim_id, db)
     except ValueError as e:
         raise HTTPException(404, str(e))
     db.commit()
     if result:
-        # Calculate remaining pending stars for this user
         remaining_claims = (
             db.query(PendingClaim)
             .join(Chore, PendingClaim.chore_id == Chore.id)
@@ -280,6 +281,9 @@ async def approve_claim_endpoint(
         await broadcaster.emit("pending_stars_changed", {"user_id": result.user_id, "pending_stars": remaining_pending}, "user", user_id=result.user_id)
         count = db.query(PendingClaim).count()
         await broadcaster.emit("pending_claims_changed", {"count": count}, "admins")
+        # one-mode: all users need to see the approved state; each-mode: only the claimant
+        vc_audience = "all" if chore_claim_mode == "one" else "user"
+        await broadcaster.emit("visible_chores_changed", {"user_id": result.user_id}, vc_audience, user_id=result.user_id)
     return JSONResponse(content={"message": "Approved"})
 
 
@@ -293,6 +297,8 @@ async def decline_claim_endpoint(
     claim = db.query(PendingClaim).filter(PendingClaim.id == claim_id).first()
     if not claim:
         raise HTTPException(404, "Claim not found")
+    chore_claim_mode = claim.chore.claim_mode
+    declined_user_id = claim.user_id
     try:
         decline_claim(claim_id, req.admin_note, db)
     except ValueError as e:
@@ -301,17 +307,17 @@ async def decline_claim_endpoint(
     count = db.query(PendingClaim).count()
     await broadcaster.emit("pending_claims_changed", {"count": count}, "admins")
 
-    # Calculate remaining pending stars for the claim's user
     remaining_claims = (
         db.query(PendingClaim)
         .join(Chore, PendingClaim.chore_id == Chore.id)
-        .filter(PendingClaim.user_id == claim.user_id)
+        .filter(PendingClaim.user_id == declined_user_id)
         .all()
     )
     remaining_pending = sum(c.chore.points_value for c in remaining_claims)
-    await broadcaster.emit("pending_stars_changed", {"user_id": claim.user_id, "pending_stars": remaining_pending}, "user", user_id=claim.user_id)
-    # Notify the user that visible chores changed so the declined chore reappears
-    await broadcaster.emit("visible_chores_changed", {"user_id": claim.user_id}, "user", user_id=claim.user_id)
+    await broadcaster.emit("pending_stars_changed", {"user_id": declined_user_id, "pending_stars": remaining_pending}, "user", user_id=declined_user_id)
+    # one-mode: all users need refresh (chore becomes available again); each-mode: only the claimant
+    vc_audience = "all" if chore_claim_mode == "one" else "user"
+    await broadcaster.emit("visible_chores_changed", {"user_id": declined_user_id}, vc_audience, user_id=declined_user_id)
     return JSONResponse(content={"message": "Declined"})
 
 

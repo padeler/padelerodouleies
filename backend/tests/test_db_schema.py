@@ -30,7 +30,7 @@ def test_chore_table_structure() -> None:
     chore = Chore(
         title="Βούρτσισμα Δοντιών",
         icon_name="tooth",
-        scope="individual",
+        claim_mode="each",
         points_value=5,
         is_repeating=True,
         is_active=True,
@@ -67,8 +67,8 @@ def test_seed_users_and_query() -> None:
     session.add_all([admin, kid1, kid2])
     session.commit()
 
-    chore1 = Chore(title="Πρωινό", icon_name="sun", scope="individual", points_value=5, is_repeating=True, is_active=True)
-    chore2 = Chore(title="Δishes", icon_name="plate", scope="pooled", points_value=10, is_repeating=True, is_active=True)
+    chore1 = Chore(title="Πρωινό", icon_name="sun", claim_mode="each", points_value=5, is_repeating=True, is_active=True)
+    chore2 = Chore(title="Δishes", icon_name="plate", claim_mode="one", points_value=10, is_repeating=True, is_active=True)
     session.add_all([chore1, chore2])
     session.commit()
 

@@ -73,9 +73,34 @@
   box-shadow: 0 8px 24px rgba(123, 47, 247, 0.15);
 }
 
-.chore-card.chore-scope-pooled {
+/* one-mode: one kid claims it for everyone */
+.chore-card.chore-mode-one {
   border-color: #f0c36d;
   background: linear-gradient(135deg, #fff 0%, #fff8e1 100%);
+}
+
+/* taken by someone else */
+.chore-card.chore-taken {
+  border-color: #ddd;
+  background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
+  opacity: 0.8;
+}
+
+.chore-card.chore-taken:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* my pending claim */
+.chore-card.chore-status-pending:not(.chore-taken) {
+  border-color: #90caf9;
+  background: linear-gradient(135deg, #fff 0%, #e3f2fd 100%);
+}
+
+/* my approved claim */
+.chore-card.chore-status-approved:not(.chore-taken) {
+  border-color: #81c784;
+  background: linear-gradient(135deg, #fff 0%, #e8f5e9 100%);
 }
 
 .chore-icon-wrap {
@@ -136,10 +161,59 @@
   cursor: not-allowed;
 }
 
-.chore-pending {
+.chore-pending-label {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.chore-status-badge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.chore-status-mine-pending {
+  color: #1565c0;
+  background: #e3f2fd;
+}
+
+.chore-status-mine-approved {
+  color: #2e7d32;
+  background: #e8f5e9;
+}
+
+.chore-status-taken {
+  color: #555;
+  background: #eee;
+}
+
+.chore-status-done {
+  color: #2e7d32;
+  background: #e8f5e9;
+}
+
+.chore-claimer-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.chore-claimer-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+
+.chore-claimer-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .chore-error {

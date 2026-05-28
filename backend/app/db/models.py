@@ -51,7 +51,7 @@ class Chore(Base):
     title = Column(String(200), nullable=False)
     description = Column(String(500), nullable=True)
     icon_name = Column(String(100), nullable=False)
-    scope = Column(String(20), nullable=False, default="individual")  # "individual" | "pooled"
+    claim_mode = Column(String(20), nullable=False, default="each")  # "each" | "one"
     points_value = Column(Integer, nullable=False)
     is_repeating = Column(Boolean, nullable=False, default=True)
     start_time = Column(Time, nullable=True)  # NULL for one-time or flexible chores

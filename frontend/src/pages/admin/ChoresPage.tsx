@@ -63,7 +63,7 @@ export function ChoresPage() {
             <th>{t('chore.icon')}</th>
             <th>{t('chore.title_placeholder')}</th>
             <th>{t('chore.points')}</th>
-            <th>{t('chore.scope')}</th>
+            <th>{t('chore.claim_mode')}</th>
             <th>{t('common.enabled')}</th>
             <th>{t('common.actions')}</th>
           </tr>
@@ -76,7 +76,7 @@ export function ChoresPage() {
               </td>
               <td>{chore.title}</td>
               <td>{chore.points_value}</td>
-              <td>{chore.scope === 'individual' ? t('chore.scope_individual') : t('chore.scope_pooled')}</td>
+              <td>{chore.claim_mode === 'each' ? t('chore.claim_mode_each') : t('chore.claim_mode_one')}</td>
               <td>
                 <span className={`status-badge ${chore.is_active ? 'active' : 'inactive'}`}>
                   {chore.is_active ? t('common.enabled') : t('common.disabled')}

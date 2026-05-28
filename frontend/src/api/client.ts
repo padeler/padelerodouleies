@@ -416,13 +416,7 @@ export async function getAdminHistory(params: {
 /* -- Dashboard endpoints -- */
 
 export async function getVisibleChores() {
-  return request<Array<{
-    id: number;
-    title: string;
-    icon_name: string;
-    scope: string;
-    points_value: number;
-  }>>('/dashboard/visible-chores');
+  return request<import('../lib/types').VisibleChore[]>('/dashboard/visible-chores');
 }
 
 export async function getPendingStars() {

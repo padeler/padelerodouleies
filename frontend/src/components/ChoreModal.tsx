@@ -15,7 +15,7 @@ const choreSchema = z.object({
   title: z.string().min(1, 'Required').max(200),
   description: z.string().max(500).optional(),
   icon_name: z.string().min(1, 'Required'),
-  scope: z.enum(['individual', 'pooled']),
+  claim_mode: z.enum(['each', 'one']),
   points_value: z.number().int().min(1),
   is_repeating: z.boolean(),
   start_time: z.string().nullable().optional(),
@@ -49,7 +49,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     title: chore?.title ?? '',
     description: chore?.description ?? '',
     icon_name: chore?.icon_name ?? 'star',
-    scope: chore?.scope ?? 'individual',
+    claim_mode: chore?.claim_mode ?? 'each',
     points_value: chore?.points_value ?? 5,
     is_repeating: chore?.is_repeating ?? true,
     start_time: chore?.start_time ?? undefined,
@@ -170,22 +170,22 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
             {errors.icon_name && <div className="field-error">{errors.icon_name.message}</div>}
           </div>
           <div className="admin-form-group">
-            <label>{t('chore.scope')}</label>
-            <Controller name="scope" control={control} render={({ field }) => (
+            <label>{t('chore.claim_mode')}</label>
+            <Controller name="claim_mode" control={control} render={({ field }) => (
               <div className="toggle-group">
-                {(['individual', 'pooled'] as const).map((val) => (
+                {(['each', 'one'] as const).map((val) => (
                   <button
                     key={val}
                     type="button"
                     className={`toggle-btn ${field.value === val ? 'active' : ''}`}
                     onClick={() => field.onChange(val)}
                   >
-                    {val === 'individual' ? t('chore.scope_individual') : t('chore.scope_pooled')}
+                    {val === 'each' ? t('chore.claim_mode_each') : t('chore.claim_mode_one')}
                   </button>
                 ))}
               </div>
             )} />
-            {errors.scope && <div className="field-error">{errors.scope.message}</div>}
+            {errors.claim_mode && <div className="field-error">{errors.claim_mode.message}</div>}
           </div>
           <div className="admin-form-group">
             <label>{t('chore.points')}</label>

@@ -34,7 +34,7 @@ The system operates strictly on a two-role paradigm separated by 4-digit PIN acc
 
 Admins have full command over the system variables, state modifications, and approvals.
 
-* **Chore Customization:** Create, edit, and configure the scope and time constraints of tasks.
+* **Chore Customization:** Create, edit, and configure the claim mode (`each`/`one`) and time constraints of tasks.
 * **The Ledger / Verification Pipeline:** Approve or decline pending chore claims submitted by users.
 * **Reward Management:** Create, toggle availability for, and mark rewards as "awarded" (fulfilled).
 * **Manual Overrides:** Directly award or deduct stars from a specific user accompanied by a short textual reason (e.g., *"+5 Stars for extra kindness"* or *-5 Stars for retroactive chore decline*).
@@ -117,14 +117,15 @@ The backend state is handled through five relational tables managed seamlessly i
   |       USERS       |              |      CHORES       |
   +-------------------+              +-------------------+
   | id (PK)           |              | id (PK)           |
-  | name              |              | title_el / title_en|
-  | avatar_string     |              | icon_class        |
-  | pin_hash          |              | scope (indiv/pool)|
-  | role (admin/user) |              | points_value      |
-  | current_stars     |              | is_repeating      |
-  +---------+---------+              | start_time        |
-            |                        | window_hours      |
-            | 1                      +---------+---------+
+  | name              |              | title             |
+  | avatar_kind       |              | icon_name         |
+  | pin_hash          |              | claim_mode(each/  |
+  | role (admin/user) |              |          one)     |
+  | current_stars     |              | points_value      |
+  +---------+---------+              | is_repeating      |
+            |                        | start_time        |
+            | 1                      | window_hours      |
+            |                        +---------+---------+
             |                                  |
             | M                                | M
   +---------v----------------------------------v-------+
@@ -230,7 +231,7 @@ The application uses toast notifications for all admin actions (create, edit, de
 * **Title:** `"Βούρτσισμα Δοντιών (Πρωί)"` / `"Brush Teeth (Morning)"`
 * **Icon Search:** The parent types *"Tooth"* into an autocomplete field; the app pulls from the local icon library and previews a `fa-teeth` toothbrush graphic.
 * **Points:** `5` Stars.
-* **Scope Picker:** Toggle between **Individual** (so both girls must complete it independently) and **Pooled** (first-come, first-served).
+* **Claim Mode Picker:** Toggle between **Each kid** (`claim_mode=each` — both girls must complete it independently) and **One kid** (`claim_mode=one` — first-come, first-served; other kids see the claimant's name and avatar).
 * **Repeating:** Toggle on/off with pattern selector (Daily or Weekly with specific day selection).
 * **Schedule Variables:** Set `Start_Time` to `07:00`, and `Window_Hours` via preset toggles (None, 1h, 2h, 4h, 8h).
 
@@ -241,14 +242,14 @@ The application uses toast notifications for all admin actions (create, edit, de
 
 1. **Dynamic Visibility Engine:** When the 9-year-old logs into her dashboard at **08:30 AM**, the server evaluates `datetime.now()`. It checks the database and confirms:
 * It is between 07:00 and 11:00 AM (Within the 4-hour window).
-* No row exists in `CHORE_HISTORY` marked as `Approved` or `Pending` for this specific child today.
+* No pending claim or approved `HistoryLedger` entry exists for this child today (for `claim_mode=each`) or for any child today (for `claim_mode=one`).
 
 
 2. **Rendering:** The app renders a massive yellow card containing the `fa-teeth` graphic, the title, a `+5 ⭐` badge, and a giant green **"Claim / Διεκδίκηση"** button.
 3. **The Action:** The child completes the real-world task and taps **"Claim"**.
 4. **State Transition:** * The button instantly mutates into a spinning orange status text reading **"Pending Parent Approval / Σε αναμονή έγκρισης"**.
 * A new row is written to `CHORE_HISTORY` with a status of `Pending`.
-* *Note:* If the 4-year-old logs into her device, the card is still fully available for her to claim because the chore scope was set to *Individual*.
+* *Note:* If the 4-year-old logs into her device, the card is still visible. Because the chore `claim_mode` is `each`, her card shows "available" and she can claim it independently. If the chore were `claim_mode=one`, her card would show the sibling's name and avatar as the claimant, and no claim button would appear.
 
 
 

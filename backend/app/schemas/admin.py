@@ -11,7 +11,7 @@ class ChoreCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: str | None = None
     icon_name: str
-    scope: str = "individual"
+    claim_mode: str = "each"
     points_value: int = Field(gt=0)
     is_repeating: bool = True
     start_time: dtime | None = None
@@ -24,7 +24,7 @@ class ChoreUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
     icon_name: str | None = None
-    scope: str | None = None
+    claim_mode: str | None = None
     points_value: int | None = Field(default=None, gt=0)
     is_repeating: bool | None = None
     start_time: dtime | None = None
@@ -40,7 +40,7 @@ class ChoreRead(BaseModel):
     title: str
     description: str | None
     icon_name: str
-    scope: str
+    claim_mode: str
     points_value: int
     is_repeating: bool
     start_time: dtime | None

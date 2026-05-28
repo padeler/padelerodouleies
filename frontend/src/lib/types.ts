@@ -5,7 +5,7 @@ export interface Chore {
   title: string;
   description: string | null;
   icon_name: string;
-  scope: 'individual' | 'pooled';
+  claim_mode: 'each' | 'one';
   points_value: number;
   is_repeating: boolean;
   start_time: string | null;
@@ -91,12 +91,21 @@ export interface IconCatalogItem {
 
 export type AvatarSelection = { kind: 'icon' | 'image'; value: string };
 
+export interface ChoreClaimedBy {
+  user_id: number;
+  name: string;
+  avatar_kind: 'icon' | 'image';
+  avatar_value: string;
+}
+
 export interface VisibleChore {
   id: number;
   title: string;
   icon_name: string;
-  scope: string;
+  claim_mode: 'each' | 'one';
   points_value: number;
+  status: 'available' | 'pending' | 'approved';
+  claimed_by: ChoreClaimedBy | null;
 }
 
 export interface KidHistoryEntry {
@@ -110,6 +119,8 @@ export interface KidHistoryEntry {
   chore_title?: string;
   chore_icon?: string;
   chore_points_value?: number;
+  item_title?: string;
+  item_icon?: string;
 }
 
 export interface MarketplaceReward {

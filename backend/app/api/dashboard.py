@@ -7,9 +7,9 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.db.engine import get_session
-from app.db.models import Chore, HistoryLedger, PendingClaim, User
+from app.db.models import Chore, HistoryLedger, PendingClaim, Reward, User
 from app.realtime import broadcaster
-from app.services.chores import TZ, visible_chores_for
+from app.services.chores import TZ, _start_of, chore_is_available_for, chores_for_dashboard
 from app.security.session import get_current_user
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -20,18 +20,20 @@ def get_visible_chores(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_session),
 ) -> list[dict]:
-    """Return chores visible to the logged-in kid right now."""
+    """Return all in-window chores with claim status for the logged-in kid."""
     now = datetime.now(TZ)
-    chores = visible_chores_for(current_user.id, now, db)
+    entries = chores_for_dashboard(current_user.id, now, db)
     return [
         {
-            "id": c.id,
-            "title": c.title,
-            "icon_name": c.icon_name,
-            "scope": c.scope,
-            "points_value": c.points_value,
+            "id": e["chore"].id,
+            "title": e["chore"].title,
+            "icon_name": e["chore"].icon_name,
+            "claim_mode": e["chore"].claim_mode,
+            "points_value": e["chore"].points_value,
+            "status": e["status"],
+            "claimed_by": e["claimed_by"],
         }
-        for c in chores
+        for e in entries
     ]
 
 
@@ -75,14 +77,20 @@ async def claim_chore(
         raise HTTPException(404, "Chore not found")
 
     now = datetime.now(TZ)
-    visible = visible_chores_for(current_user.id, now, db)
-    if not any(c.id == chore_id for c in visible):
+    if not chore_is_available_for(current_user.id, chore, now, db):
         raise HTTPException(409, "Chore not available right now")
 
-    if chore.scope == "pooled":
+    # Race-condition guard for one-per-period chores
+    if chore.claim_mode == "one":
+        from datetime import timedelta
+        today = now.date()
         existing = (
             db.query(PendingClaim)
-            .filter(PendingClaim.chore_id == chore_id)
+            .filter(
+                PendingClaim.chore_id == chore_id,
+                PendingClaim.claimed_at >= _start_of(today),
+                PendingClaim.claimed_at < _start_of(today + timedelta(days=1)),
+            )
             .first()
         )
         if existing:
@@ -91,7 +99,6 @@ async def claim_chore(
     db.add(PendingClaim(user_id=current_user.id, chore_id=chore_id))
     db.commit()
 
-    # Calculate pending stars for this user
     user_claims = (
         db.query(PendingClaim)
         .join(Chore, PendingClaim.chore_id == Chore.id)
@@ -102,7 +109,8 @@ async def claim_chore(
 
     await broadcaster.emit("pending_claims_changed", {"count": db.query(PendingClaim).count()}, "admins")
     await broadcaster.emit("pending_stars_changed", {"user_id": current_user.id, "pending_stars": pending_stars}, "user", user_id=current_user.id)
-    audience = "all" if chore.scope == "pooled" else "user"
+    # one-mode: all users need to see the chore as claimed; each-mode: only this user
+    audience = "all" if chore.claim_mode == "one" else "user"
     await broadcaster.emit(
         "visible_chores_changed", {"user_id": current_user.id}, audience, user_id=current_user.id,
     )
@@ -142,6 +150,11 @@ def get_history(
                 entry["chore_title"] = chore.title
                 entry["chore_icon"] = chore.icon_name
                 entry["chore_points_value"] = chore.points_value
+        elif r.ref_table == "reward" and r.ref_id:
+            reward = db.query(Reward).filter(Reward.id == r.ref_id).first()
+            if reward:
+                entry["item_title"] = reward.title
+                entry["item_icon"] = reward.icon_name
         entries.append(entry)
 
     return {"total": total, "entries": entries}
