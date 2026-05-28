@@ -49,11 +49,18 @@ export function KidHistory() {
             const note = entry.admin_note ?? '';
             const sign = entry.points_delta >= 0 ? '+' : '';
 
+            const iconSrc = entry.chore_icon
+              ? entry.chore_icon.startsWith('/') ? entry.chore_icon : `/api/icons/svg/${entry.chore_icon}`
+              : null;
+
             return (
               <div key={entry.id} className={`history-entry ${getEntryColor(entry)}`}>
                 <div className="history-dot" />
                 <div className="history-content">
                   <div className="history-header">
+                    {iconSrc && (
+                      <img src={iconSrc} alt="" className="history-chore-icon" />
+                    )}
                     <span className={`history-points ${sign}${entry.points_delta} ⭐`}>
                    {sign}{entry.points_delta} ⭐
                     </span>

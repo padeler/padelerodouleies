@@ -16,8 +16,12 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
       if (action === 'approve') return approveClaim(claim.id);
       return declineClaim(claim.id, note || undefined);
     },
-    onSuccess: () => {
-      notifyCelebration(t('chore.approved'));
+    onSuccess: (_data, action) => {
+      if (action === 'approve') {
+        notifyCelebration(t('chore.approved'));
+      } else {
+        notifySuccess(t('chore.declined'));
+      }
       qc.invalidateQueries({ queryKey: ['pending-claims'] });
       qc.invalidateQueries({ queryKey: ['pending-count'] });
     },

@@ -12,7 +12,7 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
   const mutate = useMutation({
     mutationFn: () => markFulfilled(entry.id),
     onSuccess: () => {
-      notifyCelebration(t('reward.fulfilled'));
+      notifyCelebration(t('reward.fulfilled'), `fulfill-${entry.id}`);
       qc.invalidateQueries({ queryKey: ['fulfillment', 'claimed'] });
       qc.invalidateQueries({ queryKey: ['fulfillment', 'fulfilled'] });
     },
@@ -34,7 +34,7 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
         <button
           className="admin-btn admin-btn-success"
           onClick={() => mutate.mutate()}
-          disabled={mutate.isPending}
+          disabled={mutate.isPending || mutate.isSuccess}
         >
           <span className="btn-icon">✓</span>
           <span className="btn-text">{t('btn.mark_fulfilled')}</span>

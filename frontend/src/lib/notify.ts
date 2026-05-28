@@ -26,9 +26,10 @@ export function notifyInfo(message: string, options?: ToastOptions) {
   return toast(message, { ...defaultOptions, icon: 'ℹ️', ...options });
 }
 
-export function notifyCelebration(message: string) {
+export function notifyCelebration(message: string, toastId?: string) {
   toast(message, {
     ...defaultOptions,
+    id: toastId,
     icon: '🎉',
     style: { ...defaultOptions.style, fontWeight: 700 },
     duration: 3500,

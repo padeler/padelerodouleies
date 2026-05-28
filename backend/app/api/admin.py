@@ -310,6 +310,8 @@ async def decline_claim_endpoint(
     )
     remaining_pending = sum(c.chore.points_value for c in remaining_claims)
     await broadcaster.emit("pending_stars_changed", {"user_id": claim.user_id, "pending_stars": remaining_pending}, "user", user_id=claim.user_id)
+    # Notify the user that visible chores changed so the declined chore reappears
+    await broadcaster.emit("visible_chores_changed", {"user_id": claim.user_id}, "user", user_id=claim.user_id)
     return JSONResponse(content={"message": "Declined"})
 
 

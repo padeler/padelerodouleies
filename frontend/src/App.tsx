@@ -44,12 +44,18 @@ function ProtectedRoute({ children, admin }: { children: React.ReactNode; admin?
   return children;
 }
 
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (user) return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+  return children;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthGuard>
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
           <Route path="/setup" element={<Setup />} />
           <Route
             path="/admin/*"

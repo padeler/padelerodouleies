@@ -1,12 +1,9 @@
-- [x] The "create chore" screen has been reworked (done 2026-05-28)
-    - [x] Scope is now toggle buttons (Individual/Pooled)
-    - [x] Repeating is now a toggle button
-    - [x] Repeat Pattern is now toggle buttons (Daily/Weekly)
-    - [x] "Every N Days" removed, replaced with specific days of the week selection
-    - [x] Window is now toggle buttons with choices: None, 1h, 2h, 4h, 8h
-- [x] Notification system added (done 2026-05-28)
-    - [x] react-hot-toast for toast notifications
-    - [x] canvas-confetti for celebratory animations
-    - [x] Notifications on: chore claim, approve/decline, reward redeem/contribute, user/reward/chore CRUD, star adjustment, fulfillment
-    - [x] Confetti triggers on: approve claims, redeem rewards, contribute to collab goals, adjust stars, mark fulfilled
-
+- [ ] when i am logged in and i.e in the /dashboard, if i change the url to / i am greeted again with the login screen although i am logged in.
+- [ ] when a chore is claimed by a user, the fireworks animation should play (even though the stars are pending)
+- [ ] History should also show icons for the chores
+- [ ] Going to the "Leaderboard" should show fireworks if the user is first second or third in place.
+- [ ] When an admin presses "decline" on a chore in admin/aprovals it still shows the fireworks and a popup says approved
+- [ ] when a chore is declined it should reapear in the available chores if the contitions of the chore havent expired (i.e valid time etc)
+- [ ] as admin when I click "Mark Fulfilled" the fireworks animation and toast notification appears twice.
+- [ ] as admin on  "new chore" when i try to upload an image for the icon it fails with the message "getField is not a function"
+- [ ] as admin on "new chore" when i select an svg icon initially no category tab is selected and all tabs are shown. It shouls preselect the first category

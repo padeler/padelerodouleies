@@ -40,10 +40,14 @@ export function IconPicker({ selected, onChange, avatarMode = false }: IconPicke
     return Array.from(set);
   }, [catalog]);
 
-  /* In avatar mode, default-select the "avatars" category */
+  /* Default-select a category when the catalog loads */
   useEffect(() => {
-    if (avatarMode && !selectedCategory && categories.length > 0) {
-      setSelectedCategory(categories.find((c) => c === 'avatars') ?? categories[0]);
+    if (!selectedCategory && categories.length > 0) {
+      if (avatarMode) {
+        setSelectedCategory(categories.find((c) => c === 'avatars') ?? categories[0]);
+      } else {
+        setSelectedCategory(categories[0]);
+      }
     }
   }, [avatarMode, categories, selectedCategory]);
 

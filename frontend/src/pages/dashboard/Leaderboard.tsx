@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { getLeaderboard } from '../../api/client';
 import { useT } from '../../i18n/store';
+import { useAuth } from '../../hooks/useAuth';
+import { notifyCelebration } from '../../lib/notify';
 import type { LeaderboardEntry } from '../../lib/types';
 import './Leaderboard.css';
 
@@ -8,11 +11,21 @@ const podiumOrder: number[] = [2, 0, 1];
 
 export function Leaderboard() {
   const t = useT();
+  const { user } = useAuth();
 
   const { data, isLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: getLeaderboard,
   });
+
+  useEffect(() => {
+    if (!data || !user) return;
+    const myEntry = data.find((e) => e.id === user.id);
+    if (myEntry && myEntry.ranking <= 3) {
+      const medals = ['🥇', '🥈', '🥉'];
+      notifyCelebration(`${medals[myEntry.ranking - 1]} ${user.name}!`);
+    }
+  }, [data, user]);
 
   if (isLoading) return <div className="page-loading">{t('common.loading')}</div>;
 

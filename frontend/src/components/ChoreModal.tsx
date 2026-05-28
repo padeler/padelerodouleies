@@ -55,7 +55,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     repeat_days: chore?.repeat_days ?? [],
   };
 
-  const { control, handleSubmit, formState: { errors }, watch } = useForm<ChoreForm>({
+  const { control, handleSubmit, setValue, formState: { errors }, watch } = useForm<ChoreForm>({
     resolver: zodResolver(choreSchema),
     defaultValues,
   });
@@ -96,9 +96,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     setUploadError(null);
     try {
       const resp = await uploadChoreImage(file);
-      const { getField } = control as any;
-      const iconField = getField('icon_name');
-      if (iconField) iconField.onChange(resp.url);
+      setValue('icon_name', resp.url);
       setIconTab('icon');
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : 'Upload failed');
@@ -189,10 +187,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
               <button
                 type="button"
                 className={`toggle-btn ${watch('is_repeating') ? 'active' : ''}`}
-                onClick={() => {
-                  const { getField: getF } = control as any;
-                  getF('is_repeating')?.onChange(!isRepeating);
-                }}
+                onClick={() => setValue('is_repeating', !isRepeating)}
               >
                 {t('chore.repeating')}
               </button>
@@ -208,10 +203,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
                       key={pattern}
                       type="button"
                       className={`toggle-btn ${repeatPattern === pattern ? 'active' : ''}`}
-                      onClick={() => {
-                        const { getField: getF } = control as any;
-                        getF('repeat_pattern')?.onChange(pattern);
-                      }}
+                      onClick={() => setValue('repeat_pattern', pattern)}
                     >
                       {pattern === 'daily' ? t('chore.daily') : t('chore.weekly')}
                     </button>
@@ -233,8 +225,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
                             const next = current.includes(day)
                               ? current.filter((d) => d !== day)
                               : [...current, day];
-                            const { getField: getF } = control as any;
-                            getF('repeat_days')?.onChange(next);
+                            setValue('repeat_days', next);
                           }}
                         >
                           {day}
@@ -264,10 +255,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
                       key={String(opt.value)}
                       type="button"
                       className={`toggle-btn ${watch('window_hours') === opt.value ? 'active' : ''}`}
-                      onClick={() => {
-                        const { getField: getF } = control as any;
-                        getF('window_hours')?.onChange(opt.value);
-                      }}
+                      onClick={() => setValue('window_hours', opt.value)}
                     >
                       {opt.label}
                     </button>
