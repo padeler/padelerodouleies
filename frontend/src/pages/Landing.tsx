@@ -5,6 +5,8 @@ import { getUsers, login, getBootstrapStatus, getPendingStars } from '../api/cli
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/store';
 import { PinPad } from '../components/PinPad';
+import { PageBackground } from '../components/PageBackground';
+import LocaleToggle from '../i18n/LocaleToggle';
 import './Landing.css';
 
 interface UserListItem {
@@ -28,7 +30,11 @@ function AvatarTile({ user, onSelected }: { user: UserListItem; onSelected: (id:
   return (
     <button className="avatar-tile" type="button" onClick={handleClick}>
       <div className="avatar-circle">
-        <img src={avatarSrc} alt={user.name} className="avatar-img" />
+        <img
+          src={avatarSrc}
+          alt={user.name}
+          className={`avatar-img ${user.avatar_kind === 'image' ? 'avatar-img-photo' : ''}`}
+        />
       </div>
       <span className="avatar-name">{user.name}</span>
       {user.role === 'admin' && <span className="admin-badge">🛡</span>}
@@ -98,7 +104,15 @@ export function Landing() {
 
   return (
     <div className="landing">
-      <h1 className="landing-title">{t('login.select_profile')}</h1>
+      <div className="landing-locale">
+        <LocaleToggle />
+      </div>
+      <PageBackground variant="login" />
+      <div className="landing-header">
+        <span className="landing-star" aria-hidden="true">⭐</span>
+        <h1 className="landing-title">{t('login.select_profile')}</h1>
+        <span className="landing-wave" aria-hidden="true">👋</span>
+      </div>
       {users && (
         <div className="avatar-grid">
           {users.map((user) => (

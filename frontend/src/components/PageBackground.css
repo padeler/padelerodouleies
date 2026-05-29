@@ -1,0 +1,70 @@
+/* Full-window decorative background, shared across login / kid / admin tabs.
+   z-index: -1 keeps it behind page content without per-element stacking. */
+.page-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(45px);
+  opacity: 0.42;
+  animation: bg-blob-float 14s ease-in-out infinite;
+}
+
+.blob-a {
+  width: 300px;
+  height: 300px;
+  top: -70px;
+  left: -50px;
+  background: var(--bg-c1);
+}
+
+.blob-b {
+  width: 340px;
+  height: 340px;
+  bottom: -90px;
+  right: -70px;
+  background: var(--bg-c2);
+  animation-delay: -5s;
+}
+
+.blob-c {
+  width: 260px;
+  height: 260px;
+  top: 38%;
+  right: 16%;
+  background: var(--bg-c3);
+  animation-delay: -9s;
+}
+
+@keyframes bg-blob-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-32px) scale(1.08); }
+}
+
+/* Per-tab palettes — abstract but evocative of each tab's theme */
+.page-bg-login       { --bg-c1: #ffd93d; --bg-c2: #6bcb77; --bg-c3: #4d96ff; }
+.page-bg-chores      { --bg-c1: #6bcb77; --bg-c2: #4dd0b1; --bg-c3: #a8e063; }
+.page-bg-rewards     { --bg-c1: #ff6b9d; --bg-c2: #ffa45b; --bg-c3: #ff6b6b; }
+.page-bg-history     { --bg-c1: #7b5cff; --bg-c2: #9d7bff; --bg-c3: #5c6bff; }
+.page-bg-leaderboard { --bg-c1: #ffd93d; --bg-c2: #ffb300; --bg-c3: #ffcf5b; }
+.page-bg-approvals   { --bg-c1: #2dd4bf; --bg-c2: #6bcb77; --bg-c3: #4dd0b1; }
+.page-bg-users       { --bg-c1: #4dc3ff; --bg-c2: #4d96ff; --bg-c3: #7bdff2; }
+.page-bg-fulfillment { --bg-c1: #ffa45b; --bg-c2: #e0995b; --bg-c3: #ffcf5b; }
+.page-bg-activity    { --bg-c1: #a855f7; --bg-c2: #7b5cff; --bg-c3: #c084fc; }
+
+/* Dark themes: soften and spread the glow so it reads as ambient, not neon */
+@media (prefers-color-scheme: dark) {
+  .bg-blob { opacity: 0.28; filter: blur(60px); }
+}
+html[data-theme="dark"] .bg-blob { opacity: 0.28; filter: blur(60px); }
+html[data-theme="light"] .bg-blob { opacity: 0.42; filter: blur(45px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-blob { animation: none; }
+}

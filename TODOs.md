@@ -1,4 +1,3 @@
-- [ ] when a chore is Aproved or Declined the total stars on the user change but the pending stars do not until he refreshes the page.
-- [ ] when a user has selected an image for avatar (not icon) it shows ok in the app but very small in the login screen.
-- [ ] change the favicon of the app to a yellow star
-- [ ] make the login screen more playfull and kid friendly
+- [x] when a user has selected an image for avatar (not icon) it shows ok in the app but very small in the login screen.
+- [x] change the favicon of the app to a yellow star
+- [x] make the login screen more playfull and kid friendly

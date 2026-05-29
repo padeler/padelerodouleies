@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Header } from '../components/Header';
 import { KidSidebar } from '../components/KidSidebar';
+import { PageBackground, bgVariantForPath } from '../components/PageBackground';
 import { DashboardChores } from './dashboard/DashboardChores';
 import { Marketplace } from './dashboard/Marketplace';
 import { KidHistory } from './dashboard/KidHistory';
@@ -31,12 +32,14 @@ export function KidDashboard() {
   }, [pendingData]);
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { pathname } = useLocation();
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
     <div className="kid-shell">
+      <PageBackground variant={bgVariantForPath(pathname)} />
       <div className={`kid-sidebar-wrap ${isMobile ? 'mobile' : ''} ${sidebarOpen ? 'open' : ''}`}>
         <KidSidebar onClose={isMobile ? closeSidebar : undefined} />
       </div>
