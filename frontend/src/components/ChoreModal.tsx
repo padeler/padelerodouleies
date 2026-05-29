@@ -54,7 +54,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
     is_repeating: chore?.is_repeating ?? true,
     start_time: chore?.start_time ?? undefined,
     window_hours: chore?.window_hours ?? null,
-    repeat_pattern: getRepeatPattern(chore),
+    repeat_pattern: getRepeatPattern(chore ?? undefined),
     repeat_days: chore?.repeat_days ?? [],
   };
 
@@ -251,7 +251,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
               <div className="admin-form-group">
                 <label>{t('chore.start_time')}</label>
                 <Controller name="start_time" control={control} render={({ field }) => (
-                  <TimePicker24h value={field.value} onChange={field.onChange} />
+                  <TimePicker24h value={field.value ?? ''} onChange={field.onChange} />
                 )} />
               </div>
               <div className="admin-form-group">

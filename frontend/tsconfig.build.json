@@ -1,0 +1,9 @@
+{
+  // Production type-check config: same options as tsconfig.app.json but excludes
+  // test files. Vitest/esbuild keep using tsconfig.app.json (which still includes
+  // tests, so the react-jsx runtime is applied to them). `extends` does not carry
+  // over include/exclude, so they are redeclared here.
+  "extends": "./tsconfig.app.json",
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+}

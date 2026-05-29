@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
-import { getTranslations, updateTheme } from './api/client';
+import { getTranslations } from './api/client';
 import { useI18nStore } from './i18n/store';
 import { useAuthStore } from './state/authStore';
 import './index.css';

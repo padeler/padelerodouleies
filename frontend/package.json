@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -p tsconfig.build.json && vite build",
     "gen:api": "npx openapi-typescript http://localhost:8000/api/openapi.json -o src/api/schema.d.ts",
     "test": "vitest run",
     "lint": "eslint .",

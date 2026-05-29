@@ -270,14 +270,14 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * **Chore form UI reworked for touch screens:** Scope → toggle buttons (Individual/Pooled), Repeating → toggle button, Repeat Pattern → toggle buttons (Daily/Weekly) replacing radio buttons, "Every N Days" removed (weekday selector already covers school-day patterns), Window → preset toggle buttons (None, 1h, 2h, 4h, 8h) replacing number input.
   * **Notification system added:** `react-hot-toast` for toast notifications + `canvas-confetti` for celebratory animations. Toast on: chore/reward/user CRUD, claim, approve/decline, star adjustments, fulfillment. Confetti on: approve claims, redeem rewards, contribute to collab goals, adjust stars, mark fulfilled. Mounted `<Toaster>` in `main.tsx`, helper functions in `src/lib/notify.ts`.
 
-* [ ] **Milestone 5.2: Dockerfile (multi-stage)**
+* [x] **Milestone 5.2: Dockerfile (multi-stage)** — DONE
   * **Stage 1 — Frontend build:** `node:20-alpine`. Copy `frontend/package*.json`, run `npm ci`, copy `frontend/`, run `npm run build` → emits `frontend/dist/`.
   * **Stage 2 — Backend build:** `python:3.12-slim`. Copy `backend/pyproject.toml`, install dependencies into a venv. (Optional separate stage helps Docker layer caching when only frontend changes.)
   * **Stage 3 — Runtime:** `python:3.12-slim`. Copy the venv from Stage 2 and the `backend/` source. Copy `frontend/dist/` from Stage 1 into `/app/static/`. Bake the icon catalog + SVGs into the image — no runtime CDN fetches (LAN deployment). On container start, run Alembic migrations then `uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1` (workers=1 is required so the in-process WebSocket broadcaster sees every event). `TZ=Europe/Athens` baked in via `ENV TZ=Europe/Athens`.
   * **FastAPI static + SPA fallback:** `main.py` mounts `app.mount("/", StaticFiles(directory="/app/static", html=True), name="spa")` *last*, after API and WebSocket routers, so unmatched paths fall back to `index.html` for client-side routing.
   * *Test:* `docker build .` succeeds. Running the image locally with `-p 8000:8000 -v $(pwd)/data:/app/data` runs Alembic migrations on first boot (creating the DB at `data/padelerodouleies.db` on the host), serves the first-run admin form at `http://localhost:8000/`, `curl http://localhost:8000/api/health` returns `200`, `curl http://localhost:8000/api/openapi.json` returns the schema, and `docker exec <container> date` reports Athens local time.
 
-* [ ] **Milestone 5.3: docker-compose & Storage**
+* [x] **Milestone 5.3: docker-compose & Storage** — DONE
   * Single service `padelerodouleies` in `docker-compose.yml`.
   * Bind mount: `/mnt/raid/padelerodouleies/data:/app/data` (host path overridable via `.env`).
   * Port mapping: `8000:8000` (FastAPI serves both the JSON/WebSocket API and the built Vite SPA from one process).
@@ -285,10 +285,11 @@ These are baseline architectural calls that shape multiple milestones. Capture t
   * Auto-restart `unless-stopped`.
   * *Test:* `docker-compose up -d` brings the service to `healthy`. Complete the first-run admin form, create a user with an uploaded avatar; then `docker-compose down && docker-compose up -d` and verify the admin user, the avatar WebP file at `/mnt/raid/padelerodouleies/data/avatars/`, and the SQLite DB all persist via the bind mount.
 
-* [ ] **Milestone 5.4: Usability scripts**
+* [x] **Milestone 5.4: Usability scripts** — DONE
   * Write python scripts for backing up the db (dump to json) and populating a db from a json dump (place them in backend/scripts)
+  * `backend/scripts/backup_db.py` dumps every table to JSON (datetimes/times as ISO strings); `backend/scripts/restore_db.py` wipes and reloads verbatim (PKs preserved, `--force` to skip the prompt). Roundtrip verified.
 
-* [ ] **Milestone 5.5: Handover Docs**
+* [x] **Milestone 5.5: Handover Docs** — DONE
   * Update `README.md` with a brief "Running" section: env vars (`TZ`, `DB_PATH`, `IDLE_LOGOUT_MINUTES`, `SESSION_SECRET` for the cookie signer), compose-up flow, where the DB file lives, how to add an admin from scratch (delete DB, restart, re-run setup), how to regenerate `frontend/src/api/schema.d.ts` against the running backend, basic troubleshooting.
 
 

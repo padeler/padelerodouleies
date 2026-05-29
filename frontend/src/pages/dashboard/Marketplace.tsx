@@ -4,7 +4,7 @@ import { getMarketplaceRewards, redeemReward, contributeReward } from '../../api
 import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { MarketplaceReward } from '../../lib/types';
-import { notifySuccess, notifyCelebration, notifyError } from '../../lib/notify';
+import { notifyCelebration, notifyError } from '../../lib/notify';
 import './Marketplace.css';
 
 function RewardCard({ reward }: { reward: MarketplaceReward }) {

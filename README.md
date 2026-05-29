@@ -189,6 +189,85 @@ The system is deployed as a single container orchestrated through `docker-compos
   * **Stage 2 (Runtime):** Slim Python image that installs the FastAPI dependencies, copies the backend source plus the `frontend/dist/` output from Stage 1, runs Alembic migrations on startup, and boots Uvicorn. FastAPI mounts the built SPA at `/` (with SPA fallback to `index.html`) and exposes the JSON API under `/api/` and the WebSocket under `/ws`.
 * **Storage Mount:** The SQLite production database file directory (`/app/data/`) is bind-mounted out of the container volume structure into the host system’s fault-tolerant storage array (`/mnt/raid/padelerodouleies/data`), guaranteeing zero data loss during image updates or system container recreations.
 
+### Running in production (docker compose)
+
+1. **Configure.** Copy `.env.example` to `.env` and set the values:
+
+   ```bash
+   cp .env.example .env
+   # generate a strong cookie secret:
+   python -c "import secrets; print(secrets.token_urlsafe(32))"
+   ```
+
+   | Variable | Required | Default | Purpose |
+   |---|---|---|---|
+   | `SESSION_SECRET` | **yes** | — (compose refuses to start without it) | Signs the HttpOnly session cookie. Keep it stable — changing it logs everyone out. |
+   | `DATA_DIR` | no | `/mnt/raid/padelerodouleies/data` | Host directory bind-mounted to `/app/data` (SQLite DB + uploaded avatars/chore images). |
+   | `TZ` | no | `Europe/Athens` | Container local timezone. Chore windows and "today" are computed in this zone. Set in the compose file / image. |
+   | `DB_PATH` | no | `/app/data/padelerodouleies.db` | SQLite file location inside the container. Set in the compose file. |
+   | `STATIC_DIR` | no | `/app/static` | Where the built SPA is served from. Set in the image. |
+
+2. **Start.** `docker compose up -d --build`. The container runs Alembic migrations on boot (creating the DB on first run), then serves the API, WebSocket, and SPA on port `8000`. Wait for the healthcheck:
+
+   ```bash
+   docker compose ps          # STATUS should read "healthy"
+   curl -fsS http://localhost:8000/api/health   # {"status":"ok"}
+   ```
+
+3. **First-run admin.** Browse to `http://<host>:8000/`. With an empty database the landing page shows a one-time admin-creation form (name, avatar, 4-digit PIN). Submit it to create the first parent account; the avatar grid / PIN login takes over from then on. Add more kids/admins, chores, and rewards from the admin panel.
+
+#### Where the data lives
+
+Everything persistent is under the bind-mounted `DATA_DIR`:
+
+- `padelerodouleies.db` — the SQLite database.
+- `avatars/<uuid>.webp` — uploaded user avatars.
+- `chore-images/` — uploaded chore images.
+
+These survive `docker compose down && up` and image rebuilds.
+
+#### Starting over from scratch (re-bootstrap an admin)
+
+To wipe the install and get the first-run admin form again, stop the stack and delete the DB file (keep a copy first if unsure):
+
+```bash
+docker compose down
+rm "$DATA_DIR/padelerodouleies.db"      # uses the path from your .env
+docker compose up -d
+```
+
+The next boot recreates an empty schema and the landing page returns to the first-run form.
+
+#### Backup & restore
+
+JSON dump/restore scripts live in `backend/scripts/` (run inside the container so they use the production DB):
+
+```bash
+# Back up to a JSON file inside the data dir (survives on the host bind mount)
+docker compose exec padelerodouleies python scripts/backup_db.py /app/data/backup.json
+
+# Restore from a dump (destructive — replaces all rows). --force skips the prompt.
+docker compose exec padelerodouleies python scripts/restore_db.py /app/data/backup.json --force
+```
+
+The dump captures every table verbatim (primary keys preserved). Note it does **not** copy the avatar/chore image files — those already persist on the bind mount alongside the DB.
+
+#### Regenerating the API types
+
+The frontend's `src/api/schema.d.ts` is generated from the live backend's OpenAPI schema (served at `/api/openapi.json`). After any backend schema change, with the backend running on `:8000`:
+
+```bash
+cd frontend && npm run gen:api
+```
+
+#### Troubleshooting
+
+- **`SESSION_SECRET` error on `compose up`** — `.env` is missing or `SESSION_SECRET` is empty. Set it (see the table above).
+- **Everyone logged out after a restart** — `SESSION_SECRET` changed. Restore the previous value.
+- **DB not persisting / avatars vanish on rebuild** — the host `DATA_DIR` isn't writable or the bind mount path is wrong. Check `docker compose config` and that the directory exists.
+- **Wrong chore visibility / "today" off by hours** — verify the timezone: `docker compose exec padelerodouleies date` should report Athens local time.
+- **Realtime updates not propagating** — the WebSocket broadcaster is in-process; the image runs Uvicorn with `--workers 1` on purpose. Do not scale to multiple workers.
+
 
 
 ## Example flows

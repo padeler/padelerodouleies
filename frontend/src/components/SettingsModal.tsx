@@ -36,7 +36,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   // Avatar state
   const [avatarTab, setAvatarTab] = useState<'icon' | 'upload'>('icon');
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarSelection | null>(null);
-  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [, setAvatarLoading] = useState(false);
   const [avatarSuccess, setAvatarSuccess] = useState(false);
   const [avatarError, setAvatarError] = useState('');
 
@@ -44,7 +44,7 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
   useEffect(() => {
     if (open) {
       setSelectedAvatar(
-        user ? { kind: user.avatar_kind, value: user.avatar_value } : null
+        user ? { kind: user.avatar_kind as AvatarSelection['kind'], value: user.avatar_value } : null
       );
       setPinSuccess(false);
       setAvatarSuccess(false);

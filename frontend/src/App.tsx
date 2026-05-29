@@ -9,7 +9,7 @@ import { useAuth } from './hooks/useAuth';
 import './App.css';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, setUser } = useAuth();
+  const { setUser } = useAuth();
   const [checking, setChecking] = useState(true);
   const location = useLocation();
 

@@ -51,9 +51,9 @@ export function IconPicker({ selected, onChange, avatarMode = false }: IconPicke
         }
       }
       if (avatarMode) {
-        setSelectedCategory(categories.find((c) => c === 'avatars') ?? categories[0]);
+        setSelectedCategory(categories.find((c) => c === 'avatars') ?? categories[0] ?? null);
       } else {
-        setSelectedCategory(categories[0]);
+        setSelectedCategory(categories[0] ?? null);
       }
     }
   }, [avatarMode, catalog, categories, selected, selectedCategory]);

@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { adjustStars } from '../api/client';
 import { useT } from '../i18n/store';
 import type { AdminUser } from '../lib/types';
-import { notifySuccess, notifyCelebration, notifyError } from '../lib/notify';
+import { notifyCelebration, notifyError } from '../lib/notify';
 
 type Form = {
   direction: '+' | '-';

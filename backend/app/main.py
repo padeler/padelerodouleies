@@ -1,11 +1,14 @@
 """FastAPI application entry point."""
 
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.types import Scope
 
 import app.db.models as _models  # noqa:F401 ensures models are registered with metadata
 from app.db.engine import get_session, LocalSession
@@ -13,7 +16,7 @@ from app.db.engine import init_db
 from app.db.models import User
 from app.realtime import broadcaster
 
-app = FastAPI(title="padelerodouleies", docs_url=None, redoc_url=None)
+app = FastAPI(title="padelerodouleies", docs_url=None, redoc_url=None, openapi_url="/api/openapi.json")
 
 init_db()
 
@@ -98,3 +101,31 @@ async def websocket_endpoint(ws: WebSocket) -> None:
         pass
     finally:
         broadcaster.disconnect(ws)
+
+
+class SPAStaticFiles(StaticFiles):
+    """Static file server with single-page-app fallback.
+
+    Serves built assets directly; any unmatched path (a client-side route such
+    as /dashboard or /admin) falls back to index.html so React Router can take
+    over. API and WebSocket routes are registered before this mount, so they are
+    matched first and never reach the fallback.
+    """
+
+    async def get_response(self, path: str, scope: Scope):  # type: ignore[no-untyped-def]
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            # Missing file == a client-side route; serve the SPA shell.
+            if exc.status_code == 404:
+                return await super().get_response("index.html", scope)
+            raise
+
+
+# Serve the built frontend last, so it does not shadow the API/WS routes above.
+STATIC_DIR = Path(os.getenv("STATIC_DIR", str(Path(__file__).parents[2] / "static")))
+if STATIC_DIR.is_dir():
+    app.mount("/", SPAStaticFiles(directory=str(STATIC_DIR), html=True), name="spa")
+    print(f"[startup] Serving SPA from {STATIC_DIR}")
+else:
+    print(f"[startup] No static dir at {STATIC_DIR}; SPA not served (dev mode, Vite handles the frontend)")

@@ -3,7 +3,7 @@ import { getFulfillmentQueue, markFulfilled } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { FulfillmentEntry } from '../../lib/types';
 import { useState } from 'react';
-import { notifySuccess, notifyCelebration, notifyError } from '../../lib/notify';
+import { notifyCelebration, notifyError } from '../../lib/notify';
 import { Pagination, usePagination } from '../../components/Pagination';
 import './AdminPage.css';
 

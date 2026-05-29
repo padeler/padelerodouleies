@@ -210,16 +210,7 @@ export async function getChores() {
   }>>('/admin/chores');
 }
 
-export async function createChore(data: {
-  title: string;
-  description?: string;
-  icon_name: string;
-  scope: string;
-  points_value: number;
-  is_repeating: boolean;
-  start_time?: string;
-  window_hours?: number;
-}) {
+export async function createChore(data: Record<string, unknown>) {
   return request<unknown>('/admin/chores', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -454,6 +445,8 @@ export async function getKidHistory(params?: { limit?: number; offset?: number }
       chore_title?: string;
       chore_icon?: string;
       chore_points_value?: number;
+      item_title?: string;
+      item_icon?: string;
     }>;
   }>(`/dashboard/history${separator}${qs}`);
 }

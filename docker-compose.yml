@@ -1,0 +1,24 @@
+services:
+  padelerodouleies:
+    build: .
+    image: padelerodouleies
+    container_name: padelerodouleies
+    ports:
+      - "8000:8000"
+    environment:
+      TZ: Europe/Athens
+      DB_PATH: /app/data/padelerodouleies.db
+      STATIC_DIR: /app/static
+      # Required: signs the session cookie. Set in .env — no default on purpose.
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+    volumes:
+      # Host path overridable via .env (DATA_DIR). Holds the SQLite DB,
+      # uploaded avatars, and chore images — survives container rebuilds.
+      - ${DATA_DIR:-/mnt/raid/padelerodouleies/data}:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
