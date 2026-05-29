@@ -19,7 +19,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "nav.marketplace": {"el": "Αγορά", "en": "Marketplace"},
     "nav.history": {"el": "Ιστορικό", "en": "History"},
     "nav.leaderboard": {"el": "Κατάταξη", "en": "Leaderboard"},
-    "nav.admin": {"el": "Admin", "en": "Admin"},
+    "nav.admin": {"el": "Διαχειριστής", "en": "Admin"},
     "nav.approvals": {"el": "Εγκρίσεις", "en": "Approvals"},
     "nav.rewards": {"el": "Βραβεία", "en": "Rewards"},
     "nav.users": {"el": "Χρήστες", "en": "Users"},
@@ -77,6 +77,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "common.disabled": {"el": "Ανενεργό", "en": "Disabled"},
     "common.enable": {"el": "Ενεργοποίηση", "en": "Enable"},
     "common.disable": {"el": "Απενεργοποίηση", "en": "Disable"},
+    "pagination.prev": {"el": "Προηγούμενη", "en": "Previous"},
+    "pagination.next": {"el": "Επόμενη", "en": "Next"},
+    "pagination.page": {"el": "Σελίδα {page} από {total}", "en": "Page {page} of {total}"},
     # Rewards
     "reward.redeem": {"el": "Εξαργύρωση", "en": "Redeem"},
     "reward.contribute": {"el": "Συνεισφορά", "en": "Contribute"},

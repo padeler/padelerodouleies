@@ -4,6 +4,7 @@ import { useT } from '../../i18n/store';
 import type { FulfillmentEntry } from '../../lib/types';
 import { useState } from 'react';
 import { notifySuccess, notifyCelebration, notifyError } from '../../lib/notify';
+import { Pagination, usePagination } from '../../components/Pagination';
 import './AdminPage.css';
 
 function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
@@ -29,7 +30,7 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
       <td>{entry.reward_title}</td>
       <td>{entry.user_name}</td>
       <td>{entry.stars_contributed}</td>
-      <td>{new Date(entry.claimed_at).toLocaleString()}</td>
+      <td>{new Date(entry.claimed_at).toLocaleString('el-GR')}</td>
       <td>
         <button
           className="admin-btn admin-btn-success"
@@ -51,6 +52,7 @@ export function FulfillmentPage() {
     queryKey: ['fulfillment', tab],
     queryFn: () => getFulfillmentQueue(tab),
   });
+  const { page, setPage, pageCount, pageItems } = usePagination(data as FulfillmentEntry[] | undefined);
 
   if (isLoading) return <div>{t('common.loading')}</div>;
 
@@ -91,10 +93,10 @@ export function FulfillmentPage() {
           </thead>
           <tbody>
             {tab === 'claimed'
-              ? (data as FulfillmentEntry[])?.map((entry) => (
+              ? pageItems.map((entry) => (
                   <FulfillRow key={entry.id} entry={entry} />
                 ))
-              : (data as FulfillmentEntry[])?.map((entry) => (
+              : pageItems.map((entry) => (
                   <tr key={entry.id}>
                     <td>
                    <img src={`/api/icons/svg/${entry.reward_icon}`} alt="" style={{ width: 24, height: 24 }} />
@@ -102,12 +104,13 @@ export function FulfillmentPage() {
                     <td>{entry.reward_title}</td>
                     <td>{entry.user_name}</td>
                     <td>{entry.stars_contributed}</td>
-                    <td>{new Date(entry.claimed_at).toLocaleString()}</td>
-                    <td>{entry.fulfilled_at ? new Date(entry.fulfilled_at).toLocaleString() : '—'}</td>
+                    <td>{new Date(entry.claimed_at).toLocaleString('el-GR')}</td>
+                    <td>{entry.fulfilled_at ? new Date(entry.fulfilled_at).toLocaleString('el-GR') : '—'}</td>
                   </tr>
                 ))}
           </tbody>
         </table>
+        <Pagination page={page} pageCount={pageCount} onChange={setPage} />
         </div>
       )}
     </div>

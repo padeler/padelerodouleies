@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useT } from '../i18n/store';
 import './PinPad.css';
 
 interface PinPadProps {
@@ -9,6 +10,7 @@ interface PinPadProps {
 }
 
 export function PinPad({ onComplete, onCancel, onWrong, lockedSeconds }: PinPadProps) {
+  const t = useT();
   const [digits, setDigits] = useState('');
   const [shaking, setShaking] = useState(false);
   const [countdown, setCountdown] = useState(lockedSeconds ?? 0);
@@ -105,7 +107,7 @@ export function PinPad({ onComplete, onCancel, onWrong, lockedSeconds }: PinPadP
         </div>
         <div className="pin-keypad">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'].map((key, i) => {
-            if (key === '') return <div key={i} className="pin-key empty" />;
+            if (key === '') return <div key="spacer" className="pin-key empty" />;
             if (key === '⌫') {
               return (
                 <button key={i} className="pin-key" type="button" onClick={handleBackspace}>
@@ -121,7 +123,7 @@ export function PinPad({ onComplete, onCancel, onWrong, lockedSeconds }: PinPadP
           })}
         </div>
         <button className="pin-cancel" type="button" onClick={handleCancel}>
-          Cancel
+          {t('btn.cancel')}
         </button>
       </div>
     </div>

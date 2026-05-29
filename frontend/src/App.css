@@ -13,7 +13,15 @@
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+}
+
+.user-avatar-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg-s, rgba(255, 255, 255, 0.05));
 }
 
 .user-name {

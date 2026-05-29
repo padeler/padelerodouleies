@@ -1,0 +1,19 @@
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.admin-pagination-info {
+  font-size: 14px;
+  color: var(--text-muted, #888);
+  min-width: 120px;
+  text-align: center;
+}
+
+.admin-pagination .admin-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { getLeaderboard } from '../../api/client';
 import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
@@ -7,7 +7,7 @@ import { notifyCelebration } from '../../lib/notify';
 import type { LeaderboardEntry } from '../../lib/types';
 import './Leaderboard.css';
 
-const podiumOrder: number[] = [2, 0, 1];
+const podiumOrder: number[] = [1, 0, 2];
 
 export function Leaderboard() {
   const t = useT();
@@ -18,26 +18,33 @@ export function Leaderboard() {
     queryFn: getLeaderboard,
   });
 
+  // Celebrate a podium rank only once per visit to the page, not on every
+  // refetch / re-render (which previously fired the toast + confetti 3x).
+  const celebrated = useRef(false);
   useEffect(() => {
-    if (!data || !user) return;
+    if (!data || !user || celebrated.current) return;
     const myEntry = data.find((e) => e.id === user.id);
     if (myEntry && myEntry.ranking <= 3) {
+      celebrated.current = true;
       const medals = ['🥇', '🥈', '🥉'];
-      notifyCelebration(`${medals[myEntry.ranking - 1]} ${user.name}!`);
+      notifyCelebration(`${medals[myEntry.ranking - 1]} ${user.name}!`, 'leaderboard-celebration');
     }
   }, [data, user]);
 
   if (isLoading) return <div className="page-loading">{t('common.loading')}</div>;
 
   const entries = data ?? [];
+  // A podium needs at least two contenders; with a single user we fall back to
+  // listing everyone as rows so the page is never blank.
+  const hasPodium = entries.length >= 2;
   const top3 = entries.slice(0, 3);
-  const rest = entries.slice(3);
+  const listEntries = hasPodium ? entries.slice(3) : entries;
 
   return (
     <div className="leaderboard-page">
       <h2>{t('nav.leaderboard')}</h2>
 
-      {top3.length >= 2 && (
+      {hasPodium && (
         <div className="podium">
           {podiumOrder.map((pos) => {
             const entry = top3[pos];
@@ -49,9 +56,9 @@ export function Leaderboard() {
         </div>
       )}
 
-      {rest.length > 0 && (
+      {listEntries.length > 0 && (
         <div className="leaderboard-list">
-          {rest.map((entry) => (
+          {listEntries.map((entry) => (
             <div key={entry.id} className="leaderboard-row">
               <span className="lb-rank">#{entry.ranking}</span>
               <span className="lb-avatar">
@@ -79,9 +86,9 @@ export function Leaderboard() {
 }
 
 function PodiumFigure({ entry, rank }: { entry: LeaderboardEntry; rank: number }) {
-  const heights = [90, 120, 70];
-  const labels = ['🥈', '🥇', '🥉'];
-  const colors = ['#c0c0c0', '#ffd700', '#cd7f32'];
+  const heights = [120, 90, 70];
+  const labels = ['🥇', '🥈', '🥉'];
+  const colors = ['#ffd700', '#c0c0c0', '#cd7f32'];
 
   return (
     <div className="podium-figure">

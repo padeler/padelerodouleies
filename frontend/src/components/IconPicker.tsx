@@ -40,16 +40,23 @@ export function IconPicker({ selected, onChange, avatarMode = false }: IconPicke
     return Array.from(set);
   }, [catalog]);
 
-  /* Default-select a category when the catalog loads */
+  /* Default-select a category when the catalog loads, jumping to the selected icon's category if known */
   useEffect(() => {
     if (!selectedCategory && categories.length > 0) {
+      if (selected) {
+        const icon = (catalog as IconCatalogItem[]).find((i) => i.name === selected);
+        if (icon) {
+          setSelectedCategory(icon.category);
+          return;
+        }
+      }
       if (avatarMode) {
         setSelectedCategory(categories.find((c) => c === 'avatars') ?? categories[0]);
       } else {
         setSelectedCategory(categories[0]);
       }
     }
-  }, [avatarMode, categories, selectedCategory]);
+  }, [avatarMode, catalog, categories, selected, selectedCategory]);
 
   const filtered = useMemo(() => {
     let items = catalog as IconCatalogItem[];

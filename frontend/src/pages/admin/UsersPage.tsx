@@ -6,7 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useState } from 'react';
 import { notifySuccess, notifyError } from '../../lib/notify';
 import { UserModal } from '../../components/UserModal';
-import { AdjustStarsModal } from '../../components/AdjustStarsModal';
+import { Pagination, usePagination } from '../../components/Pagination';
 import './AdminPage.css';
 
 function AvatarCell(user: AdminUser) {
@@ -21,11 +21,11 @@ export function UsersPage() {
   const { user: currentUser } = useAuth();
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [creating, setCreating] = useState(false);
-  const [adjusting, setAdjusting] = useState<AdminUser | null>(null);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['admin-users'],
     queryFn: getAdminUsers,
   });
+  const { page, setPage, pageCount, pageItems } = usePagination(data as AdminUser[] | undefined);
 
   const handleDelete = async (user: AdminUser) => {
     try {
@@ -76,7 +76,7 @@ export function UsersPage() {
             </tr>
           </thead>
           <tbody>
-            {(data as AdminUser[])?.map((user) => (
+            {pageItems.map((user) => (
               <tr key={user.id}>
                 <td><AvatarCell {...user} /></td>
                 <td>{user.name}</td>
@@ -96,10 +96,6 @@ export function UsersPage() {
                     <span className="btn-icon">✎</span>
                     <span className="btn-text">{t('btn.edit')}</span>
                   </button>
-                  <button className="admin-btn" onClick={() => setAdjusting(user)} title={t('btn.adjust_stars')}>
-                    <span className="btn-icon">⭐</span>
-                    <span className="btn-text">{t('btn.adjust_stars')}</span>
-                  </button>
                   <button className="admin-btn" onClick={() => handleResetPin(user)} title={t('btn.reset_pin')}>
                     <span className="btn-icon">🔑</span>
                     <span className="btn-text">{t('btn.reset_pin')}</span>
@@ -117,9 +113,9 @@ export function UsersPage() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} />
       {creating && <UserModal onClose={() => setCreating(false)} />}
       {editing && <UserModal user={editing} onClose={() => setEditing(null)} />}
-      {adjusting && <AdjustStarsModal user={adjusting} onClose={() => setAdjusting(null)} />}
     </div>
   );
 }

@@ -16,7 +16,7 @@ function getActionLabel(entry: KidHistoryEntry, t: (key: string, params?: Record
   if (entry.action_type === 'chore_approved') return t('history.action_approved');
   if (entry.action_type === 'chore_declined') return t('history.action_declined', { reason: entry.admin_note ?? '' });
   if (entry.action_type === 'manual_adjust') return t('history.action_manual', { reason: entry.admin_note ?? '' });
-  if (entry.action_type === 'reward_purchase') return t('history.action_purchase', { title: entry.chore_title ?? '' });
+  if (entry.action_type === 'reward_purchase') return t('history.action_purchase', { title: entry.item_title ?? entry.chore_title ?? '' });
   return entry.action_type;
 }
 
@@ -44,13 +44,14 @@ export function KidHistory() {
       ) : (
         <div className="history-timeline">
           {entries.map((entry) => {
-            const title = entry.chore_title || '';
+            const title = entry.item_title ?? entry.chore_title ?? '';
             const label = getActionLabel(entry, t);
             const note = entry.admin_note ?? '';
             const sign = entry.points_delta >= 0 ? '+' : '';
 
-            const iconSrc = entry.chore_icon
-              ? entry.chore_icon.startsWith('/') ? entry.chore_icon : `/api/icons/svg/${entry.chore_icon}`
+            const rawIcon = entry.item_icon ?? entry.chore_icon;
+            const iconSrc = rawIcon
+              ? rawIcon.startsWith('/') ? rawIcon : `/api/icons/svg/${rawIcon}`
               : null;
 
             return (

@@ -95,7 +95,7 @@ describe('ActivityPage', () => {
       // Query within table body to avoid matching <option> elements
       const tbody = document.querySelector('.admin-table tbody');
       expect(tbody).toHaveTextContent('Maria');
-      expect(tbody).toHaveTextContent('chore_approved');
+      expect(tbody).toHaveTextContent('Εγκρίθηκε');
       expect(tbody).toHaveTextContent('Good behavior');
       expect(tbody).toHaveTextContent('+5');
     });

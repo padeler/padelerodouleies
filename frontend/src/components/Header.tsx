@@ -37,6 +37,13 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
               ☰
             </button>
           )}
+          {user && (
+            <img
+              className="user-avatar-img"
+              src={user.avatar_kind === 'image' ? user.avatar_value : `/api/icons/svg/${user.avatar_value}`}
+              alt=""
+            />
+          )}
           <span className="user-name">{user?.name}</span>
           {user?.role !== 'admin' && (
             <>

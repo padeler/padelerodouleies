@@ -54,7 +54,7 @@ describe('Leaderboard', () => {
     });
   });
 
-  it('orders podium as 3rd, 1st, 2nd (podiumOrder [2, 0, 1])', async () => {
+  it('orders podium as 2nd, 1st, 3rd (podiumOrder [1, 0, 2])', async () => {
     server.use(
       http.get('/api/leaderboard', async () => {
         return HttpResponse.json([
@@ -68,10 +68,10 @@ describe('Leaderboard', () => {
     await waitFor(() => {
       const figures = document.querySelectorAll('.podium-figure');
       expect(figures.length).toBe(3);
-      // podiumOrder [2, 0, 1] maps to: Third, First, Second
-      expect(figures[0].querySelector('.podium-name')).toHaveTextContent('Third');
+      // podiumOrder [1, 0, 2] maps to: Second (left), First (center), Third (right)
+      expect(figures[0].querySelector('.podium-name')).toHaveTextContent('Second');
       expect(figures[1].querySelector('.podium-name')).toHaveTextContent('First');
-      expect(figures[2].querySelector('.podium-name')).toHaveTextContent('Second');
+      expect(figures[2].querySelector('.podium-name')).toHaveTextContent('Third');
     });
   });
 

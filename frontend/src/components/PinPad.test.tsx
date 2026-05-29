@@ -56,7 +56,7 @@ describe('PinPad', () => {
     const onCancel = vi.fn();
     renderPinPad({ onCancel });
     fireEvent.click(screen.getByRole('button', { name: '5' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(document.querySelector('.pin-cancel')!);
     expect(onCancel).toHaveBeenCalled();
     expect(document.querySelectorAll('.pin-dot.filled').length).toBe(0);
   });

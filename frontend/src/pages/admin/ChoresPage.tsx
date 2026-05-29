@@ -5,6 +5,7 @@ import type { Chore } from '../../lib/types';
 import { useState } from 'react';
 import { notifySuccess, notifyError } from '../../lib/notify';
 import { ChoreModal } from '../../components/ChoreModal';
+import { Pagination, usePagination } from '../../components/Pagination';
 import './AdminPage.css';
 
 function ChoreIcon({ icon_name }: { icon_name: string }) {
@@ -23,6 +24,7 @@ export function ChoresPage() {
     queryKey: ['chores'],
     queryFn: getChores,
   });
+  const { page, setPage, pageCount, pageItems } = usePagination(data as Chore[] | undefined);
 
   const handleToggleActive = async (chore: Chore) => {
     try {
@@ -69,7 +71,7 @@ export function ChoresPage() {
           </tr>
         </thead>
         <tbody>
-          {(data as Chore[])?.map((chore) => (
+          {pageItems.map((chore) => (
             <tr key={chore.id}>
               <td>
                 <ChoreIcon icon_name={chore.icon_name} />
@@ -104,6 +106,7 @@ export function ChoresPage() {
         </tbody>
       </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} />
       {creating && <ChoreModal onClose={() => setCreating(false)} />}
       {editing && <ChoreModal chore={editing} onClose={() => setEditing(null)} />}
     </div>

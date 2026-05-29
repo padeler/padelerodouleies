@@ -44,6 +44,8 @@ def decline_claim(claim_id: int, admin_note: str | None, db: Session) -> None:
         user_id=claim.user_id,
         action_type="chore_declined",
         points_delta=0,
+        ref_table="chore",
+        ref_id=claim.chore_id,
         admin_note=admin_note,
     ))
     db.delete(claim)

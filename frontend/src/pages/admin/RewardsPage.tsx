@@ -5,6 +5,7 @@ import type { Reward } from '../../lib/types';
 import { useState } from 'react';
 import { notifySuccess, notifyError } from '../../lib/notify';
 import { RewardModal } from '../../components/RewardModal';
+import { Pagination, usePagination } from '../../components/Pagination';
 import './AdminPage.css';
 
 export function RewardsPage() {
@@ -15,6 +16,7 @@ export function RewardsPage() {
     queryKey: ['rewards'],
     queryFn: getRewards,
   });
+  const { page, setPage, pageCount, pageItems } = usePagination(data as Reward[] | undefined);
 
   const handleToggle = async (reward: Reward) => {
     try {
@@ -61,7 +63,7 @@ export function RewardsPage() {
           </tr>
         </thead>
         <tbody>
-          {(data as Reward[])?.map((reward) => (
+          {pageItems.map((reward) => (
             <tr key={reward.id}>
               <td>
                 <img src={`/api/icons/svg/${reward.icon_name}`} alt="" style={{ width: 24, height: 24 }} />
@@ -96,6 +98,7 @@ export function RewardsPage() {
         </tbody>
       </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} />
       {creating && <RewardModal onClose={() => setCreating(false)} />}
       {editing && <RewardModal reward={editing} onClose={() => setEditing(null)} />}
     </div>

@@ -4,6 +4,7 @@ import { useT } from '../../i18n/store';
 import type { PendingClaim } from '../../lib/types';
 import { useState } from 'react';
 import { notifySuccess, notifyCelebration, notifyError } from '../../lib/notify';
+import { Pagination, usePagination } from '../../components/Pagination';
 import './AdminPage.css';
 
 function ClaimCard({ claim }: { claim: PendingClaim }) {
@@ -82,6 +83,7 @@ export function ApprovalsPage() {
     queryKey: ['pending-claims'],
     queryFn: getPendingClaims,
   });
+  const { page, setPage, pageCount, pageItems } = usePagination(data as PendingClaim[] | undefined);
 
   if (isLoading) return <div>{t('common.loading')}</div>;
   if (error) return <div style={{ color: '#e55' }}>{t('approvals.error_loading')}: {error instanceof Error ? error.message : String(error)}</div>;
@@ -92,9 +94,12 @@ export function ApprovalsPage() {
       {data?.length === 0 ? (
         <div style={{ color: 'var(--text-muted, #888)' }}>{t('approvals.no_pending')}</div>
       ) : (
-        (data as PendingClaim[])?.map((claim) => (
-          <ClaimCard key={claim.id} claim={claim} />
-        ))
+        <>
+          {pageItems.map((claim) => (
+            <ClaimCard key={claim.id} claim={claim} />
+          ))}
+          <Pagination page={page} pageCount={pageCount} onChange={setPage} />
+        </>
       )}
     </div>
   );

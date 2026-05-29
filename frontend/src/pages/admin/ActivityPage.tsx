@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { getAdminHistory, getAdminUsers } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { HistoryEntry, AdminUser } from '../../lib/types';
 import { useState } from 'react';
+import { Pagination, PAGE_SIZE } from '../../components/Pagination';
 import './AdminPage.css';
 
 const actionTypes = [
@@ -41,6 +42,7 @@ export function ActivityPage() {
   const [actionType, setActionType] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
+  const [page, setPage] = useState(0);
 
   const { data: users } = useQuery({
     queryKey: ['admin-users'],
@@ -48,22 +50,26 @@ export function ActivityPage() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-history', userId, actionType, fromDate, toDate],
+    queryKey: ['admin-history', userId, actionType, fromDate, toDate, page],
     queryFn: () => getAdminHistory({
       userId,
       actionType: actionType || undefined,
       fromDate: fromDate || undefined,
       toDate: toDate || undefined,
-      limit: 50,
-      offset: 0,
+      limit: PAGE_SIZE,
+      offset: page * PAGE_SIZE,
     }),
+    placeholderData: keepPreviousData,
   });
+
+  const pageCount = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_SIZE));
 
   const clearFilters = () => {
     setUserId(undefined);
     setActionType('');
     setFromDate('');
     setToDate('');
+    setPage(0);
   };
 
   const inputStyle = { padding: '6px 8px', border: '1px solid var(--border)', borderRadius: 6, background: 'var(--bg-s, rgba(255,255,255,0.05))', color: 'var(--text)' };
@@ -79,7 +85,7 @@ export function ActivityPage() {
           <label style={labelStyle}>{t('nav.users')}</label>
           <select
             value={userId ?? ''}
-            onChange={(e) => setUserId(e.target.value ? Number(e.target.value) : undefined)}
+            onChange={(e) => { setPage(0); setUserId(e.target.value ? Number(e.target.value) : undefined); }}
             style={inputStyle}
           >
             <option value="">{t('activity.all')}</option>
@@ -92,7 +98,7 @@ export function ActivityPage() {
           <label style={labelStyle}>{t('activity.action')}</label>
           <select
             value={actionType}
-            onChange={(e) => setActionType(e.target.value)}
+            onChange={(e) => { setPage(0); setActionType(e.target.value); }}
             style={inputStyle}
           >
             <option value="">{t('activity.all')}</option>
@@ -105,8 +111,9 @@ export function ActivityPage() {
           <label style={labelStyle}>{t('activity.from')}</label>
           <input
             type="date"
+            lang="el"
             value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
+            onChange={(e) => { setPage(0); setFromDate(e.target.value); }}
             style={inputStyle}
           />
         </div>
@@ -114,8 +121,9 @@ export function ActivityPage() {
           <label style={labelStyle}>{t('activity.to')}</label>
           <input
             type="date"
+            lang="el"
             value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
+            onChange={(e) => { setPage(0); setToDate(e.target.value); }}
             style={inputStyle}
           />
         </div>
@@ -139,14 +147,14 @@ export function ActivityPage() {
           <tbody>
             {(data?.entries as HistoryEntry[])?.map((entry) => (
               <tr key={entry.id}>
-                <td>{new Date(entry.timestamp).toLocaleString()}</td>
+                <td>{new Date(entry.timestamp).toLocaleString('el-GR')}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>
                   {entry.user_avatar_kind && (
                     <UserAvatar kind={entry.user_avatar_kind} value={entry.user_avatar_value} name={entry.user_name} />
                   )}
                   {entry.user_name}
                 </td>
-                <td>{entry.action_label || entry.action_type}</td>
+                <td>{(() => { const at = actionTypes.find(a => a.value === entry.action_type); return at ? t(at.key) : (entry.action_label || entry.action_type); })()}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>
                   {entry.item_icon && <ItemIcon icon={entry.item_icon} />}
                   {entry.item_title ?? '—'}
@@ -165,6 +173,7 @@ export function ActivityPage() {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageCount={pageCount} onChange={setPage} />
       <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text-muted, #888)' }}>
         {t('activity.total', { count: String(data?.total ?? 0) })}
       </div>
