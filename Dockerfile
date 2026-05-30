@@ -5,6 +5,9 @@
 # ---------------------------------------------------------------------------
 FROM node:20-alpine AS frontend
 WORKDIR /build
+# Build version shown on the login screen; CI passes the git tag / sha here.
+ARG APP_VERSION
+ENV APP_VERSION=${APP_VERSION}
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./

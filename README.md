@@ -216,6 +216,56 @@ The system is deployed as a single container orchestrated through `docker-compos
 
 3. **First-run admin.** Browse to `http://<host>:8000/`. With an empty database the landing page shows a one-time admin-creation form (name, avatar, 4-digit PIN). Submit it to create the first parent account; the avatar grid / PIN login takes over from then on. Add more kids/admins, chores, and rewards from the admin panel.
 
+> The steps above use `docker-compose.yml`, which **builds** the image locally. On the
+> NAS, deploy a pre-built image from GHCR instead — see below.
+
+### CI/CD: GitHub Actions → GHCR → Synology
+
+New versions are built in CI and published to the GitHub Container Registry; the NAS
+pulls and restarts manually.
+
+#### How images are published
+
+`.github/workflows/build.yml` builds the `linux/amd64` image and pushes it to
+`ghcr.io/padeler/padelerodouleies` on every push to `main` and every `vX.Y.Z` tag:
+
+| Trigger | Tags produced |
+|---|---|
+| push to `main` | `latest`, `sha-<short>` |
+| push tag `v1.2.3` | `1.2.3`, `1.2`, `1`, `sha-<short>` |
+
+It authenticates with the built-in `GITHUB_TOKEN` (no secrets to configure). The build
+is image-only — tests are not run in this workflow; run them locally before pushing.
+
+**One-time setup:** after the first successful run, make the package public so the NAS can
+pull without credentials — GitHub → your profile → **Packages** → `padelerodouleies` →
+*Package settings* → *Change visibility* → **Public**. (Also link it to the repo there if
+it isn't already.)
+
+#### Deploying to Synology (Container Manager)
+
+Production uses `docker-compose.prod.yml`, which **pulls** the GHCR image instead of
+building. Copy it plus your `.env` to the NAS (e.g. via a shared folder), then:
+
+```bash
+# Pull the newest image and recreate the container
+IMAGE_TAG=latest docker compose -f docker-compose.prod.yml pull
+IMAGE_TAG=latest docker compose -f docker-compose.prod.yml up -d
+```
+
+In Container Manager's GUI: open the project, **Settings → Pull** the image, then
+**Reset/Restart** the container.
+
+#### Pinning & rollback
+
+`:latest` tracks `main`. For reproducible deploys or to roll back, pin a specific tag via
+`IMAGE_TAG` (set it in `.env` or inline):
+
+```bash
+# Roll back to a known-good build
+IMAGE_TAG=sha-1a2b3c4 docker compose -f docker-compose.prod.yml up -d
+```
+
 #### Where the data lives
 
 Everything persistent is under the bind-mounted `DATA_DIR`:

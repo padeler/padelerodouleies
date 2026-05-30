@@ -201,6 +201,16 @@
   }
 }
 
+.landing-version {
+  position: fixed;
+  bottom: 8px;
+  right: 12px;
+  font-size: 12px;
+  opacity: 0.5;
+  user-select: none;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .landing-star,
   .landing-wave,

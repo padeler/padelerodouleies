@@ -127,6 +127,7 @@ export function Landing() {
           lockedSeconds={lockedSeconds}
         />
       )}
+      <span className="landing-version">v{__APP_VERSION__}</span>
     </div>
   );
 }
