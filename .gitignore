@@ -36,7 +36,9 @@ Thumbs.db
 # Claude
 .claude/
 venv
-backend/app/icons/svg
+# NOTE: backend/app/icons/svg is intentionally tracked. The SVGs are baked into
+# the image for reproducible, CDN-independent builds (LAN-only deploy). Keep
+# this in sync with the icon catalog; fetch_icons.py is a dev-only top-up tool.
 .playwright-mcp/
 data
 frontend/test-results
