@@ -18,6 +18,7 @@
   text-align: left;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
+  vertical-align: middle;
 }
 
 .admin-table th {
@@ -32,9 +33,29 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
-.admin-table .actions {
+/* The actions cell stays a normal table cell (middle-aligned) so it lines up
+   with multi-line titles; the buttons themselves live in an inner flex row. */
+.row-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+}
+
+/* Uniform button width across every admin tab's table rows, regardless of
+   label length. The floor fits the longest label ("Απενεργοποίηση"); min-width
+   prevents flex from shrinking them, so all action buttons line up. */
+.row-actions .admin-btn {
+  min-width: 160px;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 540px) {
+  /* Icon-only mode: drop the floor so buttons collapse to compact squares. */
+  .row-actions .admin-btn {
+    min-width: 0;
+  }
 }
 
 /* -- Buttons -- */
@@ -76,6 +97,11 @@
    so keep button labels visible — only the dense table action buttons collapse
    to icon-only on narrow screens. Higher specificity overrides the rule above. */
 .modal-content .admin-btn .btn-text {
+  display: inline;
+}
+
+/* Approval cards have a full-width row for two buttons — always show labels. */
+.claim-actions .admin-btn .btn-text {
   display: inline;
 }
 
@@ -245,11 +271,6 @@
   .admin-table th,
   .admin-table td {
     padding: 8px 6px;
-  }
-
-  .admin-table .actions {
-    flex-direction: column;
-    gap: 4px;
   }
 
   .modal-content {

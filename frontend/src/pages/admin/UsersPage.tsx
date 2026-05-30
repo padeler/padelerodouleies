@@ -92,18 +92,20 @@ export function UsersPage() {
                   </span>
                 </td>
                 <td className="actions">
-                  <button className="admin-btn" onClick={() => setEditing(user)} title={t('btn.edit')}>
-                    <span className="btn-icon">✎</span>
-                    <span className="btn-text">{t('btn.edit')}</span>
-                  </button>
-                  <button className="admin-btn" onClick={() => handleResetPin(user)} title={t('btn.reset_pin')}>
-                    <span className="btn-icon">🔑</span>
-                    <span className="btn-text">{t('btn.reset_pin')}</span>
-                  </button>
-                  <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(user)} title={t('btn.delete')} style={{ display: currentUser?.id === user.id ? 'none' : undefined }}>
-                    <span className="btn-icon">🗑</span>
-                    <span className="btn-text">{t('btn.delete')}</span>
-                  </button>
+                  <div className="row-actions">
+                    <button className="admin-btn" onClick={() => setEditing(user)} title={t('btn.edit')}>
+                      <span className="btn-icon">✎</span>
+                      <span className="btn-text">{t('btn.edit')}</span>
+                    </button>
+                    <button className="admin-btn" onClick={() => handleResetPin(user)} title={t('btn.reset_pin')}>
+                      <span className="btn-icon">🔑</span>
+                      <span className="btn-text">{t('btn.reset_pin')}</span>
+                    </button>
+                    <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(user)} title={t('btn.delete')} style={{ display: currentUser?.id === user.id ? 'none' : undefined }}>
+                      <span className="btn-icon">🗑</span>
+                      <span className="btn-text">{t('btn.delete')}</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

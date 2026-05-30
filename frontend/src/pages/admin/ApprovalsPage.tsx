@@ -55,7 +55,7 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
         style={{ width: '100%', marginBottom: 8, boxSizing: 'border-box', padding: '6px 8px' }}
         rows={2}
       />
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div className="claim-actions" style={{ display: 'flex', gap: 8 }}>
         <button
           className="admin-btn admin-btn-success"
           onClick={() => mutate.mutate('approve')}

@@ -77,18 +77,20 @@ export function RewardsPage() {
                 </span>
               </td>
               <td className="actions">
-                <button className="admin-btn" onClick={() => setEditing(reward)} title={t('btn.edit')}>
-                  <span className="btn-icon">✎</span>
-                  <span className="btn-text">{t('btn.edit')}</span>
-                </button>
-                <button className="admin-btn" onClick={() => handleToggle(reward)} title={reward.is_enabled ? t('btn.disable') : t('btn.enable')}>
-                  <span className="btn-icon">{reward.is_enabled ? '👁' : '👁‍🗨'}</span>
-                  <span className="btn-text">{reward.is_enabled ? t('btn.disable') : t('btn.enable')}</span>
-                </button>
-                <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(reward)} title={t('btn.delete')}>
-                  <span className="btn-icon">🗑</span>
-                  <span className="btn-text">{t('btn.delete')}</span>
-                </button>
+                <div className="row-actions">
+                  <button className="admin-btn" onClick={() => setEditing(reward)} title={t('btn.edit')}>
+                    <span className="btn-icon">✎</span>
+                    <span className="btn-text">{t('btn.edit')}</span>
+                  </button>
+                  <button className="admin-btn" onClick={() => handleToggle(reward)} title={reward.is_enabled ? t('btn.disable') : t('btn.enable')}>
+                    <span className="btn-icon">{reward.is_enabled ? '👁' : '🚫'}</span>
+                    <span className="btn-text">{reward.is_enabled ? t('btn.disable') : t('btn.enable')}</span>
+                  </button>
+                  <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(reward)} title={t('btn.delete')}>
+                    <span className="btn-icon">🗑</span>
+                    <span className="btn-text">{t('btn.delete')}</span>
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
