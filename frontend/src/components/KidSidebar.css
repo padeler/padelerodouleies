@@ -89,17 +89,3 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-@media (max-width: 540px) {
-  .nav-text {
-    display: none;
-  }
-  .kid-sidebar a {
-    justify-content: center;
-    padding: 12px;
-    margin: 0 4px;
-  }
-  .nav-icon {
-    font-size: 24px;
-  }
-}

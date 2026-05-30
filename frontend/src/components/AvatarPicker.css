@@ -43,12 +43,3 @@
   object-fit: cover;
   border: 2px solid var(--accent);
 }
-
-@media (max-width: 540px) {
-  .avatar-picker-tab .btn-text {
-    display: none;
-  }
-  .avatar-picker-tab .btn-icon {
-    font-size: 16px;
-  }
-}

@@ -72,6 +72,13 @@
   }
 }
 
+/* Inside modals there is always room (modal is 90vw, actions stack full-width),
+   so keep button labels visible — only the dense table action buttons collapse
+   to icon-only on narrow screens. Higher specificity overrides the rule above. */
+.modal-content .admin-btn .btn-text {
+  display: inline;
+}
+
 .admin-btn:hover {
   border-color: var(--accent);
   color: var(--text-h);
