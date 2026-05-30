@@ -23,6 +23,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags so `git describe` can find the nearest tag
+
+      - name: Derive app version (git tag)
+        id: version
+        # Nearest tag, e.g. "v0.1.0" on the tag itself or "v0.1.0-3-g1a2b3c4"
+        # a few commits later. Falls back to the short sha before the first tag.
+        run: echo "version=$(git describe --tags --always)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
@@ -53,7 +61,7 @@ jobs:
           platforms: linux/amd64
           push: true
           build-args: |
-            APP_VERSION=${{ steps.meta.outputs.version }}
+            APP_VERSION=${{ steps.version.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
