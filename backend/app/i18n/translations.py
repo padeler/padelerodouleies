@@ -7,7 +7,7 @@ Keys that are missing raise KeyError — no silent fallback.
 TRANSLATIONS: dict[str, dict[str, str]] = {
     # Login / auth
     "login.welcome": {"el": "Καλωσήρθες", "en": "Welcome"},
-    "login.select_profile": {"el": "Επίλεξε το προφίλ σου", "en": "Select your profile"},
+    "login.select_profile": {"el": "Γειά σου! Επίλεξε το προφίλ σου", "en": "Hello! Select your profile"},
     "login.enter_pin": {"el": "Εισάγετε το PIN σας", "en": "Enter your PIN"},
     "login.wrong_pin": {"el": "Λάθος PIN, προσπάθησε ξανά", "en": "Wrong PIN, try again"},
     "login.locked": {"el": "Κλειδωμένο για {seconds} δευτερόλεπτα", "en": "Locked for {seconds} seconds"},
