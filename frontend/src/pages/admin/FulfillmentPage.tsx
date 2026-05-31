@@ -59,7 +59,7 @@ export function FulfillmentPage() {
   return (
     <div>
       <h2 className="admin-page-title">{t('nav.fulfillment')}</h2>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      <div className="admin-tabs">
         <button
           className={`admin-btn ${tab === 'claimed' ? 'admin-btn-primary' : ''}`}
           onClick={() => setTab('claimed')}
