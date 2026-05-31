@@ -2,4 +2,4 @@
 - [x] on the "New reward" popup: There is no need to an "enabled" checkbox. The "COLLABORATIVE" checkbox should be a toggle button following the style of the rest of the popups 
 - [x] The avatar circle when an svg is used is cutting the edges of the svg. This is not happening in the login page. Make the avatars rendering the same as the login page so it is consistent.
 - [x] on the admin "Fulfillment" tab the text is collapsed from the "Claimed" and "Fulfilled" buttons on narrow widths even though there is enough space for it.
-- [ ] We need more icons. Expand the collection.
+- [x] We need more icons. Expand the collection.

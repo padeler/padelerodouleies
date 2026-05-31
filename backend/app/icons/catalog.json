@@ -1,5 +1,20 @@
 [
   {
+    "name": "alarm-clock",
+    "category": "parent",
+    "svg_ref": "icons/svg/alarm-clock.svg",
+    "keywords_en": [
+      "alarm",
+      "clock",
+      "time"
+    ],
+    "keywords_el": [
+      "ξυπνητήρι",
+      "ώρα",
+      "ρολόι"
+    ]
+  },
+  {
     "name": "anchor",
     "category": "avatars",
     "svg_ref": "icons/svg/anchor.svg",
@@ -112,6 +127,35 @@
     ]
   },
   {
+    "name": "badge-check",
+    "category": "parent",
+    "svg_ref": "icons/svg/badge-check.svg",
+    "keywords_en": [
+      "verified",
+      "approved",
+      "badge"
+    ],
+    "keywords_el": [
+      "επιβεβαίωση",
+      "έγκριση"
+    ]
+  },
+  {
+    "name": "banana",
+    "category": "meals",
+    "svg_ref": "icons/svg/banana.svg",
+    "keywords_en": [
+      "banana",
+      "fruit",
+      "snack"
+    ],
+    "keywords_el": [
+      "μπανάνα",
+      "φρούτο",
+      "σνακ"
+    ]
+  },
+  {
     "name": "bandage",
     "category": "hygiene",
     "svg_ref": "icons/svg/bandage.svg",
@@ -125,6 +169,21 @@
       "επίδεσμος",
       "τραύμα",
       "πρώτες βοήθειες"
+    ]
+  },
+  {
+    "name": "banknote",
+    "category": "parent",
+    "svg_ref": "icons/svg/banknote.svg",
+    "keywords_en": [
+      "money",
+      "cash",
+      "allowance"
+    ],
+    "keywords_el": [
+      "χρήματα",
+      "χαρτονόμισμα",
+      "χαρτζιλίκι"
     ]
   },
   {
@@ -144,6 +203,21 @@
     ]
   },
   {
+    "name": "bean",
+    "category": "meals",
+    "svg_ref": "icons/svg/bean.svg",
+    "keywords_en": [
+      "bean",
+      "legume",
+      "vegetable"
+    ],
+    "keywords_el": [
+      "φασόλι",
+      "όσπριο",
+      "λαχανικό"
+    ]
+  },
+  {
     "name": "bed",
     "category": "tidying",
     "svg_ref": "icons/svg/bed.svg",
@@ -159,6 +233,20 @@
       "ύπνος",
       "δίπλωμα",
       "σεντόνια"
+    ]
+  },
+  {
+    "name": "beef",
+    "category": "meals",
+    "svg_ref": "icons/svg/beef.svg",
+    "keywords_en": [
+      "meat",
+      "beef",
+      "protein"
+    ],
+    "keywords_el": [
+      "κρέας",
+      "μοσχάρι"
     ]
   },
   {
@@ -225,6 +313,21 @@
     ]
   },
   {
+    "name": "book-open",
+    "category": "school",
+    "svg_ref": "icons/svg/book-open.svg",
+    "keywords_en": [
+      "book",
+      "read",
+      "study"
+    ],
+    "keywords_el": [
+      "βιβλίο",
+      "διάβασμα",
+      "μελέτη"
+    ]
+  },
+  {
     "name": "boom-box",
     "category": "rewards",
     "svg_ref": "icons/svg/boom-box.svg",
@@ -238,6 +341,20 @@
       "ραδιόφωνο",
       "μουσική",
       "ηχείο"
+    ]
+  },
+  {
+    "name": "bot",
+    "category": "avatars",
+    "svg_ref": "icons/svg/bot.svg",
+    "keywords_en": [
+      "robot",
+      "bot",
+      "fun"
+    ],
+    "keywords_el": [
+      "ρομπότ",
+      "μπότ"
     ]
   },
   {
@@ -307,6 +424,21 @@
     ]
   },
   {
+    "name": "bus",
+    "category": "rewards",
+    "svg_ref": "icons/svg/bus.svg",
+    "keywords_en": [
+      "bus",
+      "trip",
+      "travel"
+    ],
+    "keywords_el": [
+      "λεωφορείο",
+      "εκδρομή",
+      "ταξίδι"
+    ]
+  },
+  {
     "name": "cake",
     "category": "meals",
     "svg_ref": "icons/svg/cake.svg",
@@ -336,6 +468,34 @@
       "αριθμομηχανή",
       "μαθηματικά",
       "αριθμοί"
+    ]
+  },
+  {
+    "name": "calendar-check",
+    "category": "parent",
+    "svg_ref": "icons/svg/calendar-check.svg",
+    "keywords_en": [
+      "calendar",
+      "schedule",
+      "done"
+    ],
+    "keywords_el": [
+      "ημερολόγιο",
+      "πρόγραμμα"
+    ]
+  },
+  {
+    "name": "camera",
+    "category": "rewards",
+    "svg_ref": "icons/svg/camera.svg",
+    "keywords_en": [
+      "camera",
+      "photo",
+      "picture"
+    ],
+    "keywords_el": [
+      "φωτογραφική",
+      "φωτογραφία"
     ]
   },
   {
@@ -446,6 +606,19 @@
       "καψάκι",
       "μαγείρεμα",
       "κουζίνα"
+    ]
+  },
+  {
+    "name": "cherry",
+    "category": "meals",
+    "svg_ref": "icons/svg/cherry.svg",
+    "keywords_en": [
+      "cherry",
+      "fruit"
+    ],
+    "keywords_el": [
+      "κεράσι",
+      "φρούτο"
     ]
   },
   {
@@ -562,6 +735,21 @@
     ]
   },
   {
+    "name": "cooking-pot",
+    "category": "tidying",
+    "svg_ref": "icons/svg/cooking-pot.svg",
+    "keywords_en": [
+      "pot",
+      "cooking",
+      "kitchen"
+    ],
+    "keywords_el": [
+      "κατσαρόλα",
+      "μαγείρεμα",
+      "κουζίνα"
+    ]
+  },
+  {
     "name": "croissant",
     "category": "meals",
     "svg_ref": "icons/svg/croissant.svg",
@@ -612,6 +800,34 @@
     ]
   },
   {
+    "name": "dessert",
+    "category": "meals",
+    "svg_ref": "icons/svg/dessert.svg",
+    "keywords_en": [
+      "dessert",
+      "sweet",
+      "pudding"
+    ],
+    "keywords_el": [
+      "επιδόρπιο",
+      "γλυκό"
+    ]
+  },
+  {
+    "name": "dices",
+    "category": "rewards",
+    "svg_ref": "icons/svg/dices.svg",
+    "keywords_en": [
+      "dice",
+      "game",
+      "play"
+    ],
+    "keywords_el": [
+      "ζάρια",
+      "παιχνίδι"
+    ]
+  },
+  {
     "name": "dog",
     "category": "pets",
     "svg_ref": "icons/svg/dog.svg",
@@ -646,6 +862,21 @@
     ]
   },
   {
+    "name": "drama",
+    "category": "avatars",
+    "svg_ref": "icons/svg/drama.svg",
+    "keywords_en": [
+      "theatre",
+      "masks",
+      "drama"
+    ],
+    "keywords_el": [
+      "θέατρο",
+      "μάσκες",
+      "δράμα"
+    ]
+  },
+  {
     "name": "droplet",
     "category": "hygiene",
     "svg_ref": "icons/svg/droplet.svg",
@@ -673,6 +904,21 @@
       "σταγόνες",
       "νερό",
       "σαπούνι"
+    ]
+  },
+  {
+    "name": "drum",
+    "category": "school",
+    "svg_ref": "icons/svg/drum.svg",
+    "keywords_en": [
+      "drum",
+      "music",
+      "instrument"
+    ],
+    "keywords_el": [
+      "τύμπανο",
+      "μουσική",
+      "όργανο"
     ]
   },
   {
@@ -720,6 +966,20 @@
     "keywords_el": [
       "αβγό",
       "μωρό",
+      "πρωινό"
+    ]
+  },
+  {
+    "name": "egg-fried",
+    "category": "meals",
+    "svg_ref": "icons/svg/egg-fried.svg",
+    "keywords_en": [
+      "egg",
+      "breakfast",
+      "fried"
+    ],
+    "keywords_el": [
+      "αυγό",
       "πρωινό"
     ]
   },
@@ -864,6 +1124,21 @@
       "φλόγα",
       "φωτιά",
       "ενέργεια"
+    ]
+  },
+  {
+    "name": "flask-conical",
+    "category": "school",
+    "svg_ref": "icons/svg/flask-conical.svg",
+    "keywords_en": [
+      "flask",
+      "chemistry",
+      "lab"
+    ],
+    "keywords_el": [
+      "φιάλη",
+      "χημεία",
+      "εργαστήριο"
     ]
   },
   {
@@ -1058,6 +1333,19 @@
     ]
   },
   {
+    "name": "grape",
+    "category": "meals",
+    "svg_ref": "icons/svg/grape.svg",
+    "keywords_en": [
+      "grape",
+      "fruit"
+    ],
+    "keywords_el": [
+      "σταφύλι",
+      "φρούτο"
+    ]
+  },
+  {
     "name": "guitar",
     "category": "school",
     "svg_ref": "icons/svg/guitar.svg",
@@ -1071,6 +1359,34 @@
       "κιθάρα",
       "μουσική",
       "μαθήματα"
+    ]
+  },
+  {
+    "name": "ham",
+    "category": "meals",
+    "svg_ref": "icons/svg/ham.svg",
+    "keywords_en": [
+      "ham",
+      "meat"
+    ],
+    "keywords_el": [
+      "ζαμπόν",
+      "κρέας"
+    ]
+  },
+  {
+    "name": "hammer",
+    "category": "tidying",
+    "svg_ref": "icons/svg/hammer.svg",
+    "keywords_en": [
+      "hammer",
+      "fix",
+      "repair"
+    ],
+    "keywords_el": [
+      "σφυρί",
+      "επισκευή",
+      "μαστόρεμα"
     ]
   },
   {
@@ -1103,6 +1419,21 @@
       "νομίσματα",
       "χρήματα",
       "επίδομα"
+    ]
+  },
+  {
+    "name": "hand-heart",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/hand-heart.svg",
+    "keywords_en": [
+      "care",
+      "love",
+      "kindness"
+    ],
+    "keywords_el": [
+      "φροντίδα",
+      "αγάπη",
+      "καλοσύνη"
     ]
   },
   {
@@ -1149,6 +1480,21 @@
       "αγάπη",
       "φροντίδα",
       "ζώο"
+    ]
+  },
+  {
+    "name": "heart-pulse",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/heart-pulse.svg",
+    "keywords_en": [
+      "health",
+      "heartbeat",
+      "pulse"
+    ],
+    "keywords_el": [
+      "υγεία",
+      "παλμός",
+      "καρδιά"
     ]
   },
   {
@@ -1245,6 +1591,21 @@
       "λάμπα",
       "φωτισμός",
       "δωμάτιο"
+    ]
+  },
+  {
+    "name": "languages",
+    "category": "school",
+    "svg_ref": "icons/svg/languages.svg",
+    "keywords_en": [
+      "language",
+      "translate",
+      "speak"
+    ],
+    "keywords_el": [
+      "γλώσσες",
+      "μετάφραση",
+      "ομιλία"
     ]
   },
   {
@@ -1406,6 +1767,36 @@
     ]
   },
   {
+    "name": "microscope",
+    "category": "school",
+    "svg_ref": "icons/svg/microscope.svg",
+    "keywords_en": [
+      "microscope",
+      "science",
+      "lab"
+    ],
+    "keywords_el": [
+      "μικροσκόπιο",
+      "επιστήμη",
+      "εργαστήριο"
+    ]
+  },
+  {
+    "name": "microwave",
+    "category": "tidying",
+    "svg_ref": "icons/svg/microwave.svg",
+    "keywords_en": [
+      "microwave",
+      "kitchen",
+      "heat"
+    ],
+    "keywords_el": [
+      "φούρνος",
+      "μικροκυμάτων",
+      "κουζίνα"
+    ]
+  },
+  {
     "name": "milk",
     "category": "meals",
     "svg_ref": "icons/svg/milk.svg",
@@ -1514,6 +1905,21 @@
       "χρώμα",
       "δημιουργικό",
       "καλλιτέχνης"
+    ]
+  },
+  {
+    "name": "paint-roller",
+    "category": "tidying",
+    "svg_ref": "icons/svg/paint-roller.svg",
+    "keywords_en": [
+      "paint",
+      "roller",
+      "decorate"
+    ],
+    "keywords_el": [
+      "βάψιμο",
+      "ρολό",
+      "μπογιά"
     ]
   },
   {
@@ -1629,6 +2035,51 @@
     ]
   },
   {
+    "name": "phone",
+    "category": "parent",
+    "svg_ref": "icons/svg/phone.svg",
+    "keywords_en": [
+      "phone",
+      "call",
+      "contact"
+    ],
+    "keywords_el": [
+      "τηλέφωνο",
+      "κλήση",
+      "επικοινωνία"
+    ]
+  },
+  {
+    "name": "piano",
+    "category": "school",
+    "svg_ref": "icons/svg/piano.svg",
+    "keywords_en": [
+      "piano",
+      "music",
+      "instrument"
+    ],
+    "keywords_el": [
+      "πιάνο",
+      "μουσική",
+      "όργανο"
+    ]
+  },
+  {
+    "name": "pill",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/pill.svg",
+    "keywords_en": [
+      "pill",
+      "medicine",
+      "health"
+    ],
+    "keywords_el": [
+      "χάπι",
+      "φάρμακο",
+      "υγεία"
+    ]
+  },
+  {
     "name": "pizza",
     "category": "meals",
     "svg_ref": "icons/svg/pizza.svg",
@@ -1679,6 +2130,34 @@
     ]
   },
   {
+    "name": "popcorn",
+    "category": "meals",
+    "svg_ref": "icons/svg/popcorn.svg",
+    "keywords_en": [
+      "popcorn",
+      "snack",
+      "movie"
+    ],
+    "keywords_el": [
+      "ποπ κορν",
+      "σνακ"
+    ]
+  },
+  {
+    "name": "popsicle",
+    "category": "meals",
+    "svg_ref": "icons/svg/popsicle.svg",
+    "keywords_en": [
+      "popsicle",
+      "ice",
+      "treat"
+    ],
+    "keywords_el": [
+      "παγωτό",
+      "ξυλάκι"
+    ]
+  },
+  {
     "name": "puzzle",
     "category": "avatars",
     "svg_ref": "icons/svg/puzzle.svg",
@@ -1708,6 +2187,35 @@
       "κουνέλι",
       "ζώο",
       "χαριτωμένο"
+    ]
+  },
+  {
+    "name": "rainbow",
+    "category": "avatars",
+    "svg_ref": "icons/svg/rainbow.svg",
+    "keywords_en": [
+      "rainbow",
+      "colors",
+      "happy"
+    ],
+    "keywords_el": [
+      "ουράνιο τόξο",
+      "χρώματα",
+      "χαρά"
+    ]
+  },
+  {
+    "name": "rat",
+    "category": "pets",
+    "svg_ref": "icons/svg/rat.svg",
+    "keywords_en": [
+      "rat",
+      "mouse",
+      "animal"
+    ],
+    "keywords_el": [
+      "ποντίκι",
+      "ζώο"
     ]
   },
   {
@@ -1742,6 +2250,20 @@
     ]
   },
   {
+    "name": "refrigerator",
+    "category": "tidying",
+    "svg_ref": "icons/svg/refrigerator.svg",
+    "keywords_en": [
+      "fridge",
+      "kitchen",
+      "cold"
+    ],
+    "keywords_el": [
+      "ψυγείο",
+      "κουζίνα"
+    ]
+  },
+  {
     "name": "rocket",
     "category": "avatars",
     "svg_ref": "icons/svg/rocket.svg",
@@ -1771,6 +2293,21 @@
       "χάρακας",
       "μέτρηση",
       "μαθηματικά"
+    ]
+  },
+  {
+    "name": "sailboat",
+    "category": "rewards",
+    "svg_ref": "icons/svg/sailboat.svg",
+    "keywords_en": [
+      "boat",
+      "sail",
+      "sea"
+    ],
+    "keywords_el": [
+      "βάρκα",
+      "ιστιοφόρο",
+      "θάλασσα"
     ]
   },
   {
@@ -1968,6 +2505,35 @@
     ]
   },
   {
+    "name": "snail",
+    "category": "pets",
+    "svg_ref": "icons/svg/snail.svg",
+    "keywords_en": [
+      "snail",
+      "slow",
+      "animal"
+    ],
+    "keywords_el": [
+      "σαλιγκάρι",
+      "ζώο"
+    ]
+  },
+  {
+    "name": "snowflake",
+    "category": "avatars",
+    "svg_ref": "icons/svg/snowflake.svg",
+    "keywords_en": [
+      "snow",
+      "winter",
+      "cold"
+    ],
+    "keywords_el": [
+      "χιόνι",
+      "χειμώνας",
+      "νιφάδα"
+    ]
+  },
+  {
     "name": "sofa",
     "category": "tidying",
     "svg_ref": "icons/svg/sofa.svg",
@@ -1981,6 +2547,20 @@
       "καναπές",
       "σαλόνι",
       "τακτοποίηση"
+    ]
+  },
+  {
+    "name": "soup",
+    "category": "meals",
+    "svg_ref": "icons/svg/soup.svg",
+    "keywords_en": [
+      "soup",
+      "bowl",
+      "warm"
+    ],
+    "keywords_el": [
+      "σούπα",
+      "μπολ"
     ]
   },
   {
@@ -2027,6 +2607,19 @@
       "βλαστάρι",
       "ανάπτυξη",
       "φύτεμα"
+    ]
+  },
+  {
+    "name": "squirrel",
+    "category": "pets",
+    "svg_ref": "icons/svg/squirrel.svg",
+    "keywords_en": [
+      "squirrel",
+      "animal"
+    ],
+    "keywords_el": [
+      "σκίουρος",
+      "ζώο"
     ]
   },
   {
@@ -2128,6 +2721,51 @@
     ]
   },
   {
+    "name": "syringe",
+    "category": "hygiene",
+    "svg_ref": "icons/svg/syringe.svg",
+    "keywords_en": [
+      "syringe",
+      "vaccine",
+      "doctor"
+    ],
+    "keywords_el": [
+      "σύριγγα",
+      "ένεση",
+      "εμβόλιο"
+    ]
+  },
+  {
+    "name": "telescope",
+    "category": "school",
+    "svg_ref": "icons/svg/telescope.svg",
+    "keywords_en": [
+      "telescope",
+      "stars",
+      "astronomy"
+    ],
+    "keywords_el": [
+      "τηλεσκόπιο",
+      "αστέρια",
+      "αστρονομία"
+    ]
+  },
+  {
+    "name": "tent",
+    "category": "rewards",
+    "svg_ref": "icons/svg/tent.svg",
+    "keywords_en": [
+      "tent",
+      "camping",
+      "outdoors"
+    ],
+    "keywords_el": [
+      "σκηνή",
+      "κάμπινγκ",
+      "εκδρομή"
+    ]
+  },
+  {
     "name": "thermometer",
     "category": "hygiene",
     "svg_ref": "icons/svg/thermometer.svg",
@@ -2177,6 +2815,21 @@
     ]
   },
   {
+    "name": "train-front",
+    "category": "rewards",
+    "svg_ref": "icons/svg/train-front.svg",
+    "keywords_en": [
+      "train",
+      "trip",
+      "travel"
+    ],
+    "keywords_el": [
+      "τρένο",
+      "εκδρομή",
+      "ταξίδι"
+    ]
+  },
+  {
     "name": "trash-2",
     "category": "tidying",
     "svg_ref": "icons/svg/trash-2.svg",
@@ -2190,6 +2843,36 @@
       "σκουπίδια",
       "κάδος",
       "πέταγμα"
+    ]
+  },
+  {
+    "name": "tree-deciduous",
+    "category": "pets",
+    "svg_ref": "icons/svg/tree-deciduous.svg",
+    "keywords_en": [
+      "tree",
+      "nature",
+      "forest"
+    ],
+    "keywords_el": [
+      "δέντρο",
+      "φύση",
+      "δάσος"
+    ]
+  },
+  {
+    "name": "tree-pine",
+    "category": "pets",
+    "svg_ref": "icons/svg/tree-pine.svg",
+    "keywords_en": [
+      "tree",
+      "pine",
+      "forest"
+    ],
+    "keywords_el": [
+      "δέντρο",
+      "πεύκο",
+      "δάσος"
     ]
   },
   {
@@ -2337,6 +3020,20 @@
     ]
   },
   {
+    "name": "venetian-mask",
+    "category": "avatars",
+    "svg_ref": "icons/svg/venetian-mask.svg",
+    "keywords_en": [
+      "mask",
+      "costume",
+      "play"
+    ],
+    "keywords_el": [
+      "μάσκα",
+      "μεταμφίεση"
+    ]
+  },
+  {
     "name": "volleyball",
     "category": "pets",
     "svg_ref": "icons/svg/volleyball.svg",
@@ -2351,6 +3048,35 @@
       "σπορ",
       "εξωτερικό",
       "μπάλα"
+    ]
+  },
+  {
+    "name": "wallet",
+    "category": "parent",
+    "svg_ref": "icons/svg/wallet.svg",
+    "keywords_en": [
+      "wallet",
+      "money",
+      "budget"
+    ],
+    "keywords_el": [
+      "πορτοφόλι",
+      "χρήματα"
+    ]
+  },
+  {
+    "name": "wand-sparkles",
+    "category": "avatars",
+    "svg_ref": "icons/svg/wand-sparkles.svg",
+    "keywords_en": [
+      "magic",
+      "wand",
+      "sparkle"
+    ],
+    "keywords_el": [
+      "μαγικό",
+      "ραβδί",
+      "λάμψη"
     ]
   },
   {
@@ -2387,6 +3113,21 @@
     ]
   },
   {
+    "name": "wheat",
+    "category": "meals",
+    "svg_ref": "icons/svg/wheat.svg",
+    "keywords_en": [
+      "wheat",
+      "bread",
+      "grain"
+    ],
+    "keywords_el": [
+      "σιτάρι",
+      "ψωμί",
+      "δημητριακά"
+    ]
+  },
+  {
     "name": "wind",
     "category": "hygiene",
     "svg_ref": "icons/svg/wind.svg",
@@ -2416,6 +3157,35 @@
       "κρασί",
       "γιορτή",
       "ποτό"
+    ]
+  },
+  {
+    "name": "worm",
+    "category": "pets",
+    "svg_ref": "icons/svg/worm.svg",
+    "keywords_en": [
+      "worm",
+      "bug",
+      "animal"
+    ],
+    "keywords_el": [
+      "σκουλήκι",
+      "έντομο"
+    ]
+  },
+  {
+    "name": "wrench",
+    "category": "tidying",
+    "svg_ref": "icons/svg/wrench.svg",
+    "keywords_en": [
+      "wrench",
+      "fix",
+      "tool"
+    ],
+    "keywords_el": [
+      "κλειδί",
+      "εργαλείο",
+      "επισκευή"
     ]
   },
   {
