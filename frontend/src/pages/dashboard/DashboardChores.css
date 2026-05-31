@@ -64,13 +64,7 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.chore-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(123, 47, 247, 0.15);
 }
 
 /* one-mode: one kid claims it for everyone */
@@ -84,11 +78,6 @@
   border-color: #ddd;
   background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
   opacity: 0.8;
-}
-
-.chore-card.chore-taken:hover {
-  transform: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* my pending claim */
