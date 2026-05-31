@@ -14,7 +14,6 @@ const rewardSchema = z.object({
   icon_name: z.string().min(1, 'Required'),
   cost_stars: z.number().int().min(1),
   is_collaborative: z.boolean(),
-  is_enabled: z.boolean(),
 });
 
 type RewardForm = z.infer<typeof rewardSchema>;
@@ -34,7 +33,6 @@ export function RewardModal({ reward, onClose }: RewardModalProps) {
     icon_name: reward?.icon_name ?? 'gift',
     cost_stars: reward?.cost_stars ?? 20,
     is_collaborative: reward?.is_collaborative ?? false,
-    is_enabled: reward?.is_enabled ?? true,
   };
 
   const { control, handleSubmit, formState: { errors } } = useForm<RewardForm>({
@@ -94,17 +92,19 @@ export function RewardModal({ reward, onClose }: RewardModalProps) {
             )} />
             {errors.cost_stars && <div className="field-error">{errors.cost_stars.message}</div>}
           </div>
-          <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="admin-form-group">
+            <label>{t('reward.collaborative')}</label>
             <Controller name="is_collaborative" control={control} render={({ field }) => (
-              <input type="checkbox" checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />
+              <div className="toggle-group">
+                <button
+                  type="button"
+                  className={`toggle-btn ${field.value ? 'active' : ''}`}
+                  onClick={() => field.onChange(!field.value)}
+                >
+                  {t('reward.collaborative')}
+                </button>
+              </div>
             )} />
-            <label style={{ margin: 0 }}>{t('reward.collaborative')}</label>
-          </div>
-          <div className="admin-form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Controller name="is_enabled" control={control} render={({ field }) => (
-              <input type="checkbox" checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />
-            )} />
-            <label style={{ margin: 0 }}>{t('reward.enabled')}</label>
           </div>
           <div className="admin-form-actions">
             <button type="button" className="admin-btn" onClick={onClose}>
