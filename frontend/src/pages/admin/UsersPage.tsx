@@ -7,13 +7,11 @@ import { useState } from 'react';
 import { notifySuccess, notifyError } from '../../lib/notify';
 import { UserModal } from '../../components/UserModal';
 import { Pagination, usePagination } from '../../components/Pagination';
+import { Avatar } from '../../components/Avatar';
 import './AdminPage.css';
 
 function AvatarCell(user: AdminUser) {
-  if (user.avatar_kind === 'image') {
-    return <img src={user.avatar_value} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />;
-  }
-  return <img src={`/api/icons/svg/${user.avatar_value}`} alt="" style={{ width: 32, height: 32 }} />;
+  return <Avatar kind={user.avatar_kind} value={user.avatar_value} size={32} />;
 }
 
 export function UsersPage() {

@@ -1,5 +1,5 @@
 - [x] on the user side the cards on the "Chores" and "Marketplace" need the following change: There is an optional "description" entry for chores and awards that is never shown, however this is useful. Change the cards such that when a user taps on it (anyware on the card except the "Claim" button) the card flips around revealing all the details of the card. When the user taps again the card flips again and can be claimed. Do a nice flip animation to give the sense of an actual card game.
-- [ ] on the "New reward" popup: There is no need to an "enabled" checkbox. The "COLLABORATIVE" checkbox should be a toggle button following the style of the rest of the popups 
-- [ ] The avatar circle when an svg is used is cutting the edges of the svg. This is not happening in the login page. Make the avatars rendering the same as the login page so it is consistent.
+- [x] on the "New reward" popup: There is no need to an "enabled" checkbox. The "COLLABORATIVE" checkbox should be a toggle button following the style of the rest of the popups 
+- [x] The avatar circle when an svg is used is cutting the edges of the svg. This is not happening in the login page. Make the avatars rendering the same as the login page so it is consistent.
 - [ ] on the admin "Fulfillment" tab the text is collapsed from the "Claimed" and "Fulfilled" buttons on narrow widths even though there is enough space for it.
 - [ ] We need more icons. Expand the collection.

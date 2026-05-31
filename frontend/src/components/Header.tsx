@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/store';
 import LocaleToggle from '../i18n/LocaleToggle';
 import { SettingsModal } from './SettingsModal';
+import { Avatar } from './Avatar';
 
 export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {}) {
   const t = useT();
@@ -38,11 +39,7 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
             </button>
           )}
           {user && (
-            <img
-              className="user-avatar-img"
-              src={user.avatar_kind === 'image' ? user.avatar_value : `/api/icons/svg/${user.avatar_value}`}
-              alt=""
-            />
+            <Avatar kind={user.avatar_kind} value={user.avatar_value} size={36} />
           )}
           <span className="user-name">{user?.name}</span>
           {user?.role !== 'admin' && (

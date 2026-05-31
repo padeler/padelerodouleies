@@ -5,17 +5,20 @@ import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { VisibleChore } from '../../lib/types';
 import { notifyCelebration, notifyError } from '../../lib/notify';
+import { Avatar } from '../../components/Avatar';
 import './flip-card.css';
 import './DashboardChores.css';
 
 function ClaimerBadge({ claimed_by }: { claimed_by: VisibleChore['claimed_by'] }) {
   if (!claimed_by) return null;
-  const avatarSrc = claimed_by.avatar_kind === 'image'
-    ? claimed_by.avatar_value
-    : `/api/icons/svg/${claimed_by.avatar_value}`;
   return (
     <div className="chore-claimer-badge">
-      <img src={avatarSrc} alt="" className="chore-claimer-avatar" />
+      <Avatar
+        kind={claimed_by.avatar_kind}
+        value={claimed_by.avatar_value}
+        size={28}
+        className="chore-claimer-avatar"
+      />
       <span className="chore-claimer-name">{claimed_by.name}</span>
     </div>
   );
@@ -160,10 +163,11 @@ export function DashboardChores() {
     <div className="dashboard-chores">
       <div className="dashboard-greeting">
         {user && (
-          <img
+          <Avatar
+            kind={user.avatar_kind}
+            value={user.avatar_value}
+            size={64}
             className="dashboard-avatar"
-            src={user.avatar_kind === 'image' ? user.avatar_value : `/api/icons/svg/${user.avatar_value}`}
-            alt=""
           />
         )}
         <h2>
