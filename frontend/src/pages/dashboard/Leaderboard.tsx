@@ -5,6 +5,7 @@ import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import { notifyCelebration } from '../../lib/notify';
 import type { LeaderboardEntry } from '../../lib/types';
+import { Avatar } from '../../components/Avatar';
 import './Leaderboard.css';
 
 const podiumOrder: number[] = [1, 0, 2];
@@ -61,13 +62,12 @@ export function Leaderboard() {
           {listEntries.map((entry) => (
             <div key={entry.id} className="leaderboard-row">
               <span className="lb-rank">#{entry.ranking}</span>
-              <span className="lb-avatar">
-                <img
-                  className="lb-avatar-img"
-                  src={entry.avatar_kind === 'image' ? entry.avatar_value : `/api/icons/svg/${entry.avatar_value}`}
-                  alt=""
-                />
-              </span>
+              <Avatar
+                kind={entry.avatar_kind}
+                value={entry.avatar_value}
+                size={36}
+                className="lb-avatar"
+              />
               <span className="lb-name">{entry.name}</span>
               <span className="lb-stars">{entry.current_stars} ⭐</span>
             </div>
@@ -92,13 +92,11 @@ function PodiumFigure({ entry, rank }: { entry: LeaderboardEntry; rank: number }
 
   return (
     <div className="podium-figure">
-      <div className="podium-avatar">
-        <img
-          src={entry.avatar_kind === 'image' ? entry.avatar_value : `/api/icons/svg/${entry.avatar_value}`}
-          alt=""
-          className="podium-avatar-img"
-        />
-      </div>
+      <Avatar
+        kind={entry.avatar_kind}
+        value={entry.avatar_value}
+        className="podium-avatar"
+      />
       <div className="podium-name">{entry.name}</div>
       <div className="podium-stars">{entry.current_stars} ⭐</div>
       <div

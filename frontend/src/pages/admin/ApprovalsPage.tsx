@@ -5,6 +5,7 @@ import type { PendingClaim } from '../../lib/types';
 import { useState } from 'react';
 import { notifySuccess, notifyCelebration, notifyError } from '../../lib/notify';
 import { Pagination, usePagination } from '../../components/Pagination';
+import { Avatar } from '../../components/Avatar';
 import './AdminPage.css';
 
 function ClaimCard({ claim }: { claim: PendingClaim }) {
@@ -34,11 +35,7 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
   return (
     <div className="admin-card" style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <img
-          src={claim.user_avatar_kind === 'image' ? claim.user_avatar_value : `/api/icons/svg/${claim.user_avatar_value}`}
-          alt=""
-          style={{ width: 32, height: 32, borderRadius: claim.user_avatar_kind === 'image' ? '50%' : 0, objectFit: 'cover' }}
-        />
+        <Avatar kind={claim.user_avatar_kind} value={claim.user_avatar_value} size={32} />
         <strong>{claim.user_name}</strong>
         <span style={{ color: 'var(--accent)' }}>+{claim.points_value} ⭐</span>
       </div>

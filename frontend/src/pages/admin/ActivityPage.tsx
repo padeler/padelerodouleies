@@ -4,6 +4,7 @@ import { useT } from '../../i18n/store';
 import type { HistoryEntry, AdminUser } from '../../lib/types';
 import { useState } from 'react';
 import { Pagination, PAGE_SIZE } from '../../components/Pagination';
+import { Avatar } from '../../components/Avatar';
 import './AdminPage.css';
 
 const actionTypes = [
@@ -15,13 +16,10 @@ const actionTypes = [
 ];
 
 function UserAvatar({ kind, value, name }: { kind: 'icon' | 'image'; value: string; name: string }) {
-  const src = kind === 'image' ? value : `/api/icons/svg/${value}`;
   return (
-    <img
-      src={src}
-      alt={name}
-      style={{ width: 28, height: 28, borderRadius: kind === 'image' ? '50%' : 0, objectFit: 'cover', verticalAlign: 'middle', marginRight: 6 }}
-    />
+    <span style={{ marginRight: 6 }}>
+      <Avatar kind={kind} value={value} size={28} alt={name} />
+    </span>
   );
 }
 

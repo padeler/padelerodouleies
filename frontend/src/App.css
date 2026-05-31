@@ -16,14 +16,6 @@
   gap: 10px;
 }
 
-.user-avatar-img {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--bg-s, rgba(255, 255, 255, 0.05));
-}
-
 .user-name {
   font-weight: 600;
   font-size: 18px;

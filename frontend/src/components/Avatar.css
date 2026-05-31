@@ -1,0 +1,28 @@
+/* Shared circular avatar. Dimensions come from an inline size or a caller
+   className; the children scale relative to the ring. Mirrors the login
+   screen so icon SVGs are padded (never clipped) and photos fill the ring. */
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--accent-bg);
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* Icon SVGs: padded inside the ring so their edges stay visible. */
+.avatar-icon {
+  width: 65%;
+  height: 65%;
+  object-fit: contain;
+}
+
+/* Uploaded photos: fill the whole ring. */
+.avatar-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
