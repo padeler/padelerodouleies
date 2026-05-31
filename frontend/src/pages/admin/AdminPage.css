@@ -105,6 +105,19 @@
   display: inline;
 }
 
+/* Tab switchers (e.g. Fulfillment's Claimed/Fulfilled) are just a couple of
+   buttons with plenty of room — keep their labels visible at every width. */
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.admin-tabs .admin-btn .btn-text {
+  display: inline;
+}
+
 .admin-btn:hover {
   border-color: var(--accent);
   color: var(--text-h);
