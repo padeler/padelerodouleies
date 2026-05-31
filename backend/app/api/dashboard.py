@@ -27,6 +27,7 @@ def get_visible_chores(
         {
             "id": e["chore"].id,
             "title": e["chore"].title,
+            "description": e["chore"].description,
             "icon_name": e["chore"].icon_name,
             "claim_mode": e["chore"].claim_mode,
             "points_value": e["chore"].points_value,

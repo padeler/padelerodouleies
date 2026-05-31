@@ -98,9 +98,10 @@ describe('Marketplace — individual rewards', () => {
     );
     renderMarketplace();
     await waitFor(() => {
-      expect(screen.getByText('Πάρκο')).toBeInTheDocument();
+      // Title and cost appear on both the front and the flippable back face.
+      expect(screen.getAllByText('Πάρκο').length).toBeGreaterThan(0);
       expect(screen.getByText('Πεζοπορία')).toBeInTheDocument();
-      expect(screen.getByText('30 ⭐')).toBeInTheDocument();
+      expect(screen.getAllByText('30 ⭐').length).toBeGreaterThan(0);
     });
   });
 
@@ -128,7 +129,7 @@ describe('Marketplace — collaborative rewards', () => {
     );
     renderMarketplace();
     await waitFor(() => {
-      expect(screen.getByText('Ψαθούλα')).toBeInTheDocument();
+      expect(screen.getAllByText('Ψαθούλα').length).toBeGreaterThan(0);
       expect(screen.getByText('100 / 500 ⭐')).toBeInTheDocument();
     });
   });

@@ -1,7 +1,5 @@
-- [ ] There are inconsistencies in the CSS of the frontend. Breaks when the width is small 
- - [x] in the admin's "Chores" tab, the buttons section of each row is missaligned with the rest of the row. It happens when the title column is multiple lines. (actions cell is now a normal middle-aligned table cell with an inner `.row-actions` flex row)
- - [x] the text in the buttons in the "Chores" when the width is very small collapse (only icons are shown) but there is still a lot of real estate which is unused (action buttons no longer stack vertically at ≤768px; they stay in a horizontal wrapping row)
- - [x] The icon of the "Disable" button in the "Chores" changes to two icons when it is clicked. (replaced the `👁‍🗨` ZWJ emoji, which fonts render as two glyphs, with single-codepoint `🚫`)
- - [x] Same problems as above in the "Awards" tab. (same fixes applied to RewardsPage + UsersPage)
- 
- Based on the CSS inconsistencies maybe a refactoring/cleanup of the CSS now that the feature set is complete would help 
+- [x] on the user side the cards on the "Chores" and "Marketplace" need the following change: There is an optional "description" entry for chores and awards that is never shown, however this is useful. Change the cards such that when a user taps on it (anyware on the card except the "Claim" button) the card flips around revealing all the details of the card. When the user taps again the card flips again and can be claimed. Do a nice flip animation to give the sense of an actual card game.
+- [ ] on the "New reward" popup: There is no need to an "enabled" checkbox. The "COLLABORATIVE" checkbox should be a toggle button following the style of the rest of the popups 
+- [ ] The avatar circle when an svg is used is cutting the edges of the svg. This is not happening in the login page. Make the avatars rendering the same as the login page so it is consistent.
+- [ ] on the admin "Fulfillment" tab the text is collapsed from the "Claimed" and "Fulfilled" buttons on narrow widths even though there is enough space for it.
+- [ ] We need more icons. Expand the collection.

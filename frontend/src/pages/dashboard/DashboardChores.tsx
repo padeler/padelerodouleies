@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getVisibleChores, claimChore, getPendingStars } from '../../api/client';
 import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { VisibleChore } from '../../lib/types';
 import { notifyCelebration, notifyError } from '../../lib/notify';
+import './flip-card.css';
 import './DashboardChores.css';
 
 function ClaimerBadge({ claimed_by }: { claimed_by: VisibleChore['claimed_by'] }) {
@@ -22,6 +24,7 @@ function ClaimerBadge({ claimed_by }: { claimed_by: VisibleChore['claimed_by'] }
 function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserId: number }) {
   const t = useT();
   const queryClient = useQueryClient();
+  const [flipped, setFlipped] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => claimChore(chore.id),
@@ -47,66 +50,88 @@ function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserI
     isTakenByOther ? 'chore-taken' : '',
   ].filter(Boolean).join(' ');
 
+  const iconSrc = chore.icon_name.startsWith('/')
+    ? chore.icon_name
+    : `/api/icons/svg/${chore.icon_name}`;
+
   return (
-    <div className={cardClass}>
-      <div className="chore-icon-wrap">
-        <img
-          src={chore.icon_name.startsWith('/') ? chore.icon_name : `/api/icons/svg/${chore.icon_name}`}
-          alt=""
-          className="chore-icon"
-        />
-      </div>
-      <h3 className="chore-title">{chore.title}</h3>
-      <div className="chore-points">+{chore.points_value} ★</div>
+    <div
+      className={`flip-card ${flipped ? 'flipped' : ''}`}
+      onClick={() => setFlipped((f) => !f)}
+    >
+      <div className="flip-card-inner">
+        <div className={`${cardClass} flip-card-face flip-card-front`}>
+          <div className="chore-icon-wrap">
+            <img src={iconSrc} alt="" className="chore-icon" />
+          </div>
+          <h3 className="chore-title">{chore.title}</h3>
+          <div className="chore-points">+{chore.points_value} ★</div>
 
-      {chore.status === 'available' && (
-        <button
-          className="chore-claim-btn"
-          type="button"
-          disabled={mutation.isPending}
-          onClick={() => mutation.mutate()}
-        >
-          {mutation.isPending ? (
-            <span className="chore-pending-label">{t('chore.pending')}</span>
-          ) : (
-            t('chore.claim')
+          {chore.status === 'available' && (
+            <button
+              className="chore-claim-btn"
+              type="button"
+              disabled={mutation.isPending}
+              onClick={(e) => {
+                e.stopPropagation();
+                mutation.mutate();
+              }}
+            >
+              {mutation.isPending ? (
+                <span className="chore-pending-label">{t('chore.pending')}</span>
+              ) : (
+                t('chore.claim')
+              )}
+            </button>
           )}
-        </button>
-      )}
 
-      {isMyPending && (
-        <div className="chore-status-badge chore-status-mine-pending">
-          {t('chore.status_pending_mine')}
+          {isMyPending && (
+            <div className="chore-status-badge chore-status-mine-pending">
+              {t('chore.status_pending_mine')}
+            </div>
+          )}
+
+          {isMyApproved && (
+            <div className="chore-status-badge chore-status-mine-approved">
+              {t('chore.status_approved_mine')}
+            </div>
+          )}
+
+          {isTakenByOther && chore.status === 'pending' && (
+            <>
+              <div className="chore-status-badge chore-status-taken">
+                {t('chore.claimed_by', { name: chore.claimed_by!.name })}
+              </div>
+              <ClaimerBadge claimed_by={chore.claimed_by} />
+            </>
+          )}
+
+          {isTakenByOther && chore.status === 'approved' && (
+            <>
+              <div className="chore-status-badge chore-status-done">
+                {t('chore.done_by', { name: chore.claimed_by!.name })}
+              </div>
+              <ClaimerBadge claimed_by={chore.claimed_by} />
+            </>
+          )}
+
+          {mutation.isError && (
+            <div className="chore-error">{t('chore.already_claimed')}</div>
+          )}
         </div>
-      )}
 
-      {isMyApproved && (
-        <div className="chore-status-badge chore-status-mine-approved">
-          {t('chore.status_approved_mine')}
+        <div className={`${cardClass} flip-card-face flip-card-back`}>
+          <div className="flip-back-header">
+            <img src={iconSrc} alt="" className="flip-back-icon" />
+            <h3 className="flip-back-title">{chore.title}</h3>
+          </div>
+          <div className="flip-back-label">{t('card.details')}</div>
+          <p className="flip-back-desc">
+            {chore.description || t('card.no_description')}
+          </p>
+          <div className="chore-points">+{chore.points_value} ★</div>
         </div>
-      )}
-
-      {isTakenByOther && chore.status === 'pending' && (
-        <>
-          <div className="chore-status-badge chore-status-taken">
-            {t('chore.claimed_by', { name: chore.claimed_by!.name })}
-          </div>
-          <ClaimerBadge claimed_by={chore.claimed_by} />
-        </>
-      )}
-
-      {isTakenByOther && chore.status === 'approved' && (
-        <>
-          <div className="chore-status-badge chore-status-done">
-            {t('chore.done_by', { name: chore.claimed_by!.name })}
-          </div>
-          <ClaimerBadge claimed_by={chore.claimed_by} />
-        </>
-      )}
-
-      {mutation.isError && (
-        <div className="chore-error">{t('chore.already_claimed')}</div>
-      )}
+      </div>
     </div>
   );
 }

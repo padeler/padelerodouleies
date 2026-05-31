@@ -104,8 +104,9 @@ describe('DashboardChores', () => {
     );
     renderDashboard();
     await waitFor(() => {
-      expect(screen.getByText('Βούρτσισμα')).toBeInTheDocument();
-      expect(screen.getByText(/\+5/)).toBeInTheDocument();
+      // Title and points appear on both the front and the flippable back face.
+      expect(screen.getAllByText('Βούρτσισμα').length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/\+5/).length).toBeGreaterThan(0);
       expect(screen.getAllByText('Διεκδίκηση').length).toBe(2);
     });
   });
@@ -125,7 +126,7 @@ describe('DashboardChores', () => {
       http.post('/api/dashboard/chores/1/claim', async () => HttpResponse.json({ ok: true })),
     );
     renderDashboard();
-    await screen.findByText('Βούρτσισμα');
+    await screen.findAllByText('Βούρτσισμα');
     const btn = screen.getByRole('button', { name: 'Διεκδίκηση' });
     btn.focus();
     await user.keyboard('[Enter]');
@@ -147,7 +148,7 @@ describe('DashboardChores', () => {
       }),
     );
     renderDashboard();
-    await screen.findByText('Βούρτσισμα');
+    await screen.findAllByText('Βούρτσισμα');
     const btn = screen.getByRole('button', { name: 'Διεκδίκηση' });
     btn.focus();
     await user.keyboard('[Enter]');
@@ -184,7 +185,7 @@ describe('DashboardChores', () => {
     );
     renderDashboard();
     await waitFor(() => {
-      expect(screen.getByText('Πλύσιμο Αυτοκινήτου')).toBeInTheDocument();
+      expect(screen.getAllByText('Πλύσιμο Αυτοκινήτου').length).toBeGreaterThan(0);
       expect(screen.getByText('Nikos')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Διεκδίκηση' })).not.toBeInTheDocument();
     });

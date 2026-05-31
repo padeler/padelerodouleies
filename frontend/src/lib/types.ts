@@ -101,6 +101,7 @@ export interface ChoreClaimedBy {
 export interface VisibleChore {
   id: number;
   title: string;
+  description: string | null;
   icon_name: string;
   claim_mode: 'each' | 'one';
   points_value: number;
