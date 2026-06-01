@@ -3,4 +3,4 @@
         - [x] in some devices the photo is captured but it is rotated 90 degrees to the right although the capture was vertical.
         - [x] in other devices the captured photos exceed the max upload size limit (2MB?) This should be changed to something much larger and the uploaded image should be resized/croped to a web-acceptable size
         - [x] in some other devices the upload just fails with a "upload failed"  message in red under the widget
-- [ ] we need even more icons for avatars, jobs and rewards.
+- [x] we need even more icons for avatars, jobs and rewards.
