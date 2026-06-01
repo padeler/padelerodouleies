@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useState } from 'react';
 import { notifySuccess, notifyError } from '../../lib/notify';
 import { UserModal } from '../../components/UserModal';
+import { AdjustStarsModal } from '../../components/AdjustStarsModal';
 import { Pagination, usePagination } from '../../components/Pagination';
 import { Avatar } from '../../components/Avatar';
 import './AdminPage.css';
@@ -19,6 +20,7 @@ export function UsersPage() {
   const { user: currentUser } = useAuth();
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [creating, setCreating] = useState(false);
+  const [adjusting, setAdjusting] = useState<AdminUser | null>(null);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['admin-users'],
     queryFn: getAdminUsers,
@@ -95,6 +97,10 @@ export function UsersPage() {
                       <span className="btn-icon">✎</span>
                       <span className="btn-text">{t('btn.edit')}</span>
                     </button>
+                    <button className="admin-btn" onClick={() => setAdjusting(user)} title={t('btn.adjust_stars')}>
+                      <span className="btn-icon">⭐</span>
+                      <span className="btn-text">{t('btn.adjust_stars')}</span>
+                    </button>
                     <button className="admin-btn" onClick={() => handleResetPin(user)} title={t('btn.reset_pin')}>
                       <span className="btn-icon">🔑</span>
                       <span className="btn-text">{t('btn.reset_pin')}</span>
@@ -116,6 +122,7 @@ export function UsersPage() {
       <Pagination page={page} pageCount={pageCount} onChange={setPage} />
       {creating && <UserModal onClose={() => setCreating(false)} />}
       {editing && <UserModal user={editing} onClose={() => setEditing(null)} />}
+      {adjusting && <AdjustStarsModal user={adjusting} onClose={() => setAdjusting(null)} />}
     </div>
   );
 }

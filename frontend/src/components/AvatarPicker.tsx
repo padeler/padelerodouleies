@@ -14,6 +14,8 @@ export function AvatarPicker({ selected, onChange }: AvatarPickerProps) {
   const t = useT();
   const [tab, setTab] = useState<'icon' | 'upload'>('icon');
   const [preview, setPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleIconSelect = (name: string) => {
     onChange({ kind: 'icon', value: name });
@@ -23,12 +25,16 @@ export function AvatarPicker({ selected, onChange }: AvatarPickerProps) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setError(null);
+    setUploading(true);
     try {
       const resp = await uploadAvatar(file);
       onChange({ kind: 'image', value: resp.url });
       setPreview(resp.url);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Upload failed');
+      setError(err instanceof Error ? err.message : t('icon_picker.upload_failed'));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -59,8 +65,10 @@ export function AvatarPicker({ selected, onChange }: AvatarPickerProps) {
         />
       ) : (
         <div className="avatar-picker-upload">
-          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} />
-          {preview && (
+          <input type="file" accept="image/*" onChange={handleFileChange} disabled={uploading} />
+          {uploading && <div className="avatar-picker-status">{t('icon_picker.uploading')}</div>}
+          {error && <div className="avatar-picker-error">{error}</div>}
+          {preview && !uploading && (
             <img src={preview} alt="Preview" className="avatar-picker-preview" />
           )}
         </div>

@@ -36,6 +36,17 @@
   padding: 16px;
 }
 
+.avatar-picker-status {
+  font-size: 13px;
+  color: var(--text-muted, #888);
+}
+
+.avatar-picker-error {
+  font-size: 13px;
+  color: #e23b3b;
+  text-align: center;
+}
+
 .avatar-picker-preview {
   width: 128px;
   height: 128px;

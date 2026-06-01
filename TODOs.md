@@ -1,5 +1,6 @@
-- [x] on the user side the cards on the "Chores" and "Marketplace" need the following change: There is an optional "description" entry for chores and awards that is never shown, however this is useful. Change the cards such that when a user taps on it (anyware on the card except the "Claim" button) the card flips around revealing all the details of the card. When the user taps again the card flips again and can be claimed. Do a nice flip animation to give the sense of an actual card game.
-- [x] on the "New reward" popup: There is no need to an "enabled" checkbox. The "COLLABORATIVE" checkbox should be a toggle button following the style of the rest of the popups 
-- [x] The avatar circle when an svg is used is cutting the edges of the svg. This is not happening in the login page. Make the avatars rendering the same as the login page so it is consistent.
-- [x] on the admin "Fulfillment" tab the text is collapsed from the "Claimed" and "Fulfilled" buttons on narrow widths even though there is enough space for it.
-- [x] We need more icons. Expand the collection.
+- [x] There was a feature at some point that allowed an admin to change the stars of a user (increate or decrese) and add a comment for this "manual" action. I want this feature back.
+- [x] In the user icon selection in the settings there are some bugs in different mobile devices. When a user selects to upload photo (i.e captures a new with the phone/tablet camera):
+        - [x] in some devices the photo is captured but it is rotated 90 degrees to the right although the capture was vertical.
+        - [x] in other devices the captured photos exceed the max upload size limit (2MB?) This should be changed to something much larger and the uploaded image should be resized/croped to a web-acceptable size
+        - [x] in some other devices the upload just fails with a "upload failed"  message in red under the widget
+- [ ] we need even more icons for avatars, jobs and rewards.

@@ -159,6 +159,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "icon_picker.category_rewards": {"el": "Βραβεία", "en": "Rewards"},
     "icon_picker.tab_icon": {"el": "Εικονίδιο", "en": "Icon"},
     "icon_picker.tab_upload": {"el": "Ανέβασμα", "en": "Upload"},
+    "icon_picker.uploading": {"el": "Ανέβασμα...", "en": "Uploading..."},
+    "icon_picker.upload_failed": {"el": "Η μεταφόρτωση απέτυχε", "en": "Upload failed"},
     # Errors
     "error.generic": {"el": "Προέκυψε σφάλμα", "en": "An error occurred"},
     "error.not_found": {"el": "Δεν βρέθηκε", "en": "Not found"},
