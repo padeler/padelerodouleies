@@ -28,7 +28,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
+    --text: #c3c9d4;
     --text-h: #f3f4f6;
     --bg: #16171d;
     --border: #2e303a;
@@ -43,7 +43,7 @@
 }
 
 html[data-theme="dark"] {
-  --text: #9ca3af;
+  --text: #c3c9d4;
   --text-h: #f3f4f6;
   --bg: #16171d;
   --border: #2e303a;
@@ -68,6 +68,18 @@ html[data-theme="light"] {
   --social-bg: rgba(244, 243, 236, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+}
+
+/*
+ * Catalog icons are monochrome line SVGs (black `currentColor` stroke) loaded
+ * via <img>, so they cannot inherit theme colors. On the themed dark surfaces
+ * (admin panel + settings modal) a black icon is nearly invisible, so we invert
+ * it to a light tone. The kid dashboard keeps its bright hardcoded cards, where
+ * the original dark icons already read well — those are intentionally excluded.
+ */
+html[data-theme="dark"] .admin-shell img[src*="/api/icons/svg/"],
+html[data-theme="dark"] .settings-modal img[src*="/api/icons/svg/"] {
+  filter: invert(0.85);
 }
 
 * {

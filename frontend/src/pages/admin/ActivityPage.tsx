@@ -5,6 +5,7 @@ import type { HistoryEntry, AdminUser } from '../../lib/types';
 import { useState } from 'react';
 import { Pagination, PAGE_SIZE } from '../../components/Pagination';
 import { Avatar } from '../../components/Avatar';
+import { formatDateTime } from '../../lib/datetime';
 import './AdminPage.css';
 
 const actionTypes = [
@@ -145,7 +146,7 @@ export function ActivityPage() {
           <tbody>
             {(data?.entries as HistoryEntry[])?.map((entry) => (
               <tr key={entry.id}>
-                <td>{new Date(entry.timestamp).toLocaleString('el-GR')}</td>
+                <td>{formatDateTime(entry.timestamp)}</td>
                 <td style={{ whiteSpace: 'nowrap' }}>
                   {entry.user_avatar_kind && (
                     <UserAvatar kind={entry.user_avatar_kind} value={entry.user_avatar_value} name={entry.user_name} />

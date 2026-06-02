@@ -6,6 +6,7 @@ import App from './App';
 import { getTranslations } from './api/client';
 import { useI18nStore } from './i18n/store';
 import { useAuthStore } from './state/authStore';
+import { applyAccent } from './lib/accent';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -28,6 +29,11 @@ function applyTheme(theme: string) {
 function ThemeWatcher() {
   const user = useAuthStore((s) => s.user);
   const theme = user?.preferred_theme ?? 'system';
+  const accent = user?.accent_color ?? null;
+
+  useEffect(() => {
+    applyAccent(accent);
+  }, [accent]);
 
   useEffect(() => {
     applyTheme(theme);

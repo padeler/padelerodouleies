@@ -17,6 +17,7 @@ class LoginResponse(BaseModel):
     current_stars: int
     preferred_locale: str
     preferred_theme: str = "system"
+    accent_color: str | None = None
 
 
 class UserPublic(BaseModel):

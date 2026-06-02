@@ -11,6 +11,8 @@ export interface AuthUser {
   pending_stars?: number;
   preferred_locale: string;
   preferred_theme: string;
+  // User-chosen accent color ("#RRGGBB"); null/undefined uses the theme default.
+  accent_color?: string | null;
 }
 
 interface AuthState {

@@ -166,3 +166,35 @@
 .theme-icon {
   font-size: 20px;
 }
+
+.accent-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.accent-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s, border-color 0.2s;
+}
+
+.accent-swatch:hover {
+  transform: scale(1.1);
+}
+
+.accent-swatch.active {
+  border-color: var(--text-h);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text-h);
+}
+
+.accent-default {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1;
+}

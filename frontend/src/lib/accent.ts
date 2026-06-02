@@ -1,0 +1,48 @@
+/**
+ * Per-user accent color support.
+ *
+ * Users pick one of a fixed palette of swatches; the chosen color overrides the
+ * `--accent` family of CSS variables on the document root (taking precedence
+ * over the theme defaults defined in index.css). A null choice clears the
+ * override and falls back to the theme default.
+ *
+ * The hex values here MUST stay in sync with `_ALLOWED_ACCENTS` in
+ * `backend/app/api/auth.py`.
+ */
+
+export const ACCENT_SWATCHES: readonly string[] = [
+  '#aa3bff', // purple (default)
+  '#4d96ff', // blue
+  '#00b894', // green
+  '#ff6bb5', // pink
+  '#ff922b', // orange
+  '#ef4444', // red
+  '#14b8a6', // teal
+  '#f5b301', // amber
+];
+
+/** Convert a "#RRGGBB" string to an "r, g, b" channel triplet. */
+function hexToRgb(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r}, ${g}, ${b}`;
+}
+
+/**
+ * Apply (or clear) the accent override on <html>. Passing null/undefined removes
+ * the inline override so the theme default from index.css applies again.
+ */
+export function applyAccent(color: string | null | undefined): void {
+  const root = document.documentElement;
+  if (!color) {
+    root.style.removeProperty('--accent');
+    root.style.removeProperty('--accent-bg');
+    root.style.removeProperty('--accent-border');
+    return;
+  }
+  const rgb = hexToRgb(color);
+  root.style.setProperty('--accent', color);
+  root.style.setProperty('--accent-bg', `rgba(${rgb}, 0.12)`);
+  root.style.setProperty('--accent-border', `rgba(${rgb}, 0.5)`);
+}

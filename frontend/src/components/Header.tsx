@@ -61,7 +61,8 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
             onClick={() => setShowSettings(true)}
             title={t('nav.settings')}
           >
-            ⚙
+            <span className="btn-icon">⚙</span>
+            <span className="btn-text">{t('nav.settings')}</span>
           </button>
           <button className="logout-btn" onClick={handleLogout}>
             <span className="btn-icon">⏻</span>

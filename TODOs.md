@@ -1,6 +1,10 @@
-- [x] There was a feature at some point that allowed an admin to change the stars of a user (increate or decrese) and add a comment for this "manual" action. I want this feature back.
-- [x] In the user icon selection in the settings there are some bugs in different mobile devices. When a user selects to upload photo (i.e captures a new with the phone/tablet camera):
-        - [x] in some devices the photo is captured but it is rotated 90 degrees to the right although the capture was vertical.
-        - [x] in other devices the captured photos exceed the max upload size limit (2MB?) This should be changed to something much larger and the uploaded image should be resized/croped to a web-acceptable size
-        - [x] in some other devices the upload just fails with a "upload failed"  message in red under the widget
-- [x] we need even more icons for avatars, jobs and rewards.
+- [x] in the Users tab of the Admin panel:
+    - [x] in the "Actions" column there is a "Stars" button for all users even if they are Parents. Only Child users should have the "Stars" action.
+    - [x] The is no need for the "Active" column all users are active.
+    - [x] In the "Stars" column if the user is a Parent just add "N/A".
+- [x] in the fulfillment tab the admin should be able to "Cancel" a reward order in which case the stars are redeemed to the user (and the cancel is logged)
+- [x] The timezone on the frontend is wrong. It should be set to Athens Timezone. It is showing in UTC now
+- [x] the dark theme has bad contrast for the icons and text. This should be fixed. 
+- [x] Color accents: The user selects a color that becomes the "accent" for their theme.
+- [x] The buttons on the top right (language, settings) should also have text as does the "Exit" button
+- [x] logged in users and admins should timeout after 5 minutes of inactivity with a message and return to the login screen.

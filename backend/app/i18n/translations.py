@@ -94,6 +94,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # Fulfillment
     "fulfillment.empty": {"el": "Δεν υπάρχουν εγγραφές", "en": "No entries"},
     "fulfillment.fulfilled_at": {"el": "Εκτελέστηκε στις", "en": "Fulfilled at"},
+    "fulfillment.cancel_confirm": {"el": "Ακύρωση παραγγελίας του/της {name}; Θα επιστραφούν {stars} ⭐.", "en": "Cancel {name}'s order? {stars} ⭐ will be refunded."},
+    "fulfillment.cancel_reason": {"el": "Λόγος ακύρωσης (προαιρετικά):", "en": "Cancellation reason (optional):"},
+    "fulfillment.cancelled": {"el": "Η παραγγελία ακυρώθηκε — επιστράφηκαν {stars} ⭐", "en": "Order cancelled — {stars} ⭐ refunded"},
     # Stars
     "stars.current": {"el": "{count} ⭐", "en": "{count} ⭐"},
     "stars.adjust": {"el": "Ρύθμιση Αστέρων", "en": "Adjust Stars"},
@@ -146,6 +149,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "settings.theme_system": {"el": "Σύστημα", "en": "System"},
     "settings.theme_light": {"el": "Φωτεινό", "en": "Light"},
     "settings.theme_dark": {"el": "Σκοτεινό", "en": "Dark"},
+    "settings.accent": {"el": "Χρώμα τόνου", "en": "Accent color"},
+    "settings.accent_default": {"el": "Προεπιλογή", "en": "Default"},
     "btn.delete_confirm": {"el": "Σίγουρος;", "en": "Are you sure?"},
     # Icon picker
     "icon_picker.search": {"el": "Αναζήτηση…", "en": "Search…"},
@@ -168,6 +173,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "leaderboard.empty": {"el": "Δεν υπάρχουν δεδομένα κατάταξης ακόμα", "en": "No leaderboard data yet"},
     "marketplace.empty": {"el": "Δεν υπάρχουν βραβεία ακόμα", "en": "No rewards available yet"},
     "auth.locale": {"el": "el", "en": "en"},
+    "auth.idle_logout": {"el": "Αποσυνδεθήκατε λόγω αδράνειας", "en": "You were logged out due to inactivity"},
     # Action labels for history
     "history.action_label_approved": {"el": "Έγκριση δουλειάς", "en": "Approved chore"},
     "history.action_label_declined": {"el": "Απόρριψη δουλειάς", "en": "Declined chore"},
@@ -206,6 +212,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "btn.approve": {"el": "Έγκριση", "en": "Approve"},
     "btn.decline": {"el": "Απόρριψη", "en": "Decline"},
     "btn.mark_fulfilled": {"el": "Εκτελέστηκε", "en": "Mark Fulfilled"},
+    "btn.cancel_order": {"el": "Ακύρωση", "en": "Cancel"},
     "btn.adjust_stars": {"el": "Αστέρια", "en": "Stars"},
     "btn.reset_pin": {"el": "Επαναφορά PIN", "en": "Reset PIN"},
     "btn.clear": {"el": "Εκκαθάριση", "en": "Clear"},
