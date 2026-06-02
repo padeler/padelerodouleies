@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
-import { changePin, updateTheme, uploadMyAvatar, updateMeAvatar } from '../api/client';
+import { changePin, updateTheme, updateAccent, uploadMyAvatar, updateMeAvatar } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../i18n/store';
 import { IconPicker } from './IconPicker';
+import { ACCENT_SWATCHES } from '../lib/accent';
 import type { AvatarSelection } from '../lib/types';
 import './SettingsModal.css';
 import './AvatarPicker.css';
@@ -99,6 +100,21 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
       } catch (err) {
         console.error('[Settings] failed to update theme:', err);
         setThemeError('Failed to update theme');
+      }
+    },
+    [user, setUser],
+  );
+
+  const handleAccentChange = useCallback(
+    async (color: string | null) => {
+      if (!user) return;
+      try {
+        setThemeError('');
+        await updateAccent(color);
+        setUser({ ...user, accent_color: color });
+      } catch (err) {
+        console.error('[Settings] failed to update accent:', err);
+        setThemeError('Failed to update accent color');
       }
     },
     [user, setUser],
@@ -244,6 +260,32 @@ export function SettingsModal({ open, onClose }: SettingsModalProps) {
             ))}
           </div>
           {themeError && <div className="settings-error">{themeError}</div>}
+        </div>
+
+        {/* Accent Color Section */}
+        <div className="settings-section">
+          <h3>{t('settings.accent')}</h3>
+          <div className="accent-selector">
+            <button
+              type="button"
+              className={`accent-swatch accent-default ${!user?.accent_color ? 'active' : ''}`}
+              onClick={() => handleAccentChange(null)}
+              title={t('settings.accent_default')}
+              aria-label={t('settings.accent_default')}
+            >
+              ✕
+            </button>
+            {ACCENT_SWATCHES.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={`accent-swatch ${user?.accent_color === color ? 'active' : ''}`}
+                style={{ background: color }}
+                onClick={() => handleAccentChange(color)}
+                aria-label={color}
+              />
+            ))}
+          </div>
         </div>
 
         {/* PIN Section */}

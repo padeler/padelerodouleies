@@ -71,7 +71,6 @@ export function UsersPage() {
               <th>{t('user.table.name')}</th>
               <th>{t('user.table.role')}</th>
               <th>{t('user.table.stars')}</th>
-              <th>{t('user.table.active')}</th>
               <th>{t('common.actions')}</th>
             </tr>
           </thead>
@@ -85,22 +84,19 @@ export function UsersPage() {
                     {user.role === 'admin' ? t('user.role_admin') : t('user.role_user')}
                   </span>
                 </td>
-                <td>{user.current_stars} ⭐</td>
-                <td>
-                  <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
-                    {user.is_active ? t('common.enabled') : t('common.disabled')}
-                  </span>
-                </td>
+                <td>{user.role === 'admin' ? 'N/A' : `${user.current_stars} ⭐`}</td>
                 <td className="actions">
                   <div className="row-actions">
                     <button className="admin-btn" onClick={() => setEditing(user)} title={t('btn.edit')}>
                       <span className="btn-icon">✎</span>
                       <span className="btn-text">{t('btn.edit')}</span>
                     </button>
-                    <button className="admin-btn" onClick={() => setAdjusting(user)} title={t('btn.adjust_stars')}>
-                      <span className="btn-icon">⭐</span>
-                      <span className="btn-text">{t('btn.adjust_stars')}</span>
-                    </button>
+                    {user.role !== 'admin' && (
+                      <button className="admin-btn" onClick={() => setAdjusting(user)} title={t('btn.adjust_stars')}>
+                        <span className="btn-icon">⭐</span>
+                        <span className="btn-text">{t('btn.adjust_stars')}</span>
+                      </button>
+                    )}
                     <button className="admin-btn" onClick={() => handleResetPin(user)} title={t('btn.reset_pin')}>
                       <span className="btn-icon">🔑</span>
                       <span className="btn-text">{t('btn.reset_pin')}</span>
@@ -114,7 +110,7 @@ export function UsersPage() {
               </tr>
             ))}
             {data?.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('user.table.empty')}</td></tr>
+              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('user.table.empty')}</td></tr>
             )}
           </tbody>
         </table>

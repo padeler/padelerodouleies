@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getFulfillmentQueue, markFulfilled } from '../../api/client';
+import { getFulfillmentQueue, markFulfilled, cancelFulfillment } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { FulfillmentEntry } from '../../lib/types';
 import { useState } from 'react';
-import { notifyCelebration, notifyError } from '../../lib/notify';
+import { notifyCelebration, notifyError, notifySuccess } from '../../lib/notify';
 import { Pagination, usePagination } from '../../components/Pagination';
+import { formatDateTime } from '../../lib/datetime';
 import './AdminPage.css';
 
 function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
@@ -22,6 +23,28 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
     },
   });
 
+  const cancel = useMutation({
+    mutationFn: (reason: string | undefined) => cancelFulfillment(entry.id, reason),
+    onSuccess: (res) => {
+      notifySuccess(t('fulfillment.cancelled', { stars: String(res.refunded) }));
+      qc.invalidateQueries({ queryKey: ['fulfillment', 'claimed'] });
+      qc.invalidateQueries({ queryKey: ['fulfillment', 'fulfilled'] });
+    },
+    onError: (err) => {
+      notifyError(err.message || t('common.error'));
+    },
+  });
+
+  const handleCancel = () => {
+    if (!window.confirm(t('fulfillment.cancel_confirm', { name: entry.user_name, stars: String(entry.stars_contributed) }))) {
+      return;
+    }
+    const reason = window.prompt(t('fulfillment.cancel_reason')) ?? undefined;
+    cancel.mutate(reason || undefined);
+  };
+
+  const busy = mutate.isPending || mutate.isSuccess || cancel.isPending || cancel.isSuccess;
+
   return (
     <tr>
       <td>
@@ -30,16 +53,26 @@ function FulfillRow({ entry }: { entry: FulfillmentEntry }) {
       <td>{entry.reward_title}</td>
       <td>{entry.user_name}</td>
       <td>{entry.stars_contributed}</td>
-      <td>{new Date(entry.claimed_at).toLocaleString('el-GR')}</td>
+      <td>{formatDateTime(entry.claimed_at)}</td>
       <td>
-        <button
-          className="admin-btn admin-btn-success"
-          onClick={() => mutate.mutate()}
-          disabled={mutate.isPending || mutate.isSuccess}
-        >
-          <span className="btn-icon">✓</span>
-          <span className="btn-text">{t('btn.mark_fulfilled')}</span>
-        </button>
+        <div className="row-actions">
+          <button
+            className="admin-btn admin-btn-success"
+            onClick={() => mutate.mutate()}
+            disabled={busy}
+          >
+            <span className="btn-icon">✓</span>
+            <span className="btn-text">{t('btn.mark_fulfilled')}</span>
+          </button>
+          <button
+            className="admin-btn admin-btn-danger"
+            onClick={handleCancel}
+            disabled={busy}
+          >
+            <span className="btn-icon">↩</span>
+            <span className="btn-text">{t('btn.cancel_order')}</span>
+          </button>
+        </div>
       </td>
     </tr>
   );
@@ -104,8 +137,8 @@ export function FulfillmentPage() {
                     <td>{entry.reward_title}</td>
                     <td>{entry.user_name}</td>
                     <td>{entry.stars_contributed}</td>
-                    <td>{new Date(entry.claimed_at).toLocaleString('el-GR')}</td>
-                    <td>{entry.fulfilled_at ? new Date(entry.fulfilled_at).toLocaleString('el-GR') : '—'}</td>
+                    <td>{formatDateTime(entry.claimed_at)}</td>
+                    <td>{entry.fulfilled_at ? formatDateTime(entry.fulfilled_at) : '—'}</td>
                   </tr>
                 ))}
           </tbody>

@@ -82,6 +82,13 @@ export async function updateTheme(theme: string) {
   });
 }
 
+export async function updateAccent(accentColor: string | null) {
+  return request<{ accent_color: string | null }>('/auth/me/accent', {
+    method: 'POST',
+    body: JSON.stringify({ accent_color: accentColor }),
+  });
+}
+
 export async function changePin(currentPin: string, newPin: string) {
   return request<{ message: string }>('/auth/me/pin', {
     method: 'POST',
@@ -367,6 +374,13 @@ export async function getFulfillmentQueue(status: 'claimed' | 'fulfilled') {
 
 export async function markFulfilled(ledgerId: number) {
   return request<unknown>(`/admin/fulfillment/${ledgerId}/mark-fulfilled`, { method: 'POST' });
+}
+
+export async function cancelFulfillment(ledgerId: number, reason?: string) {
+  return request<{ message: string; refunded: number }>(
+    `/admin/fulfillment/${ledgerId}/cancel`,
+    { method: 'POST', body: JSON.stringify({ reason: reason ?? null }) },
+  );
 }
 
 /* -- Admin history -- */

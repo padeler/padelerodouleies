@@ -1,14 +1,30 @@
 .locale-toggle {
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
+  padding: 8px 16px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: none;
   color: var(--text);
   cursor: pointer;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: background 0.15s, border-color 0.15s;
+}
+
+.locale-toggle .btn-icon {
+  font-size: 16px;
+}
+
+@media (max-width: 360px) {
+  .locale-toggle .btn-text {
+    display: none;
+  }
+  .locale-toggle {
+    padding: 6px 8px;
+  }
 }
 
 .locale-toggle:hover {

@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -528,6 +529,51 @@ async def mark_fulfilled(
     db.commit()
     await broadcaster.emit("fulfillment_queue_changed", {}, "admins")
     return JSONResponse(content={"message": "Fulfilled"})
+
+
+class _CancelFulfillmentRequest(BaseModel):
+    reason: str | None = None
+
+
+@router.post("/fulfillment/{ledger_id}/cancel")
+async def cancel_fulfillment(
+    ledger_id: int,
+    req: _CancelFulfillmentRequest,
+    db: Session = Depends(get_session),
+    _admin: User = Depends(require_admin),
+) -> JSONResponse:
+    """Cancel an un-fulfilled reward order, refunding the stars to the user."""
+    entry = db.query(RewardLedger).filter(RewardLedger.id == ledger_id).first()
+    if not entry:
+        raise HTTPException(404, "Entry not found")
+    if entry.status != "claimed":
+        raise HTTPException(400, "Only un-fulfilled orders can be cancelled")
+
+    user = db.query(User).filter(User.id == entry.user_id).first()
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    refund = entry.stars_contributed
+    user.current_stars = user.current_stars + refund  # type: ignore[assignment]
+    entry.status = "refunded"  # type: ignore[assignment]
+    entry.admin_note = req.reason  # type: ignore[assignment]
+    db.add(HistoryLedger(
+        user_id=user.id,
+        action_type="reward_refund",
+        points_delta=refund,
+        ref_table="reward",
+        ref_id=entry.reward_id,
+        admin_note=req.reason,
+    ))
+    db.commit()
+
+    await broadcaster.emit(
+        "stars_changed",
+        {"user_id": user.id, "current_stars": user.current_stars},
+        "all",
+    )
+    await broadcaster.emit("fulfillment_queue_changed", {}, "admins")
+    return JSONResponse(content={"message": "Cancelled", "refunded": refund})
 
 
 # ---------------------------------------------------------------------

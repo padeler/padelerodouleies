@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getKidHistory } from '../../api/client';
 import { useT, useLocale } from '../../i18n/store';
 import type { KidHistoryEntry } from '../../lib/types';
+import { parseUtc, APP_TIMEZONE } from '../../lib/datetime';
 import './KidHistory.css';
 
 function getEntryColor(entry: KidHistoryEntry) {
@@ -74,7 +75,8 @@ export function KidHistory() {
                   )}
                   {note && <div className="history-note">{note}</div>}
                   <div className="history-time">
-                    {new Date(entry.timestamp).toLocaleString(locale === 'el' ? 'el-GR' : 'en-US', {
+                    {parseUtc(entry.timestamp).toLocaleString(locale === 'el' ? 'el-GR' : 'en-US', {
+                   timeZone: APP_TIMEZONE,
                    hour: '2-digit',
                    minute: '2-digit',
                    day: 'numeric',

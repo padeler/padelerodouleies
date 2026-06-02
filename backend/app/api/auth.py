@@ -38,6 +38,7 @@ def _to_dict(user: User) -> dict[str, Any]:
         "current_stars": user.current_stars,
         "preferred_locale": user.preferred_locale,
         "preferred_theme": user.preferred_theme,
+        "accent_color": user.accent_color,
     }
 
 
@@ -135,6 +136,31 @@ def update_theme(
     current_user.preferred_theme = req.theme  # type: ignore[assignment]
     db.commit()
     return JSONResponse(content={"theme": req.theme})
+
+
+class _AccentRequest(BaseModel):
+    # NULL clears the accent and falls back to the theme default.
+    accent_color: str | None = None
+
+
+# Allowed accent swatches (must mirror the frontend palette).
+_ALLOWED_ACCENTS = {
+    "#aa3bff", "#4d96ff", "#00b894", "#ff6bb5", "#ff922b", "#ef4444", "#14b8a6", "#f5b301",
+}
+
+
+@router.post("/me/accent")
+def update_accent(
+    req: _AccentRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> JSONResponse:
+    color = req.accent_color
+    if color is not None and color.lower() not in _ALLOWED_ACCENTS:
+        return JSONResponse(status_code=400, content={"detail": "Invalid accent color"})
+    current_user.accent_color = color  # type: ignore[assignment]
+    db.commit()
+    return JSONResponse(content={"accent_color": color})
 
 
 @router.post("/me/pin")

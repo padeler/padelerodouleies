@@ -6,6 +6,7 @@ import { AdminPanel } from './pages/AdminPanel';
 import { KidDashboard } from './pages/KidDashboard';
 import { getMe } from './api/client';
 import { useAuth } from './hooks/useAuth';
+import { IdleWatcher } from './components/IdleWatcher';
 import './App.css';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -54,6 +55,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthGuard>
+        <IdleWatcher />
         <Routes>
           <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
           <Route path="/setup" element={<Setup />} />

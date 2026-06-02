@@ -78,20 +78,36 @@
 }
 
 .settings-btn {
+  padding: 8px 16px;
   background: none;
-  border: none;
-  font-size: 20px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
   cursor: pointer;
   color: var(--text);
   min-height: 40px;
-  min-width: 40px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+}
+
+.settings-btn .btn-icon {
+  display: inline;
+  font-size: 16px;
 }
 
 .settings-btn:hover {
+  border-color: var(--accent);
   color: var(--text-h);
+}
+
+@media (max-width: 360px) {
+  .settings-btn .btn-text {
+    display: none;
+  }
+  .settings-btn {
+    padding: 6px 8px;
+  }
 }
 
 .hamburger-btn {
