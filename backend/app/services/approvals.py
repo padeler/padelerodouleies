@@ -13,8 +13,11 @@ class ApprovalResult:
     current_stars: int
 
 
-def approve_claim(claim_id: int, db: Session) -> ApprovalResult | None:
-    """Approve a pending claim. Returns result data for broadcasting, or None on error."""
+def approve_claim(claim_id: int, actor_id: int, db: Session) -> ApprovalResult | None:
+    """Approve a pending claim. Returns result data for broadcasting, or None on error.
+
+    ``actor_id`` is the admin performing the approval, recorded on the ledger row.
+    """
     claim = db.query(PendingClaim).filter(PendingClaim.id == claim_id).first()
     if not claim:
         raise ValueError("Claim not found")
@@ -30,12 +33,13 @@ def approve_claim(claim_id: int, db: Session) -> ApprovalResult | None:
         points_delta=chore.points_value,
         ref_table="chore",
         ref_id=chore.id,
+        actor_user_id=actor_id,
     ))
     db.delete(claim)
     return ApprovalResult(user_id=user.id, current_stars=user.current_stars)
 
 
-def decline_claim(claim_id: int, admin_note: str | None, db: Session) -> None:
+def decline_claim(claim_id: int, admin_note: str | None, actor_id: int, db: Session) -> None:
     claim = db.query(PendingClaim).filter(PendingClaim.id == claim_id).first()
     if not claim:
         raise ValueError("Claim not found")
@@ -47,11 +51,12 @@ def decline_claim(claim_id: int, admin_note: str | None, db: Session) -> None:
         ref_table="chore",
         ref_id=claim.chore_id,
         admin_note=admin_note,
+        actor_user_id=actor_id,
     ))
     db.delete(claim)
 
 
-def retroactive_decline(ledger_id: int, admin_note: str | None, db: Session) -> ApprovalResult | None:
+def retroactive_decline(ledger_id: int, admin_note: str | None, actor_id: int, db: Session) -> ApprovalResult | None:
     original = db.query(HistoryLedger).filter(
         HistoryLedger.id == ledger_id,
         HistoryLedger.action_type == "chore_approved",
@@ -77,5 +82,6 @@ def retroactive_decline(ledger_id: int, admin_note: str | None, db: Session) -> 
         ref_table="chore",
         ref_id=chore.id,
         admin_note=admin_note,
+        actor_user_id=actor_id,
     ))
     return ApprovalResult(user_id=user.id, current_stars=user.current_stars)

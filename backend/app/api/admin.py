@@ -261,12 +261,12 @@ def list_pending_claims(
 async def approve_claim_endpoint(
     claim_id: int,
     db: Session = Depends(get_session),
-    _admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin),
 ) -> JSONResponse:
     claim_for_mode = db.query(PendingClaim).filter(PendingClaim.id == claim_id).first()
     chore_claim_mode = claim_for_mode.chore.claim_mode if claim_for_mode else "each"
     try:
-        result = approve_claim(claim_id, db)
+        result = approve_claim(claim_id, admin.id, db)
     except ValueError as e:
         raise HTTPException(404, str(e))
     db.commit()
@@ -293,7 +293,7 @@ async def decline_claim_endpoint(
     claim_id: int,
     req: DeclineRequest,
     db: Session = Depends(get_session),
-    _admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin),
 ) -> JSONResponse:
     claim = db.query(PendingClaim).filter(PendingClaim.id == claim_id).first()
     if not claim:
@@ -301,7 +301,7 @@ async def decline_claim_endpoint(
     chore_claim_mode = claim.chore.claim_mode
     declined_user_id = claim.user_id
     try:
-        decline_claim(claim_id, req.admin_note, db)
+        decline_claim(claim_id, req.admin_note, admin.id, db)
     except ValueError as e:
         raise HTTPException(404, str(e))
     db.commit()
@@ -327,10 +327,10 @@ async def retroactive_decline_endpoint(
     ledger_id: int,
     req: DeclineRequest,
     db: Session = Depends(get_session),
-    _admin: User = Depends(require_admin),
+    admin: User = Depends(require_admin),
 ) -> JSONResponse:
     try:
-        result = retroactive_decline(ledger_id, req.admin_note, db)
+        result = retroactive_decline(ledger_id, req.admin_note, admin.id, db)
     except ValueError as e:
         raise HTTPException(400, str(e))
     db.commit()
@@ -625,6 +625,9 @@ def list_history(
             "ref_table": r.ref_table,
             "ref_id": r.ref_id,
             "admin_note": r.admin_note,
+            "actor_name": r.actor.name if r.actor else None,
+            "actor_avatar_kind": r.actor.avatar_kind if r.actor else None,
+            "actor_avatar_value": r.actor.avatar_value if r.actor else None,
             "timestamp": r.timestamp.isoformat(),
         }
         if r.ref_table == "chore" and r.ref_id:

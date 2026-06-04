@@ -141,6 +141,7 @@ export function ActivityPage() {
               <th>{t('activity.item')}</th>
               <th>{t('activity.delta')}</th>
               <th>{t('activity.note')}</th>
+              <th>{t('activity.by')}</th>
             </tr>
           </thead>
           <tbody>
@@ -164,10 +165,20 @@ export function ActivityPage() {
                 <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {entry.admin_note || '—'}
                 </td>
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  {entry.actor_name ? (
+                    <>
+                      {entry.actor_avatar_kind && (
+                        <UserAvatar kind={entry.actor_avatar_kind} value={entry.actor_avatar_value ?? ''} name={entry.actor_name} />
+                      )}
+                      {entry.actor_name}
+                    </>
+                  ) : '—'}
+                </td>
               </tr>
             ))}
             {!data?.entries?.length && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('history.empty')}</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('history.empty')}</td></tr>
             )}
           </tbody>
         </table>

@@ -94,10 +94,14 @@ class HistoryLedger(Base):
     points_delta = Column(Integer, nullable=False)
     ref_table = Column(String(20), nullable=True)  # "chore" | "reward"
     ref_id = Column(Integer, nullable=True)
+    # Admin who performed the action (e.g. approved/declined a chore). Nullable:
+    # not every ledger row originates from an admin action (e.g. reward purchases).
+    actor_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     admin_note = Column(String(500), nullable=True)
     timestamp = Column(DateTime, nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="history_entries", foreign_keys=[user_id])
+    actor = relationship("User", foreign_keys=[actor_user_id])
 
 
 class RewardLedger(Base):

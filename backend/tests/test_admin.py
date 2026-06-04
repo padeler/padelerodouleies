@@ -156,6 +156,7 @@ async def test_approve_claim(async_client: AsyncClient, _db: Session):
     ).first()
     assert ledger is not None
     assert ledger.points_delta == 5
+    assert ledger.actor_user_id == admin.id
 
 
 async def test_decline_claim(async_client: AsyncClient, _db: Session):
@@ -182,6 +183,12 @@ async def test_decline_claim(async_client: AsyncClient, _db: Session):
     _db.expire_all()
     kid = _db.query(User).filter(User.id == kid.id).first()
     assert kid.current_stars == 10  # No change
+
+    ledger = _db.query(HistoryLedger).filter(
+        HistoryLedger.action_type == "chore_declined"
+    ).first()
+    assert ledger is not None
+    assert ledger.actor_user_id == admin.id
 
 
 async def test_adjust_stars(async_client: AsyncClient, _db: Session):

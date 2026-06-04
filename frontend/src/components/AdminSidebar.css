@@ -2,7 +2,11 @@
   width: 150px;
   height: 100%;
   min-height: 100vh;
-  background: var(--bg-s, #1a1a2e);
+  background: linear-gradient(
+    180deg,
+    var(--accent-sidebar, #1a1a2e) 0%,
+    var(--accent-sidebar-2, #16213e) 100%
+  );
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;

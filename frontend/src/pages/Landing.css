@@ -4,6 +4,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 100vh; /* fallback for browsers without svh support (older tablets) */
   min-height: 100svh;
   width: 100%;
   gap: 40px;

@@ -30,6 +30,22 @@
     ]
   },
   {
+    "name": "air-vent",
+    "category": "tidying",
+    "svg_ref": "icons/svg/air-vent.svg",
+    "keywords_en": [
+      "vent",
+      "air",
+      "ac",
+      "duct"
+    ],
+    "keywords_el": [
+      "αεραγωγός",
+      "αέρας",
+      "κλιματισμός"
+    ]
+  },
+  {
     "name": "alarm-clock",
     "category": "parent",
     "svg_ref": "icons/svg/alarm-clock.svg",
@@ -305,6 +321,21 @@
       "λουτρό",
       "βάνα",
       "πλύσιμο"
+    ]
+  },
+  {
+    "name": "battery",
+    "category": "tidying",
+    "svg_ref": "icons/svg/battery.svg",
+    "keywords_en": [
+      "battery",
+      "charge",
+      "power"
+    ],
+    "keywords_el": [
+      "μπαταρία",
+      "φόρτιση",
+      "ενέργεια"
     ]
   },
   {
@@ -2002,6 +2033,21 @@
     ]
   },
   {
+    "name": "frame",
+    "category": "tidying",
+    "svg_ref": "icons/svg/frame.svg",
+    "keywords_en": [
+      "frame",
+      "picture",
+      "photo"
+    ],
+    "keywords_el": [
+      "κορνίζα",
+      "φωτογραφία",
+      "εικόνα"
+    ]
+  },
+  {
     "name": "frown",
     "category": "avatars",
     "svg_ref": "icons/svg/frown.svg",
@@ -2293,6 +2339,23 @@
     ]
   },
   {
+    "name": "hand-platter",
+    "category": "meals",
+    "svg_ref": "icons/svg/hand-platter.svg",
+    "keywords_en": [
+      "plate",
+      "dish",
+      "serve",
+      "platter"
+    ],
+    "keywords_el": [
+      "πιάτο",
+      "σερβίρισμα",
+      "δίσκος",
+      "πιάτα"
+    ]
+  },
+  {
     "name": "handshake",
     "category": "parent",
     "svg_ref": "icons/svg/handshake.svg",
@@ -2367,6 +2430,21 @@
       "υγεία",
       "παλμός",
       "καρδιά"
+    ]
+  },
+  {
+    "name": "heater",
+    "category": "tidying",
+    "svg_ref": "icons/svg/heater.svg",
+    "keywords_en": [
+      "heater",
+      "radiator",
+      "warm"
+    ],
+    "keywords_el": [
+      "καλοριφέρ",
+      "θερμάστρα",
+      "ζέστη"
     ]
   },
   {
@@ -2631,6 +2709,38 @@
     ]
   },
   {
+    "name": "lamp-wall-down",
+    "category": "tidying",
+    "svg_ref": "icons/svg/lamp-wall-down.svg",
+    "keywords_en": [
+      "lamp",
+      "wall",
+      "light",
+      "sconce"
+    ],
+    "keywords_el": [
+      "απλίκα",
+      "τοίχος",
+      "φως"
+    ]
+  },
+  {
+    "name": "lamp-wall-up",
+    "category": "tidying",
+    "svg_ref": "icons/svg/lamp-wall-up.svg",
+    "keywords_en": [
+      "lamp",
+      "wall",
+      "light",
+      "sconce"
+    ],
+    "keywords_el": [
+      "απλίκα",
+      "τοίχος",
+      "φως"
+    ]
+  },
+  {
     "name": "languages",
     "category": "school",
     "svg_ref": "icons/svg/languages.svg",
@@ -2643,6 +2753,20 @@
       "γλώσσες",
       "μετάφραση",
       "ομιλία"
+    ]
+  },
+  {
+    "name": "laptop",
+    "category": "school",
+    "svg_ref": "icons/svg/laptop.svg",
+    "keywords_en": [
+      "laptop",
+      "computer"
+    ],
+    "keywords_el": [
+      "λάπτοπ",
+      "υπολογιστής",
+      "φορητός"
     ]
   },
   {
@@ -2955,6 +3079,20 @@
     ]
   },
   {
+    "name": "monitor",
+    "category": "school",
+    "svg_ref": "icons/svg/monitor.svg",
+    "keywords_en": [
+      "monitor",
+      "computer",
+      "screen"
+    ],
+    "keywords_el": [
+      "οθόνη",
+      "υπολογιστής"
+    ]
+  },
+  {
     "name": "moon",
     "category": "hygiene",
     "svg_ref": "icons/svg/moon.svg",
@@ -3090,6 +3228,21 @@
       "μουσική",
       "νότες",
       "τραγούδι"
+    ]
+  },
+  {
+    "name": "newspaper",
+    "category": "parent",
+    "svg_ref": "icons/svg/newspaper.svg",
+    "keywords_en": [
+      "newspaper",
+      "news",
+      "read"
+    ],
+    "keywords_el": [
+      "εφημερίδα",
+      "νέα",
+      "διάβασμα"
     ]
   },
   {
@@ -3542,6 +3695,21 @@
     ]
   },
   {
+    "name": "plug-2",
+    "category": "tidying",
+    "svg_ref": "icons/svg/plug-2.svg",
+    "keywords_en": [
+      "plug",
+      "power",
+      "socket"
+    ],
+    "keywords_el": [
+      "πρίζα",
+      "ρεύμα",
+      "βύσμα"
+    ]
+  },
+  {
     "name": "pocket-knife",
     "category": "tidying",
     "svg_ref": "icons/svg/pocket-knife.svg",
@@ -3600,6 +3768,19 @@
     ]
   },
   {
+    "name": "printer",
+    "category": "school",
+    "svg_ref": "icons/svg/printer.svg",
+    "keywords_en": [
+      "printer",
+      "print"
+    ],
+    "keywords_el": [
+      "εκτυπωτής",
+      "εκτύπωση"
+    ]
+  },
+  {
     "name": "puzzle",
     "category": "avatars",
     "svg_ref": "icons/svg/puzzle.svg",
@@ -3629,6 +3810,19 @@
       "κουνέλι",
       "ζώο",
       "χαριτωμένο"
+    ]
+  },
+  {
+    "name": "radio",
+    "category": "rewards",
+    "svg_ref": "icons/svg/radio.svg",
+    "keywords_en": [
+      "radio",
+      "music"
+    ],
+    "keywords_el": [
+      "ραδιόφωνο",
+      "μουσική"
     ]
   },
   {
@@ -3749,6 +3943,21 @@
       "καρέκλα",
       "κουνιστή",
       "έπιπλο"
+    ]
+  },
+  {
+    "name": "router",
+    "category": "tidying",
+    "svg_ref": "icons/svg/router.svg",
+    "keywords_en": [
+      "router",
+      "wifi",
+      "internet"
+    ],
+    "keywords_el": [
+      "ρούτερ",
+      "wifi",
+      "ίντερνετ"
     ]
   },
   {
@@ -4018,6 +4227,36 @@
     ]
   },
   {
+    "name": "shopping-basket",
+    "category": "parent",
+    "svg_ref": "icons/svg/shopping-basket.svg",
+    "keywords_en": [
+      "shopping",
+      "basket",
+      "groceries"
+    ],
+    "keywords_el": [
+      "ψώνια",
+      "καλάθι",
+      "αγορές"
+    ]
+  },
+  {
+    "name": "shopping-cart",
+    "category": "parent",
+    "svg_ref": "icons/svg/shopping-cart.svg",
+    "keywords_en": [
+      "shopping",
+      "cart",
+      "groceries"
+    ],
+    "keywords_el": [
+      "καρότσι",
+      "ψώνια",
+      "αγορές"
+    ]
+  },
+  {
     "name": "shower",
     "category": "hygiene",
     "svg_ref": "icons/svg/shower.svg",
@@ -4214,6 +4453,21 @@
       "λάμψη",
       "καθαριότητα",
       "τάξη"
+    ]
+  },
+  {
+    "name": "speaker",
+    "category": "rewards",
+    "svg_ref": "icons/svg/speaker.svg",
+    "keywords_en": [
+      "speaker",
+      "music",
+      "sound"
+    ],
+    "keywords_el": [
+      "ηχείο",
+      "μουσική",
+      "ήχος"
     ]
   },
   {
@@ -4833,6 +5087,20 @@
     ]
   },
   {
+    "name": "tv-minimal",
+    "category": "tidying",
+    "svg_ref": "icons/svg/tv-minimal.svg",
+    "keywords_en": [
+      "tv",
+      "television",
+      "screen"
+    ],
+    "keywords_el": [
+      "τηλεόραση",
+      "οθόνη"
+    ]
+  },
+  {
     "name": "umbrella",
     "category": "hygiene",
     "svg_ref": "icons/svg/umbrella.svg",
@@ -5152,6 +5420,21 @@
       "σιτάρι",
       "ψωμί",
       "δημητριακά"
+    ]
+  },
+  {
+    "name": "wifi",
+    "category": "tidying",
+    "svg_ref": "icons/svg/wifi.svg",
+    "keywords_en": [
+      "wifi",
+      "internet",
+      "network"
+    ],
+    "keywords_el": [
+      "wifi",
+      "ίντερνετ",
+      "δίκτυο"
     ]
   },
   {
