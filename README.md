@@ -137,6 +137,7 @@ The backend state is handled through five relational tables managed seamlessly i
   | status (Pending / Approved / Declined)             |
   | timestamp                                          |
   | admin_note                                         |
+  | actor_user_id (FK, admin who approved/declined)    |
   +----------------------------------------------------+
 
   +-------------------+              +-------------------+

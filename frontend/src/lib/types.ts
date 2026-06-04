@@ -78,6 +78,9 @@ export interface HistoryEntry {
   item_title?: string;
   item_icon?: string;
   admin_note: string | null;
+  actor_name: string | null;
+  actor_avatar_kind: 'icon' | 'image' | null;
+  actor_avatar_value: string | null;
   timestamp: string;
 }
 

@@ -1,10 +1,5 @@
-- [x] in the Users tab of the Admin panel:
-    - [x] in the "Actions" column there is a "Stars" button for all users even if they are Parents. Only Child users should have the "Stars" action.
-    - [x] The is no need for the "Active" column all users are active.
-    - [x] In the "Stars" column if the user is a Parent just add "N/A".
-- [x] in the fulfillment tab the admin should be able to "Cancel" a reward order in which case the stars are redeemed to the user (and the cancel is logged)
-- [x] The timezone on the frontend is wrong. It should be set to Athens Timezone. It is showing in UTC now
-- [x] the dark theme has bad contrast for the icons and text. This should be fixed. 
-- [x] Color accents: The user selects a color that becomes the "accent" for their theme.
-- [x] The buttons on the top right (language, settings) should also have text as does the "Exit" button
-- [x] logged in users and admins should timeout after 5 minutes of inactivity with a message and return to the login screen.
+# TODOs
+
+# Features/Enchancements
+- [x] When a chore is accepted/rejected by a parent this information should be visible in the activity table: Which parent accepted/rejected it.
+- [ ] the site is a bit slow my older tablet. Is there a way to optimise it?

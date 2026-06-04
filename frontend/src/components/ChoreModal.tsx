@@ -11,6 +11,8 @@ import { TimePicker24h } from './TimePicker24h';
 import { toast } from 'react-hot-toast';
 import './TimePicker24h.css';
 
+const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+
 const choreSchema = z.object({
   title: z.string().min(1, 'Required').max(200),
   description: z.string().max(500).optional(),
@@ -216,7 +218,14 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
                       key={pattern}
                       type="button"
                       className={`toggle-btn ${repeatPattern === pattern ? 'active' : ''}`}
-                      onClick={() => setValue('repeat_pattern', pattern)}
+                      onClick={() => {
+                        setValue('repeat_pattern', pattern);
+                        // A weekly chore with no days selected would be treated as daily
+                        // by the backend, so default to every weekday when switching to weekly.
+                        if (pattern === 'weekly' && !(watch('repeat_days')?.length)) {
+                          setValue('repeat_days', [...WEEKDAYS]);
+                        }
+                      }}
                     >
                       {pattern === 'daily' ? t('chore.daily') : t('chore.weekly')}
                     </button>
@@ -227,7 +236,7 @@ export function ChoreModal({ chore, onClose }: ChoreModalProps) {
                 <div className="admin-form-group">
                   <label>{t('chore.repeat_days_label')}</label>
                   <div className="day-toggle-row">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
+                    {WEEKDAYS.map((day) => {
                       const current = watch('repeat_days') || [];
                       return (
                         <button

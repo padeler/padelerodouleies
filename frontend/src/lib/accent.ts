@@ -30,6 +30,18 @@ function hexToRgb(hex: string): string {
 }
 
 /**
+ * Darken a "#RRGGBB" color by scaling each channel toward black. Used to derive
+ * a deep, hue-preserving sidebar tint that stays dark enough for light text to
+ * remain readable on top of it. Factor is in [0, 1] (lower = darker).
+ */
+function darkenRgb(hex: string, factor: number): string {
+  const r = Math.round(parseInt(hex.slice(1, 3), 16) * factor);
+  const g = Math.round(parseInt(hex.slice(3, 5), 16) * factor);
+  const b = Math.round(parseInt(hex.slice(5, 7), 16) * factor);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
  * Apply (or clear) the accent override on <html>. Passing null/undefined removes
  * the inline override so the theme default from index.css applies again.
  */
@@ -39,10 +51,16 @@ export function applyAccent(color: string | null | undefined): void {
     root.style.removeProperty('--accent');
     root.style.removeProperty('--accent-bg');
     root.style.removeProperty('--accent-border');
+    root.style.removeProperty('--accent-sidebar');
+    root.style.removeProperty('--accent-sidebar-2');
     return;
   }
   const rgb = hexToRgb(color);
   root.style.setProperty('--accent', color);
   root.style.setProperty('--accent-bg', `rgba(${rgb}, 0.12)`);
   root.style.setProperty('--accent-border', `rgba(${rgb}, 0.5)`);
+  // Deep, hue-matched sidebar gradient (top lighter, bottom darker); kept dark
+  // so the sidebar's light text stays legible regardless of the chosen accent.
+  root.style.setProperty('--accent-sidebar', darkenRgb(color, 0.32));
+  root.style.setProperty('--accent-sidebar-2', darkenRgb(color, 0.18));
 }

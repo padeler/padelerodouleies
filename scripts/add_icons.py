@@ -170,6 +170,27 @@ WANTED: list[tuple[str, str, list[str], list[str]]] = [
     ("file-clock", "parent", ["file", "history", "log"], ["αρχείο", "ιστορικό", "καταγραφή"]),
     ("lock-open", "parent", ["unlock", "access", "open"], ["ξεκλείδωμα", "πρόσβαση", "άνοιγμα"]),
     ("key", "parent", ["key", "access", "unlock"], ["κλειδί", "πρόσβαση", "ξεκλείδωμα"]),
+    # -- household items & appliances (batch 3: things around the house) --
+    ("hand-platter", "meals", ["plate", "dish", "serve", "platter"], ["πιάτο", "σερβίρισμα", "δίσκος", "πιάτα"]),
+    ("air-vent", "tidying", ["vent", "air", "ac", "duct"], ["αεραγωγός", "αέρας", "κλιματισμός"]),
+    ("heater", "tidying", ["heater", "radiator", "warm"], ["καλοριφέρ", "θερμάστρα", "ζέστη"]),
+    ("fan", "tidying", ["fan", "cooling", "air"], ["ανεμιστήρας", "δροσιά", "αέρας"]),
+    ("lamp-wall-up", "tidying", ["lamp", "wall", "light", "sconce"], ["απλίκα", "τοίχος", "φως"]),
+    ("lamp-wall-down", "tidying", ["lamp", "wall", "light", "sconce"], ["απλίκα", "τοίχος", "φως"]),
+    ("tv-minimal", "tidying", ["tv", "television", "screen"], ["τηλεόραση", "οθόνη"]),
+    ("frame", "tidying", ["frame", "picture", "photo"], ["κορνίζα", "φωτογραφία", "εικόνα"]),
+    ("router", "tidying", ["router", "wifi", "internet"], ["ρούτερ", "wifi", "ίντερνετ"]),
+    ("wifi", "tidying", ["wifi", "internet", "network"], ["wifi", "ίντερνετ", "δίκτυο"]),
+    ("plug-2", "tidying", ["plug", "power", "socket"], ["πρίζα", "ρεύμα", "βύσμα"]),
+    ("battery", "tidying", ["battery", "charge", "power"], ["μπαταρία", "φόρτιση", "ενέργεια"]),
+    ("speaker", "rewards", ["speaker", "music", "sound"], ["ηχείο", "μουσική", "ήχος"]),
+    ("radio", "rewards", ["radio", "music"], ["ραδιόφωνο", "μουσική"]),
+    ("monitor", "school", ["monitor", "computer", "screen"], ["οθόνη", "υπολογιστής"]),
+    ("laptop", "school", ["laptop", "computer"], ["λάπτοπ", "υπολογιστής", "φορητός"]),
+    ("printer", "school", ["printer", "print"], ["εκτυπωτής", "εκτύπωση"]),
+    ("shopping-basket", "parent", ["shopping", "basket", "groceries"], ["ψώνια", "καλάθι", "αγορές"]),
+    ("shopping-cart", "parent", ["shopping", "cart", "groceries"], ["καρότσι", "ψώνια", "αγορές"]),
+    ("newspaper", "parent", ["newspaper", "news", "read"], ["εφημερίδα", "νέα", "διάβασμα"]),
 ]
 
 

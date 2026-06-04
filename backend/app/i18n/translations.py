@@ -227,6 +227,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "activity.delta": {"el": "Αλλαγή", "en": "Delta"},
     "activity.note": {"el": "Σημείωση", "en": "Note"},
     "activity.item": {"el": "Αντικείμενο", "en": "Item"},
+    "activity.by": {"el": "Από (γονέας)", "en": "By"},
     "activity.all": {"el": "Όλα", "en": "All"},
     "activity.from": {"el": "Από", "en": "From"},
     "activity.to": {"el": "Έως", "en": "To"},
