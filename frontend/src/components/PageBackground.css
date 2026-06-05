@@ -8,37 +8,41 @@
   z-index: -1;
 }
 
+/* Old tablets choke on animated `filter: blur()` (the GPU re-rasterizes the
+   blurred region every frame). Radial gradients give the same soft glow for
+   free — no filter — and animating `transform` on a non-filtered, promoted
+   layer is GPU-composited and cheap. */
 .bg-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(45px);
   opacity: 0.42;
+  will-change: transform;
   animation: bg-blob-float 14s ease-in-out infinite;
 }
 
 .blob-a {
-  width: 300px;
-  height: 300px;
-  top: -70px;
-  left: -50px;
-  background: var(--bg-c1);
+  width: 390px;
+  height: 390px;
+  top: -110px;
+  left: -90px;
+  background: radial-gradient(circle at center, var(--bg-c1) 0%, transparent 70%);
 }
 
 .blob-b {
-  width: 340px;
-  height: 340px;
-  bottom: -90px;
-  right: -70px;
-  background: var(--bg-c2);
+  width: 430px;
+  height: 430px;
+  bottom: -140px;
+  right: -110px;
+  background: radial-gradient(circle at center, var(--bg-c2) 0%, transparent 70%);
   animation-delay: -5s;
 }
 
 .blob-c {
-  width: 260px;
-  height: 260px;
-  top: 38%;
-  right: 16%;
-  background: var(--bg-c3);
+  width: 340px;
+  height: 340px;
+  top: 34%;
+  right: 12%;
+  background: radial-gradient(circle at center, var(--bg-c3) 0%, transparent 70%);
   animation-delay: -9s;
 }
 
@@ -58,13 +62,13 @@
 .page-bg-fulfillment { --bg-c1: #ffa45b; --bg-c2: #e0995b; --bg-c3: #ffcf5b; }
 .page-bg-activity    { --bg-c1: #a855f7; --bg-c2: #7b5cff; --bg-c3: #c084fc; }
 
-/* Dark themes: soften and spread the glow so it reads as ambient, not neon */
+/* Dark themes: soften the glow so it reads as ambient, not neon */
 @media (prefers-color-scheme: dark) {
-  .bg-blob { opacity: 0.28; filter: blur(60px); }
+  .bg-blob { opacity: 0.28; }
 }
-html[data-theme="dark"] .bg-blob { opacity: 0.28; filter: blur(60px); }
-html[data-theme="light"] .bg-blob { opacity: 0.42; filter: blur(45px); }
+html[data-theme="dark"] .bg-blob { opacity: 0.28; }
+html[data-theme="light"] .bg-blob { opacity: 0.42; }
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-blob { animation: none; }
+  .bg-blob { animation: none; will-change: auto; }
 }
