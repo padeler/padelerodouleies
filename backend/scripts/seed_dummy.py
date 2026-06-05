@@ -9,13 +9,21 @@ This will clear all existing data, run migrations, and insert:
 - 14 chores (daily, weekly, every-N-days)
 - 8 rewards (individual + collaborative)
 - 4 pending claims (kids have claimed chores awaiting approval)
-- 8 history ledger entries (sample activity)
+- ~8 weeks of realistic activity (chore approvals, bonuses, reward purchases)
+  spread across weekdays so the Stats page has meaningful charts. Each kid has
+  a distinct profile (Μαρία = top earner / hardest worker, Γιώργος = top buyer,
+  Ελένη = lightest). Per-kid `current_stars` is recomputed from the seeded
+  ledger so balances reconcile with the history.
+
+Activity generation is deterministic (`random.seed(42)`), so re-running yields
+the same dataset.
 
 Run `alembic upgrade head` manually first if migrations are behind.
 """
 
+import random
 import sys
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, timezone
 
 sys.path.insert(0, "..")
 
@@ -385,117 +393,158 @@ def seed_claims(db, users, chores):
     return claims
 
 
-def seed_history(db, users, chores, rewards):
-    """Create sample history ledger entries."""
+# History/reward timestamps must be naive UTC to match how the app writes them
+# (SQLite CURRENT_TIMESTAMP is UTC); the Stats service converts stored timestamps
+# UTC -> Athens before bucketing by weekday, so seeding in UTC keeps the charts
+# correct.
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+# Busier weekends, mid-week dip — gives the per-weekday chart visible shape.
+_WEEKDAY_WEIGHT = {0: 0.65, 1: 0.6, 2: 0.45, 3: 0.6, 4: 0.8, 5: 1.0, 6: 0.95}
+
+_ACTIVITY_DAYS = 56  # ~8 weeks of history
+
+
+def seed_activity(db, users, chores, rewards):
+    """Generate ~8 weeks of realistic activity to populate the Stats page.
+
+    Writes chore approvals (positive), occasional manual bonuses, individual
+    reward purchases and collaborative contributions (each a RewardLedger row +
+    a negative `reward_purchase` history row, mirroring the marketplace service),
+    then recomputes each kid's `current_stars` from the net ledger.
+    """
+    random.seed(42)
+    admin = users[0]
     maria, giorgos, eleni = users[1], users[2], users[3]
-    now = datetime.now()
+    now = _utc_now()
 
-    entries = [
-        HistoryLedger(
-            user_id=maria.id,
-            action_type="chore_approved",
-            points_delta=5,
-            ref_table="chore",
-            ref_id=chores[0].id,
-            timestamp=now - timedelta(hours=2),
-        ),
-        HistoryLedger(
-            user_id=maria.id,
-            action_type="chore_approved",
-            points_delta=3,
-            ref_table="chore",
-            ref_id=chores[1].id,
-            timestamp=now - timedelta(hours=5),
-        ),
-        HistoryLedger(
-            user_id=giorgos.id,
-            action_type="chore_approved",
-            points_delta=10,
-            ref_table="chore",
-            ref_id=chores[6].id,
-            timestamp=now - timedelta(hours=1),
-        ),
-        HistoryLedger(
-            user_id=eleni.id,
-            action_type="chore_approved",
-            points_delta=8,
-            ref_table="chore",
-            ref_id=chores[2].id,
-            timestamp=now - timedelta(hours=3),
-        ),
-        HistoryLedger(
-            user_id=giorgos.id,
-            action_type="manual_adjust",
-            points_delta=10,
-            admin_note="Εξαιρετική βοήθεια σε μεγάλη δουλειά",
-            timestamp=now - timedelta(hours=8),
-        ),
-        HistoryLedger(
-            user_id=maria.id,
-            action_type="reward_purchase",
-            points_delta=-15,
-            ref_table="reward",
-            ref_id=rewards[1].id,
-            timestamp=now - timedelta(days=1),
-            admin_note="Αγορά κινούμενων σχεδίων",
-        ),
-        HistoryLedger(
-            user_id=eleni.id,
-            action_type="chore_declined",
-            points_delta=-5,
-            ref_table="chore",
-            ref_id=chores[0].id,
-            admin_note="Δεν ολοκληρώθηκε σωστά",
-            timestamp=now - timedelta(days=2),
-        ),
-        HistoryLedger(
-            user_id=giorgos.id,
-            action_type="chore_approved",
-            points_delta=4,
-            ref_table="chore",
-            ref_id=chores[3].id,
-            timestamp=now - timedelta(days=1),
-        ),
-    ]
-    for e in entries:
-        db.add(e)
-    db.commit()
-    print(f"Seeded {len(entries)} history entries.")
-
-
-def seed_collaborative_ledger(db, users, rewards):
-    """Add some contributions to collaborative rewards."""
-    maria, giorgos, eleni = users[1], users[2], users[3]
+    active_chores = [c for c in chores if c.is_active and c.is_repeating]
+    individual_rewards = [r for r in rewards if not r.is_collaborative and r.is_enabled]
     collab_rewards = [r for r in rewards if r.is_collaborative]
-    now = datetime.now()
 
-    ledger_entries = [
-        RewardLedger(
-            reward_id=collab_rewards[0].id,
-            user_id=maria.id,
-            status="claimed",
-            stars_contributed=30,
-            claimed_at=now - timedelta(days=3),
-        ),
-        RewardLedger(
-            reward_id=collab_rewards[0].id,
-            user_id=giorgos.id,
-            status="claimed",
-            stars_contributed=25,
-            claimed_at=now - timedelta(days=2),
-        ),
-        RewardLedger(
-            reward_id=collab_rewards[1].id,
-            user_id=eleni.id,
-            status="claimed",
-            stars_contributed=40,
-            claimed_at=now - timedelta(days=1),
-        ),
+    history: list[HistoryLedger] = []
+    ledger: list[RewardLedger] = []
+    balances = {u.id: 0 for u in users}
+
+    # (user, daily chore intensity, individual purchases, manual bonuses)
+    profiles = [
+        (maria, 1.05, 4, 2),    # top earner + hardest worker
+        (giorgos, 0.75, 8, 1),  # top buyer (most reward redemptions)
+        (eleni, 0.50, 3, 1),    # lightest
     ]
-    for e in ledger_entries:
+
+    def _ts_on(day: datetime, lo: int, hi: int) -> datetime:
+        return day.replace(
+            hour=random.randint(lo, hi), minute=random.randint(0, 59), second=0, microsecond=0
+        )
+
+    for user, intensity, n_purchases, n_manual in profiles:
+        # -- Chore approvals spread across the period --
+        for d in range(_ACTIVITY_DAYS):
+            day = now - timedelta(days=d)
+            expected = intensity * _WEEKDAY_WEIGHT[day.weekday()]
+            count = (1 if random.random() < expected else 0) + (
+                1 if random.random() < expected * 0.5 else 0
+            )
+            for _ in range(count):
+                chore = random.choice(active_chores)
+                history.append(HistoryLedger(
+                    user_id=user.id,
+                    action_type="chore_approved",
+                    points_delta=chore.points_value,
+                    ref_table="chore",
+                    ref_id=chore.id,
+                    actor_user_id=admin.id,
+                    timestamp=_ts_on(day, 7, 20),
+                ))
+                balances[user.id] += chore.points_value
+
+        # -- Manual bonuses --
+        for _ in range(n_manual):
+            day = now - timedelta(days=random.randint(0, _ACTIVITY_DAYS))
+            delta = random.choice([5, 10, 15])
+            history.append(HistoryLedger(
+                user_id=user.id,
+                action_type="manual_adjust",
+                points_delta=delta,
+                admin_note="Μπόνους για εξαιρετική βοήθεια",
+                actor_user_id=admin.id,
+                timestamp=_ts_on(day, 9, 21),
+            ))
+            balances[user.id] += delta
+
+        # -- Individual reward purchases --
+        for _ in range(n_purchases):
+            reward = random.choice(individual_rewards)
+            day = now - timedelta(days=random.randint(0, _ACTIVITY_DAYS))
+            ts = _ts_on(day, 10, 21)
+            fulfilled = random.random() < 0.6
+            ledger.append(RewardLedger(
+                reward_id=reward.id,
+                user_id=user.id,
+                status="fulfilled" if fulfilled else "claimed",
+                stars_contributed=reward.cost_stars,
+                claimed_at=ts,
+                fulfilled_at=(ts + timedelta(hours=random.randint(2, 48))) if fulfilled else None,
+            ))
+            history.append(HistoryLedger(
+                user_id=user.id,
+                action_type="reward_purchase",
+                points_delta=-reward.cost_stars,
+                ref_table="reward",
+                ref_id=reward.id,
+                admin_note=f"Αγορά: {reward.title}",
+                timestamp=ts,
+            ))
+            balances[user.id] -= reward.cost_stars
+
+    # -- Collaborative contributions (partial progress towards shared goals) --
+    collab_plan = [
+        (maria, collab_rewards[0], 30),
+        (giorgos, collab_rewards[0], 25),
+        (eleni, collab_rewards[0], 20),
+        (maria, collab_rewards[1], 35),
+        (giorgos, collab_rewards[1], 20),
+    ]
+    for user, reward, stars in collab_plan:
+        day = now - timedelta(days=random.randint(1, 20))
+        ts = _ts_on(day, 10, 20)
+        ledger.append(RewardLedger(
+            reward_id=reward.id,
+            user_id=user.id,
+            status="claimed",
+            stars_contributed=stars,
+            claimed_at=ts,
+        ))
+        history.append(HistoryLedger(
+            user_id=user.id,
+            action_type="reward_purchase",
+            points_delta=-stars,
+            ref_table="reward",
+            ref_id=reward.id,
+            admin_note=f"Συνεισφορά: {reward.title}",
+            timestamp=ts,
+        ))
+        balances[user.id] -= stars
+
+    for e in history:
         db.add(e)
+    for e in ledger:
+        db.add(e)
+    # Reconcile each kid's balance with the seeded ledger (never below zero).
+    for user in users:
+        if user.role == "user":
+            user.current_stars = max(0, balances[user.id])
     db.commit()
-    print(f"Seeded {len(ledger_entries)} collaborative reward ledger entries.")
+
+    print(
+        f"Seeded {len(history)} history entries and {len(ledger)} reward-ledger "
+        f"entries across {_ACTIVITY_DAYS} days."
+    )
+    for user in (maria, giorgos, eleni):
+        print(f"  {user.name}: {user.current_stars} stars (net)")
 
 
 def main():
@@ -511,14 +560,13 @@ def main():
         chores = seed_chores(db, users)
         rewards = seed_rewards(db)
         seed_claims(db, users, chores)
-        seed_history(db, users, chores, rewards)
-        seed_collaborative_ledger(db, users, rewards)
+        seed_activity(db, users, chores, rewards)
         print("\n=== Seeding complete! ===")
         print("Login PINs:")
         print("  Admin: Γονέας  → 1111")
-        print("  Kid:   Μαρία   → 2222  (45 stars)")
-        print("  Kid:   Γιώργος → 3333  (32 stars)")
-        print("  Kid:   Ελένη   → 4444  (18 stars)")
+        print("  Kid:   Μαρία   → 2222")
+        print("  Kid:   Γιώργος → 3333")
+        print("  Kid:   Ελένη   → 4444")
     finally:
         db.close()
 

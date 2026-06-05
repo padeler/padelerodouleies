@@ -500,3 +500,7 @@ export async function getLeaderboard() {
     current_stars: number;
   }>>('/leaderboard');
 }
+
+export async function getStats() {
+  return request<import('../lib/types').StatsResponse>('/stats');
+}

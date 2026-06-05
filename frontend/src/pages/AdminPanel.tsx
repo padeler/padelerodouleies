@@ -6,6 +6,7 @@ import { RewardsPage } from './admin/RewardsPage';
 import { UsersPage } from './admin/UsersPage';
 import { FulfillmentPage } from './admin/FulfillmentPage';
 import { ActivityPage } from './admin/ActivityPage';
+import { Stats } from './dashboard/Stats';
 
 export function AdminPanel() {
   return (
@@ -18,6 +19,7 @@ export function AdminPanel() {
         <Route path="users" element={<UsersPage />} />
         <Route path="fulfillment" element={<FulfillmentPage />} />
         <Route path="activity" element={<ActivityPage />} />
+        <Route path="stats" element={<Stats />} />
       </Route>
     </Routes>
   );

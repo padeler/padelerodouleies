@@ -7,6 +7,7 @@ const navItems = [
   { path: '/dashboard/marketplace', key: 'nav.marketplace', icon: '🏪' },
   { path: '/dashboard/history', key: 'nav.history', icon: '📜' },
   { path: '/dashboard/leaderboard', key: 'nav.leaderboard', icon: '🏆' },
+  { path: '/dashboard/stats', key: 'nav.stats', icon: '📊' },
 ];
 
 export function KidSidebar({ onClose }: { onClose?: () => void } = {}) {
