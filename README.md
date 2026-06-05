@@ -382,7 +382,7 @@ The application uses toast notifications for all admin actions (create, edit, de
 
 1. **Dynamic Visibility Engine:** When the 9-year-old logs into her dashboard at **08:30 AM**, the server evaluates `datetime.now()`. It checks the database and confirms:
 * It is between 07:00 and 11:00 AM (Within the 4-hour window).
-* No pending claim or approved `HistoryLedger` entry exists for this child today (for `claim_mode=each`) or for any child today (for `claim_mode=one`).
+* No pending claim or approved `HistoryLedger` entry exists for this child (for `claim_mode=each`) or for any child (for `claim_mode=one`) within the chore's claim period — that period is the current day for daily chores and the current Monday-to-Sunday week for weekly chores (so a weekly chore claimed once stays "done" until the next week).
 
 
 2. **Rendering:** The app renders a massive yellow card containing the `fa-teeth` graphic, the title, a `+5 ⭐` badge, and a giant green **"Claim / Διεκδίκηση"** button.

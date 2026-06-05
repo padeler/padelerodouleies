@@ -141,7 +141,7 @@ def _per_kid(history: list[HistoryLedger], kids: list[User]) -> list[dict[str, A
 
 def compute_stats(db: Session, now: datetime) -> dict[str, Any]:
     """Build the full stats payload: last-week + all-time windows and per-kid rows."""
-    kids = db.query(User).filter(User.role == "user").all()
+    kids = db.query(User).filter(User.role == "user", User.is_active == True).all()
     kid_map = {kid.id: kid for kid in kids}
     kid_ids = list(kid_map.keys())
 

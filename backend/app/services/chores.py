@@ -70,9 +70,12 @@ def _get_claim_status(
 
     For claim_mode="one": checks any user's claim (first-come-first-served).
     For claim_mode="each": checks only this user's claim.
+
+    The claim period spans the whole ISO week for weekly chores (so a weekly
+    chore done once stays "done" until the next week) and a single day for
+    daily / n-day chores.
     """
-    day_start = _start_of(today)
-    day_end = _start_of(today + timedelta(days=1))
+    day_start, day_end = _period_bounds(chore, today)
 
     if chore.claim_mode == "one":
         pending = (
@@ -166,6 +169,24 @@ def _is_in_window(start: time | None, window: int | None, today: date, now: time
         window_end = window_start + timedelta(hours=window)
 
     return window_start <= now_dt < window_end
+
+
+def _is_weekly(chore: Chore) -> bool:
+    """A chore is weekly when it targets specific weekdays (repeat_days set)."""
+    return chore.repeat_days is not None and len(chore.repeat_days) > 0
+
+
+def _period_bounds(chore: Chore, today: date) -> tuple[datetime, datetime]:
+    """Return the [start, end) claim period for the chore as naive-UTC datetimes.
+
+    Weekly chores claim once per ISO week (Monday-to-Monday), so a completed
+    weekly chore stays "done" for the rest of that week and only reappears the
+    following week. All other chores claim once per day.
+    """
+    if _is_weekly(chore):
+        week_start = today - timedelta(days=today.weekday())  # Monday of this week
+        return _start_of(week_start), _start_of(week_start + timedelta(days=7))
+    return _start_of(today), _start_of(today + timedelta(days=1))
 
 
 def _matches_day(chore: Chore, today: date) -> bool:

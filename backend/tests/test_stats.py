@@ -109,6 +109,33 @@ def test_compute_stats_counts_awards():
         db.close()
 
 
+def test_compute_stats_excludes_deleted_users():
+    """Soft-deleted (is_active=False) kids and their stars are absent from stats."""
+    db = LocalSession()
+    try:
+        active = User(name="ActiveKid", role="user", avatar_value="fox",
+                      pin_hash=hash_pin("1234"), current_stars=8, is_active=True)
+        deleted = User(name="DeletedKid", role="user", avatar_value="lion",
+                       pin_hash=hash_pin("5678"), current_stars=99, is_active=False)
+        db.add_all([active, deleted])
+        db.commit()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        db.add_all([
+            HistoryLedger(user_id=active.id, action_type="chore_approved", points_delta=8, timestamp=now),
+            HistoryLedger(user_id=deleted.id, action_type="chore_approved", points_delta=50, timestamp=now),
+        ])
+        db.commit()
+
+        stats = compute_stats(db, _now())
+        names = {k["name"] for k in stats["per_kid"]}
+        assert names == {"ActiveKid"}
+        # Deleted kid's 50 stars excluded from cumulative totals.
+        assert stats["window_all"]["total_stars_earned"] == 8
+        assert stats["window_all"]["top_earner"]["name"] == "ActiveKid"
+    finally:
+        db.close()
+
+
 @pytest.fixture
 async def kid_client_stats():
     db = LocalSession()

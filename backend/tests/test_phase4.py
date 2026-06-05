@@ -7,7 +7,13 @@ from httpx import ASGITransport, AsyncClient, Cookies
 
 from app.db.engine import LocalSession
 from app.db.models import Chore, HistoryLedger, Reward, RewardLedger, User
-from app.services.chores import _is_in_window, _matches_day
+from app.services.chores import (
+    _is_in_window,
+    _matches_day,
+    _period_bounds,
+    chores_for_dashboard,
+)
+from app.db.models import PendingClaim
 from app.main import app
 from app.security.pins import hash_pin
 
@@ -368,6 +374,99 @@ def test_every_n_days_hidden_off_schedule():
     assert not _matches_day(chore, date(2025, 5, 4))   # day 3
     assert not _matches_day(chore, date(2025, 5, 6))   # day 5
     assert not _matches_day(chore, date(2025, 5, 10))  # day 9
+
+
+def test_period_bounds_weekly_spans_iso_week():
+    """A weekly chore's claim period covers the whole Monday-to-Monday ISO week."""
+    weekly = Chore(
+        title="Weekly", icon_name="brush", claim_mode="each", points_value=3,
+        is_repeating=True, is_active=True, repeat_days=["Sat", "Sun"],
+        created_at=datetime(2025, 1, 1),
+    )
+    # Saturday and the preceding Wednesday of the same ISO week share bounds.
+    sat_start, sat_end = _period_bounds(weekly, date(2025, 5, 31))  # Saturday
+    wed_start, wed_end = _period_bounds(weekly, date(2025, 5, 28))  # Wednesday
+    assert (sat_start, sat_end) == (wed_start, wed_end)
+    # The next week resolves to a different period.
+    next_start, _ = _period_bounds(weekly, date(2025, 6, 7))  # following Saturday
+    assert next_start != sat_start
+
+
+def test_period_bounds_daily_spans_one_day():
+    """A daily chore's claim period is a single day, so bounds differ day to day."""
+    daily = Chore(
+        title="Daily", icon_name="star", claim_mode="each", points_value=5,
+        is_repeating=True, is_active=True, created_at=datetime(2025, 1, 1),
+    )
+    mon = _period_bounds(daily, date(2025, 5, 26))
+    tue = _period_bounds(daily, date(2025, 5, 27))
+    assert mon != tue
+
+
+def test_weekly_chore_stays_done_until_next_week():
+    """A weekly chore approved once stays 'approved' all week and resets next week."""
+    db = LocalSession()
+    kid = User(name="WeeklyKid", role="user", avatar_value="fox",
+               pin_hash=hash_pin("1234"), current_stars=0)
+    db.add(kid)
+    chore = Chore(
+        title="Weekly all-days", icon_name="star", claim_mode="each",
+        points_value=4, is_repeating=True, is_active=True,
+        repeat_days=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        created_at=datetime(2025, 1, 1),
+    )
+    db.add(chore)
+    db.commit()
+    kid_id, chore_id = kid.id, chore.id
+
+    # Approved on Monday (timestamp stored as naive UTC; Athens Monday noon).
+    db.add(HistoryLedger(
+        user_id=kid_id, action_type="chore_approved", points_delta=4,
+        ref_table="chore", ref_id=chore_id,
+        timestamp=datetime(2025, 5, 26, 9, 0),  # Mon 12:00 Athens
+    ))
+    db.commit()
+
+    # Wednesday of the same week: still approved, not available again.
+    wed = chores_for_dashboard(kid_id, datetime(2025, 5, 28, 9, 0), db)
+    wed_entry = next(e for e in wed if e["chore"].id == chore_id)
+    assert wed_entry["status"] == "approved"
+
+    # Next Monday: available again.
+    nxt = chores_for_dashboard(kid_id, datetime(2025, 6, 2, 9, 0), db)
+    nxt_entry = next(e for e in nxt if e["chore"].id == chore_id)
+    assert nxt_entry["status"] == "available"
+    db.close()
+
+
+def test_weekly_one_mode_claimed_for_all_kids_until_next_week():
+    """A weekly 'one' chore claimed by one kid shows pending to others all week."""
+    db = LocalSession()
+    kid_a = User(name="WeeklyA", role="user", avatar_value="fox",
+                 pin_hash=hash_pin("1234"), current_stars=0)
+    kid_b = User(name="WeeklyB", role="user", avatar_value="cat",
+                 pin_hash=hash_pin("1234"), current_stars=0)
+    db.add_all([kid_a, kid_b])
+    chore = Chore(
+        title="Weekly shared", icon_name="bed", claim_mode="one",
+        points_value=4, is_repeating=True, is_active=True,
+        repeat_days=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        created_at=datetime(2025, 1, 1),
+    )
+    db.add(chore)
+    db.commit()
+    a_id, b_id, chore_id = kid_a.id, kid_b.id, chore.id
+
+    db.add(PendingClaim(user_id=a_id, chore_id=chore_id,
+                        claimed_at=datetime(2025, 5, 26, 9, 0)))  # Mon
+    db.commit()
+
+    # Wednesday: kid B sees it as pending (taken for the week).
+    wed_b = chores_for_dashboard(b_id, datetime(2025, 5, 28, 9, 0), db)
+    entry = next(e for e in wed_b if e["chore"].id == chore_id)
+    assert entry["status"] == "pending"
+    assert entry["claimed_by"]["user_id"] == a_id
+    db.close()
 
 
 async def test_pending_stars_endpoint(kid_client, admin_client_p4):
