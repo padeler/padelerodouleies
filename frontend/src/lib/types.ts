@@ -148,6 +148,37 @@ export interface LeaderboardEntry {
   current_stars: number;
 }
 
+export interface StatKid {
+  id: number;
+  name: string;
+  avatar_kind: string;
+  avatar_value: string;
+}
+
+export interface StatsWindow {
+  earned_per_weekday: { weekday: number; stars: number }[];
+  total_stars_earned: number;
+  total_chores: number;
+  total_awards: number;
+  top_earner: (StatKid & { stars: number }) | null;
+  top_chorer: (StatKid & { count: number }) | null;
+  top_buyer: (StatKid & { count: number }) | null;
+}
+
+export interface StatsPerKid extends StatKid {
+  current_stars: number;
+  total_earned: number;
+  total_spent: number;
+  best_day: { date: string; stars: number } | null;
+  best_week: { week_start: string; stars: number } | null;
+}
+
+export interface StatsResponse {
+  window_week: StatsWindow;
+  window_all: StatsWindow;
+  per_kid: StatsPerKid[];
+}
+
 export type WSEvent =
   | { event: 'stars_changed'; user_id: number; current_stars: number }
   | { event: 'pending_stars_changed'; user_id: number; pending_stars: number }

@@ -61,6 +61,7 @@
 .page-bg-users       { --bg-c1: #4dc3ff; --bg-c2: #4d96ff; --bg-c3: #7bdff2; }
 .page-bg-fulfillment { --bg-c1: #ffa45b; --bg-c2: #e0995b; --bg-c3: #ffcf5b; }
 .page-bg-activity    { --bg-c1: #a855f7; --bg-c2: #7b5cff; --bg-c3: #c084fc; }
+.page-bg-stats       { --bg-c1: #4dd0b1; --bg-c2: #4d96ff; --bg-c3: #ffd93d; }
 
 /* Dark themes: soften the glow so it reads as ambient, not neon */
 @media (prefers-color-scheme: dark) {

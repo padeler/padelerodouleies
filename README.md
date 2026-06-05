@@ -95,6 +95,14 @@ A live-updating, high-contrast leaderboard view accessible to everyone in the ho
 * **The Podium Layout:** Displays users ranked side-by-side on colorful, game-style podium steps.
 * **Real-Time Synchronicity:** A FastAPI WebSocket endpoint pushes state changes to every connected client; the leaderboard, star counters, and approvals badge update instantly on tablet screens the moment an admin approves a chore from their smartphone — no page refreshes required.
 
+### 6. Stats Module
+
+A kid-friendly statistics view (available to both kids at `/dashboard/stats` and admins at `/admin/stats`) that turns the history and reward ledgers into colorful charts.
+
+* **Last-week / All-time Toggle:** Every figure can be viewed for the past 7 days or across the whole history.
+* **Cumulative Highlights:** Total stars earned, chores completed, and awards bought, plus a per-weekday bar chart and "champion" cards for the top earner, hardest worker (most chores), and top buyer.
+* **Per-Kid Breakdown:** Each child's total stars earned and spent, their best single day, and their best week.
+
 ---
 
 ## 🌐 Internationalization (i18n) Layout
@@ -176,6 +184,8 @@ npm run dev
 ```
 
 Open http://localhost:5173 in your browser. The frontend proxies API requests to the backend on port 8000 via Vite's dev proxy.
+
+**Shortcut:** once the backend venv (`backend/.venv`) and frontend deps are installed, `./dev.sh` from the repo root starts both servers together and stops them cleanly with a single `Ctrl+C`. To populate a database with realistic sample data (3 kids with ~8 weeks of activity for the Stats page), run `python scripts/seed_dummy.py` from `backend/` — it clears, migrates, and reseeds.
 
 On first run the backend will auto-create the SQLite database and bootstrap default admin users. Create any additional users, chores, or rewards through the admin panel.
 

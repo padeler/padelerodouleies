@@ -35,6 +35,7 @@ export function useRealtime() {
             useAuthStore.setState({ user: { ...user, current_stars: msg.current_stars } });
           }
           queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+          queryClient.invalidateQueries({ queryKey: ['stats'] });
           break;
         }
         case 'pending_stars_changed': {
