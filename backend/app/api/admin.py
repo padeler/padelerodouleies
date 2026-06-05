@@ -349,7 +349,7 @@ def list_admin_users(
     db: Session = Depends(get_session),
     _admin: User = Depends(require_admin),
 ) -> list[AdminUserRead]:
-    users = db.query(User).order_by(User.id).all()
+    users = db.query(User).filter(User.is_active == True).order_by(User.id).all()
     return [AdminUserRead.model_validate(u) for u in users]
 
 

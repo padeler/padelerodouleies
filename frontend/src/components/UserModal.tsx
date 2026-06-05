@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,13 +9,26 @@ import type { AdminUser, AvatarSelection } from '../lib/types';
 import { AvatarPicker } from './AvatarPicker';
 import { notifySuccess, notifyError } from '../lib/notify';
 
-const userSchema = z.object({
-  name: z.string().min(1, 'Required').max(100),
-  role: z.enum(['admin', 'user']),
-  pin: z.string().length(4, '4 digits required').regex(/^\d{4}$/, 'PIN must be numeric').optional(),
-});
+// PIN is mandatory when creating a user; on edit it is not submitted at all.
+function buildUserSchema(isCreate: boolean) {
+  return z
+    .object({
+      name: z.string().min(1, 'Required').max(100),
+      role: z.enum(['admin', 'user']),
+      pin: z.string().regex(/^\d{4}$/, '4 digits required').optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (isCreate && !data.pin) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['pin'], message: '4 digits required' });
+      }
+    });
+}
 
-type UserForm = z.infer<typeof userSchema>;
+type UserForm = {
+  name: string;
+  role: 'admin' | 'user';
+  pin?: string;
+};
 
 interface UserModalProps {
   user?: AdminUser | null;
@@ -37,8 +50,9 @@ export function UserModal({ user, onClose }: UserModalProps) {
     pin: undefined,
   };
 
+  const schema = useMemo(() => buildUserSchema(!user), [user]);
   const { control, handleSubmit, formState: { errors } } = useForm<UserForm>({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(schema),
     defaultValues,
   });
 
@@ -55,7 +69,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
       }
       return createAdminUser({
         ...payload,
-        pin: data.pin ?? '0000',
+        pin: data.pin,
       } as any);
     },
     onSuccess: () => {

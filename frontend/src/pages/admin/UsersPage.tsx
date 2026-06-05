@@ -28,6 +28,7 @@ export function UsersPage() {
   const { page, setPage, pageCount, pageItems } = usePagination(data as AdminUser[] | undefined);
 
   const handleDelete = async (user: AdminUser) => {
+    if (!window.confirm(t('common.confirm_delete', { title: user.name }))) return;
     try {
       await deleteAdminUser(user.id);
       notifySuccess(t('common.delete') + ' ✓');
