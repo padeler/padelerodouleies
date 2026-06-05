@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing';
 import { Setup } from './pages/Setup';
 import { AdminPanel } from './pages/AdminPanel';
@@ -12,10 +12,13 @@ import './App.css';
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { setUser } = useAuth();
   const [checking, setChecking] = useState(true);
-  const location = useLocation();
 
+  // Validate the session once on mount. Re-running this on every navigation
+  // fired a redundant network request and flashed the full-page loading
+  // spinner on each tab switch — noticeably sluggish on older tablets. The
+  // login/logout flows keep the auth store in sync directly.
   useEffect(() => {
-    console.log('[AuthGuard] checking session... (location:', location.pathname, ')');
+    console.log('[AuthGuard] checking session...');
     getMe()
       .then((u) => {
         console.log('[AuthGuard] session valid, user:', u.name, 'role:', u.role);
@@ -28,7 +31,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       .finally(() => {
         setChecking(false);
       });
-  }, [setUser, location.pathname]);
+  }, [setUser]);
 
   if (checking) {
     return <div className="loading">Loading…</div>;
