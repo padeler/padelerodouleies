@@ -116,8 +116,11 @@ async def test_visible_chores_endpoint(kid_client):
 
     resp = await client.get("/api/dashboard/visible-chores")
     assert resp.status_code == 200
-    chore_ids = [c["id"] for c in resp.json()]
+    chores = resp.json()
+    chore_ids = [c["id"] for c in chores]
     assert chore_id in chore_ids
+    # Available chores carry no re-availability hint.
+    assert next(c for c in chores if c["id"] == chore_id)["available_again_at"] is None
 
     # Claim it
     resp = await client.post(f"/api/dashboard/chores/{chore_id}/claim")
@@ -129,6 +132,8 @@ async def test_visible_chores_endpoint(kid_client):
     matching = [c for c in chores if c["id"] == chore_id]
     assert len(matching) == 1
     assert matching[0]["status"] == "pending"
+    # Claimed chores surface when the daily claim period ends (next Athens midnight).
+    assert matching[0]["available_again_at"] is not None
 
 
 async def test_kid_history_endpoint(kid_client):

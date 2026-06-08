@@ -21,6 +21,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   'chore.status_approved_mine': { el: 'Εγκρίθηκε!', en: 'Approved!' },
   'chore.claimed_by': { el: 'Διεκδικήθηκε από {name}', en: 'Claimed by {name}' },
   'chore.done_by': { el: 'Ολοκληρώθηκε από {name}', en: 'Done by {name}' },
+  'chore.available_again': { el: 'Διαθέσιμη ξανά {when}', en: 'Available again {when}' },
   'common.loading': { el: 'Φόρτωση…', en: 'Loading…' },
   'error.generic': { el: 'Σφάλμα', en: 'Error' },
 };
@@ -33,6 +34,7 @@ const AVAILABLE_CHORE = {
   points_value: 5,
   status: 'available' as const,
   claimed_by: null,
+  available_again_at: null,
 };
 
 function renderDashboard() {
@@ -165,6 +167,25 @@ describe('DashboardChores', () => {
     await waitFor(() => {
       const icons = document.querySelectorAll('.chore-icon');
       expect(icons[0]).toHaveAttribute('src', '/api/icons/svg/tooth');
+    });
+  });
+
+  it('shows a re-availability indicator on the current kid\'s approved chore', async () => {
+    const inThreeHours = new Date(Date.now() + 3 * 3_600_000).toISOString();
+    server.use(
+      http.get('/api/dashboard/visible-chores', async () => HttpResponse.json([
+        {
+          ...AVAILABLE_CHORE,
+          status: 'approved',
+          claimed_by: { user_id: 2, name: 'Maria', avatar_kind: 'icon', avatar_value: 'fox' },
+          available_again_at: inThreeHours,
+        },
+      ])),
+      http.get('/api/dashboard/pending-stars', async () => HttpResponse.json({ pending_stars: 0, claims: [] })),
+    );
+    renderDashboard();
+    await waitFor(() => {
+      expect(screen.getByText(/Διαθέσιμη ξανά/)).toBeInTheDocument();
     });
   });
 

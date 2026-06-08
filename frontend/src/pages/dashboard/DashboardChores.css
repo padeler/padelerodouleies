@@ -23,7 +23,7 @@
 
 .dashboard-avatar {
   margin-bottom: 12px;
-  border: 3px solid #d1c4e9;
+  border: 3px solid var(--accent-border);
 }
 
 .pending-stars {
@@ -51,8 +51,8 @@
 }
 
 .chore-card {
-  background: linear-gradient(135deg, #fff 0%, #f8f4ff 100%);
-  border: 3px solid #e0d4f5;
+  background: linear-gradient(135deg, #fff 0%, var(--accent-bg) 100%);
+  border: 3px solid var(--accent-border);
   border-radius: 16px;
   padding: 24px;
   text-align: center;
@@ -94,7 +94,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f3edff;
+  background: var(--accent-bg);
   border-radius: 50%;
 }
 
@@ -123,7 +123,7 @@
   padding: 14px 28px;
   font-size: 18px;
   font-weight: 700;
-  background: linear-gradient(135deg, #7b2ff7 0%, #aa3bff 100%);
+  background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -178,6 +178,21 @@
 .chore-status-done {
   color: #2e7d32;
   background: #e8f5e9;
+}
+
+.chore-available-again {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chore-available-again::before {
+  content: '⏳';
+  font-size: 13px;
 }
 
 .chore-claimer-badge {

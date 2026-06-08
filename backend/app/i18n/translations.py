@@ -50,6 +50,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "chore.done_by": {"el": "Ολοκληρώθηκε από {name}", "en": "Done by {name}"},
     "chore.status_pending_mine": {"el": "Σε αναμονή έγκρισης", "en": "Awaiting approval"},
     "chore.status_approved_mine": {"el": "Εγκρίθηκε!", "en": "Approved!"},
+    "chore.available_again": {"el": "Διαθέσιμη ξανά {when}", "en": "Available again {when}"},
     "chore.new": {"el": "Νέα Δουλειά", "en": "New Chore"},
     "chore.already_claimed": {"el": "Κάποιος άλλος το διεκδίκησε πρώτος!", "en": "Someone else claimed this first!"},
     "chore.none_visible": {"el": "Δεν υπάρχουν δουλειές αυτή τη στιγμή", "en": "No chores available right now"},

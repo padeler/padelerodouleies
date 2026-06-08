@@ -110,6 +110,8 @@ export interface VisibleChore {
   points_value: number;
   status: 'available' | 'pending' | 'approved';
   claimed_by: ChoreClaimedBy | null;
+  /** ISO timestamp when the chore becomes claimable again; null while available. */
+  available_again_at: string | null;
 }
 
 export interface KidHistoryEntry {

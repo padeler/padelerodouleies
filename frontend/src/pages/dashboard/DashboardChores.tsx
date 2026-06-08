@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getVisibleChores, claimChore, getPendingStars } from '../../api/client';
-import { useT } from '../../i18n/store';
+import { useT, useLocale } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { VisibleChore } from '../../lib/types';
+import { formatRelativeFromNow } from '../../lib/datetime';
 import { notifyCelebration, notifyError } from '../../lib/notify';
 import { Avatar } from '../../components/Avatar';
 import './flip-card.css';
@@ -26,6 +27,7 @@ function ClaimerBadge({ claimed_by }: { claimed_by: VisibleChore['claimed_by'] }
 
 function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserId: number }) {
   const t = useT();
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const [flipped, setFlipped] = useState(false);
 
@@ -116,6 +118,14 @@ function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserI
               </div>
               <ClaimerBadge claimed_by={chore.claimed_by} />
             </>
+          )}
+
+          {chore.status === 'approved' && chore.available_again_at && (
+            <div className="chore-available-again">
+              {t('chore.available_again', {
+                when: formatRelativeFromNow(chore.available_again_at, locale),
+              })}
+            </div>
           )}
 
           {mutation.isError && (

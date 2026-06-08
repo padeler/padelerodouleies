@@ -51,17 +51,20 @@
   50% { transform: translateY(-32px) scale(1.08); }
 }
 
-/* Per-tab palettes — abstract but evocative of each tab's theme */
-.page-bg-login       { --bg-c1: #ffd93d; --bg-c2: #6bcb77; --bg-c3: #4d96ff; }
-.page-bg-chores      { --bg-c1: #6bcb77; --bg-c2: #4dd0b1; --bg-c3: #a8e063; }
-.page-bg-rewards     { --bg-c1: #ff6b9d; --bg-c2: #ffa45b; --bg-c3: #ff6b6b; }
-.page-bg-history     { --bg-c1: #7b5cff; --bg-c2: #9d7bff; --bg-c3: #5c6bff; }
-.page-bg-leaderboard { --bg-c1: #ffd93d; --bg-c2: #ffb300; --bg-c3: #ffcf5b; }
-.page-bg-approvals   { --bg-c1: #2dd4bf; --bg-c2: #6bcb77; --bg-c3: #4dd0b1; }
-.page-bg-users       { --bg-c1: #4dc3ff; --bg-c2: #4d96ff; --bg-c3: #7bdff2; }
-.page-bg-fulfillment { --bg-c1: #ffa45b; --bg-c2: #e0995b; --bg-c3: #ffcf5b; }
-.page-bg-activity    { --bg-c1: #a855f7; --bg-c2: #7b5cff; --bg-c3: #c084fc; }
-.page-bg-stats       { --bg-c1: #4dd0b1; --bg-c2: #4d96ff; --bg-c3: #ffd93d; }
+/* Per-tab palettes — abstract but evocative of each tab's theme. When the user
+   picks an accent, applyAccent() sets --bg-accent-* on :root, which these
+   var() fallbacks pick up so the background follows the chosen accent; with no
+   accent selected the per-tab defaults apply. */
+.page-bg-login       { --bg-c1: var(--bg-accent-1, #ffd93d); --bg-c2: var(--bg-accent-2, #6bcb77); --bg-c3: var(--bg-accent-3, #4d96ff); }
+.page-bg-chores      { --bg-c1: var(--bg-accent-1, #6bcb77); --bg-c2: var(--bg-accent-2, #4dd0b1); --bg-c3: var(--bg-accent-3, #a8e063); }
+.page-bg-rewards     { --bg-c1: var(--bg-accent-1, #ff6b9d); --bg-c2: var(--bg-accent-2, #ffa45b); --bg-c3: var(--bg-accent-3, #ff6b6b); }
+.page-bg-history     { --bg-c1: var(--bg-accent-1, #7b5cff); --bg-c2: var(--bg-accent-2, #9d7bff); --bg-c3: var(--bg-accent-3, #5c6bff); }
+.page-bg-leaderboard { --bg-c1: var(--bg-accent-1, #ffd93d); --bg-c2: var(--bg-accent-2, #ffb300); --bg-c3: var(--bg-accent-3, #ffcf5b); }
+.page-bg-approvals   { --bg-c1: var(--bg-accent-1, #2dd4bf); --bg-c2: var(--bg-accent-2, #6bcb77); --bg-c3: var(--bg-accent-3, #4dd0b1); }
+.page-bg-users       { --bg-c1: var(--bg-accent-1, #4dc3ff); --bg-c2: var(--bg-accent-2, #4d96ff); --bg-c3: var(--bg-accent-3, #7bdff2); }
+.page-bg-fulfillment { --bg-c1: var(--bg-accent-1, #ffa45b); --bg-c2: var(--bg-accent-2, #e0995b); --bg-c3: var(--bg-accent-3, #ffcf5b); }
+.page-bg-activity    { --bg-c1: var(--bg-accent-1, #a855f7); --bg-c2: var(--bg-accent-2, #7b5cff); --bg-c3: var(--bg-accent-3, #c084fc); }
+.page-bg-stats       { --bg-c1: var(--bg-accent-1, #4dd0b1); --bg-c2: var(--bg-accent-2, #4d96ff); --bg-c3: var(--bg-accent-3, #ffd93d); }
 
 /* Dark themes: soften the glow so it reads as ambient, not neon */
 @media (prefers-color-scheme: dark) {

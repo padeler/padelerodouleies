@@ -42,6 +42,19 @@ function darkenRgb(hex: string, factor: number): string {
 }
 
 /**
+ * Lighten a "#RRGGBB" color by mixing each channel toward white. Used to derive
+ * hue-matched background-glow tints from the accent. Amount is in [0, 1]
+ * (higher = lighter).
+ */
+function lightenRgb(hex: string, amount: number): string {
+  const mix = (c: number) => Math.round(c + (255 - c) * amount);
+  const r = mix(parseInt(hex.slice(1, 3), 16));
+  const g = mix(parseInt(hex.slice(3, 5), 16));
+  const b = mix(parseInt(hex.slice(5, 7), 16));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
  * Apply (or clear) the accent override on <html>. Passing null/undefined removes
  * the inline override so the theme default from index.css applies again.
  */
@@ -51,16 +64,27 @@ export function applyAccent(color: string | null | undefined): void {
     root.style.removeProperty('--accent');
     root.style.removeProperty('--accent-bg');
     root.style.removeProperty('--accent-border');
+    root.style.removeProperty('--accent-strong');
     root.style.removeProperty('--accent-sidebar');
     root.style.removeProperty('--accent-sidebar-2');
+    root.style.removeProperty('--bg-accent-1');
+    root.style.removeProperty('--bg-accent-2');
+    root.style.removeProperty('--bg-accent-3');
     return;
   }
   const rgb = hexToRgb(color);
   root.style.setProperty('--accent', color);
   root.style.setProperty('--accent-bg', `rgba(${rgb}, 0.12)`);
   root.style.setProperty('--accent-border', `rgba(${rgb}, 0.5)`);
+  // Darker, hue-matched shade for gradient depth (e.g. the claim button).
+  root.style.setProperty('--accent-strong', darkenRgb(color, 0.7));
   // Deep, hue-matched sidebar gradient (top lighter, bottom darker); kept dark
   // so the sidebar's light text stays legible regardless of the chosen accent.
   root.style.setProperty('--accent-sidebar', darkenRgb(color, 0.32));
   root.style.setProperty('--accent-sidebar-2', darkenRgb(color, 0.18));
+  // Three hue-matched tints drive the decorative page-background glow, overriding
+  // the per-tab defaults so the background follows the chosen accent.
+  root.style.setProperty('--bg-accent-1', color);
+  root.style.setProperty('--bg-accent-2', lightenRgb(color, 0.45));
+  root.style.setProperty('--bg-accent-3', lightenRgb(color, 0.2));
 }

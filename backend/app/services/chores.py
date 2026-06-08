@@ -42,7 +42,20 @@ def chores_for_dashboard(user_id: int, now: datetime, db: Session) -> list[dict]
         if not _is_in_window(chore.start_time, chore.window_hours, today, now_time):
             continue
         status, claimed_by = _get_claim_status(chore, user_id, today, db)
-        result.append({"chore": chore, "status": status, "claimed_by": claimed_by})
+        # For claimed (pending/approved) chores, surface when the current claim
+        # period ends — that is when the chore becomes claimable again.
+        available_again_at: str | None = None
+        if status != "available":
+            _, period_end = _period_bounds(chore, today)
+            available_again_at = period_end.replace(tzinfo=ZoneInfo("UTC")).isoformat()
+        result.append(
+            {
+                "chore": chore,
+                "status": status,
+                "claimed_by": claimed_by,
+                "available_again_at": available_again_at,
+            }
+        )
 
     return result
 

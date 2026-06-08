@@ -33,6 +33,7 @@ def get_visible_chores(
             "points_value": e["chore"].points_value,
             "status": e["status"],
             "claimed_by": e["claimed_by"],
+            "available_again_at": e["available_again_at"],
         }
         for e in entries
     ]

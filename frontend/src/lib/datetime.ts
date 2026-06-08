@@ -30,6 +30,23 @@ export function formatDateShort(value: string, locale: 'el' | 'en' = 'el'): stri
   });
 }
 
+/**
+ * Format a future timestamp as a localized relative phrase from now
+ * (e.g. "in 5 hours" / "σε 5 ώρες"). Picks minutes under an hour, hours under a
+ * day, then days — letting Intl.RelativeTimeFormat handle pluralization.
+ */
+export function formatRelativeFromNow(value: string, locale: 'el' | 'en' = 'el'): string {
+  const diffMs = parseUtc(value).getTime() - Date.now();
+  const rtf = new Intl.RelativeTimeFormat(locale === 'el' ? 'el-GR' : 'en-US', {
+    numeric: 'auto',
+  });
+  const diffMin = Math.round(diffMs / 60_000);
+  if (Math.abs(diffMin) < 60) return rtf.format(diffMin, 'minute');
+  const diffHours = Math.round(diffMs / 3_600_000);
+  if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour');
+  return rtf.format(Math.round(diffMs / 86_400_000), 'day');
+}
+
 /** Format a backend timestamp as a localized date+time string in Athens time. */
 export function formatDateTime(value: string, locale: 'el' | 'en' = 'el'): string {
   return parseUtc(value).toLocaleString(locale === 'el' ? 'el-GR' : 'en-US', {
