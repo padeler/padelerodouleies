@@ -14,6 +14,7 @@ from app.services.chores import (
     chores_for_dashboard,
 )
 from app.db.models import PendingClaim
+from app.services.approvals import approve_claim
 from app.main import app
 from app.security.pins import hash_pin
 
@@ -513,3 +514,200 @@ async def test_pending_stars_zero_when_no_claims(kid_client):
     data = resp.json()
     assert data["pending_stars"] == 0
     assert len(data["claims"]) == 0
+
+
+# ---------------------------------------------------------------------------
+# Daily reset semantics (TODOs.md): a daily chore's claim period is a single
+# Athens day (00:00 → 00:00). "each" resets per kid; "one" is taken for all
+# kids until the next day once any kid claims OR completes it.
+# ---------------------------------------------------------------------------
+
+
+def _make_daily(claim_mode: str) -> Chore:
+    """A pure daily chore: repeats every day with no time-of-day window."""
+    return Chore(
+        title=f"Daily {claim_mode}", icon_name="star", claim_mode=claim_mode,
+        points_value=3, is_repeating=True, is_active=True,
+        created_at=datetime(2025, 1, 1),
+    )
+
+
+def test_daily_each_resets_per_kid_next_day():
+    """A daily 'each' chore approved by one kid is done for that kid today,
+    available again the next day, and never blocks other kids."""
+    db = LocalSession()
+    kid_a = User(name="DailyA", role="user", avatar_value="fox",
+                 pin_hash=hash_pin("1234"), current_stars=0)
+    kid_b = User(name="DailyB", role="user", avatar_value="cat",
+                 pin_hash=hash_pin("1234"), current_stars=0)
+    db.add_all([kid_a, kid_b])
+    chore = _make_daily("each")
+    db.add(chore)
+    db.commit()
+    a_id, b_id, chore_id = kid_a.id, kid_b.id, chore.id
+
+    # Kid A approved Monday (Athens noon → stored naive UTC).
+    db.add(HistoryLedger(
+        user_id=a_id, action_type="chore_approved", points_delta=3,
+        ref_table="chore", ref_id=chore_id,
+        timestamp=datetime(2025, 5, 26, 9, 0),  # Mon 12:00 Athens
+    ))
+    db.commit()
+
+    # Same day: A is done, B is unaffected (independent per-kid status).
+    mon_a = next(e for e in chores_for_dashboard(a_id, datetime(2025, 5, 26, 9, 0), db)
+                 if e["chore"].id == chore_id)
+    mon_b = next(e for e in chores_for_dashboard(b_id, datetime(2025, 5, 26, 9, 0), db)
+                 if e["chore"].id == chore_id)
+    assert mon_a["status"] == "approved"
+    assert mon_b["status"] == "available"
+
+    # Next day: A is available again (daily reset).
+    tue_a = next(e for e in chores_for_dashboard(a_id, datetime(2025, 5, 27, 9, 0), db)
+                 if e["chore"].id == chore_id)
+    assert tue_a["status"] == "available"
+    db.close()
+
+
+def test_daily_one_mode_blocks_other_kids_then_resets_next_day():
+    """A daily 'one' chore claimed by one kid is taken for everyone today and
+    resets for all the next day."""
+    db = LocalSession()
+    kid_a = User(name="OneA", role="user", avatar_value="fox",
+                 pin_hash=hash_pin("1234"), current_stars=0)
+    kid_b = User(name="OneB", role="user", avatar_value="cat",
+                 pin_hash=hash_pin("1234"), current_stars=0)
+    db.add_all([kid_a, kid_b])
+    chore = _make_daily("one")
+    db.add(chore)
+    db.commit()
+    a_id, b_id, chore_id = kid_a.id, kid_b.id, chore.id
+
+    # Kid A claims Monday.
+    db.add(PendingClaim(user_id=a_id, chore_id=chore_id,
+                        claimed_at=datetime(2025, 5, 26, 9, 0)))
+    db.commit()
+
+    # Same day: kid B sees it taken (pending) by A.
+    mon_b = next(e for e in chores_for_dashboard(b_id, datetime(2025, 5, 26, 9, 0), db)
+                 if e["chore"].id == chore_id)
+    assert mon_b["status"] == "pending"
+    assert mon_b["claimed_by"]["user_id"] == a_id
+
+    # Next day: available again for everyone (the claim was period-scoped).
+    tue_b = next(e for e in chores_for_dashboard(b_id, datetime(2025, 5, 27, 9, 0), db)
+                 if e["chore"].id == chore_id)
+    assert tue_b["status"] == "available"
+    db.close()
+
+
+def test_daily_one_mode_blocked_by_other_kids_completion():
+    """A daily 'one' chore *completed* (approved) by one kid blocks others for
+    the rest of the day — not just an open pending claim."""
+    db = LocalSession()
+    kid_a = User(name="DoneA", role="user", avatar_value="fox",
+                 pin_hash=hash_pin("1234"), current_stars=0)
+    kid_b = User(name="DoneB", role="user", avatar_value="cat",
+                 pin_hash=hash_pin("1234"), current_stars=0)
+    db.add_all([kid_a, kid_b])
+    chore = _make_daily("one")
+    db.add(chore)
+    db.commit()
+    a_id, b_id, chore_id = kid_a.id, kid_b.id, chore.id
+
+    # Kid A's claim was already approved Monday (no open pending row remains).
+    db.add(HistoryLedger(
+        user_id=a_id, action_type="chore_approved", points_delta=3,
+        ref_table="chore", ref_id=chore_id,
+        timestamp=datetime(2025, 5, 26, 9, 0),
+    ))
+    db.commit()
+
+    # Same day: kid B is blocked, sees A as the completer.
+    mon_b = next(e for e in chores_for_dashboard(b_id, datetime(2025, 5, 26, 9, 0), db)
+                 if e["chore"].id == chore_id)
+    assert mon_b["status"] == "approved"
+    assert mon_b["claimed_by"]["user_id"] == a_id
+
+    # Next day: available again.
+    tue_b = next(e for e in chores_for_dashboard(b_id, datetime(2025, 5, 27, 9, 0), db)
+                 if e["chore"].id == chore_id)
+    assert tue_b["status"] == "available"
+    db.close()
+
+
+def test_daily_chore_resets_at_athens_midnight_boundary():
+    """The day boundary is Athens 00:00, not UTC midnight. A completion late on
+    one Athens day must not leak into the next Athens day (Athens is UTC+3 in
+    summer, so this is a genuine off-by-offset risk)."""
+    db = LocalSession()
+    kid = User(name="BoundaryKid", role="user", avatar_value="fox",
+               pin_hash=hash_pin("1234"), current_stars=0)
+    db.add(kid)
+    chore = _make_daily("each")
+    db.add(chore)
+    db.commit()
+    kid_id, chore_id = kid.id, chore.id
+
+    # Approved at Athens 23:00 on Mon 26 May 2025. Ledger timestamps are stored
+    # as naive UTC, and Athens is UTC+3 in May, so this lands at UTC 20:00.
+    db.add(HistoryLedger(
+        user_id=kid_id, action_type="chore_approved", points_delta=3,
+        ref_table="chore", ref_id=chore_id,
+        timestamp=datetime(2025, 5, 26, 20, 0),
+    ))
+    db.commit()
+
+    # `chores_for_dashboard` takes `now` as Athens wall-clock time. Still
+    # Monday night in Athens (23:30): the completion counts → done for the day.
+    mon = next(e for e in chores_for_dashboard(kid_id, datetime(2025, 5, 26, 23, 30), db)
+               if e["chore"].id == chore_id)
+    assert mon["status"] == "approved"
+
+    # Just past Athens midnight (Tue 00:30): the same completion now falls in
+    # the previous Athens day, so the chore resets to available.
+    tue = next(e for e in chores_for_dashboard(kid_id, datetime(2025, 5, 27, 0, 30), db)
+               if e["chore"].id == chore_id)
+    assert tue["status"] == "available"
+    db.close()
+
+
+def test_approved_ledger_uses_claim_time_not_approval_time():
+    """The approved ledger row carries the *claim* time, not the approval time,
+    so a chore claimed late in one period but approved in the next still buckets
+    into the period it was claimed in."""
+    db = LocalSession()
+    admin = User(name="Parent", role="admin", avatar_value="owl",
+                 pin_hash=hash_pin("1111"), current_stars=0)
+    kid = User(name="ClaimTimeKid", role="user", avatar_value="fox",
+               pin_hash=hash_pin("1234"), current_stars=0)
+    db.add_all([admin, kid])
+    chore = _make_daily("each")
+    db.add(chore)
+    db.commit()
+
+    # Claimed Athens Mon 23:00 (naive UTC 20:00); approval happens "later".
+    claim_time = datetime(2025, 5, 26, 20, 0)
+    claim = PendingClaim(user_id=kid.id, chore_id=chore.id, claimed_at=claim_time)
+    db.add(claim)
+    db.commit()
+    claim_id, kid_id, chore_id, admin_id = claim.id, kid.id, chore.id, admin.id
+
+    result = approve_claim(claim_id, admin_id, db)
+    db.commit()
+    assert result is not None
+
+    row = (
+        db.query(HistoryLedger)
+        .filter(HistoryLedger.action_type == "chore_approved",
+                HistoryLedger.ref_id == chore_id)
+        .one()
+    )
+    # Timestamp follows the claim, not `func.now()` at approval.
+    assert row.timestamp == claim_time
+
+    # And the dashboard buckets it into the Monday it was claimed.
+    mon = next(e for e in chores_for_dashboard(kid_id, datetime(2025, 5, 26, 23, 30), db)
+               if e["chore"].id == chore_id)
+    assert mon["status"] == "approved"
+    db.close()

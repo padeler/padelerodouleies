@@ -27,6 +27,10 @@ def approve_claim(claim_id: int, actor_id: int, db: Session) -> ApprovalResult |
         raise ValueError("Referenced chore or user not found")
 
     user.current_stars = user.current_stars + chore.points_value  # type: ignore[assignment]
+    # The ledger row is timestamped when the kid *claimed* the chore, not when
+    # the admin approved it, so the entry buckets into the period the work was
+    # actually done in (a claim made late in one period but approved in the next
+    # still counts toward the claim period).
     db.add(HistoryLedger(
         user_id=claim.user_id,
         action_type="chore_approved",
@@ -34,6 +38,7 @@ def approve_claim(claim_id: int, actor_id: int, db: Session) -> ApprovalResult |
         ref_table="chore",
         ref_id=chore.id,
         actor_user_id=actor_id,
+        timestamp=claim.claimed_at,
     ))
     db.delete(claim)
     return ApprovalResult(user_id=user.id, current_stars=user.current_stars)
@@ -52,6 +57,7 @@ def decline_claim(claim_id: int, admin_note: str | None, actor_id: int, db: Sess
         ref_id=claim.chore_id,
         admin_note=admin_note,
         actor_user_id=actor_id,
+        timestamp=claim.claimed_at,
     ))
     db.delete(claim)
 
