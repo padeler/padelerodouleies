@@ -51,7 +51,9 @@
 }
 
 .chore-card {
-  background: linear-gradient(135deg, #fff 0%, var(--accent-bg) 100%);
+  /* Opaque #fff base under the translucent accent tint so the flip-card back
+     face stays solid (otherwise the mirrored front text shows through). */
+  background: linear-gradient(135deg, #fff 0%, var(--accent-bg) 100%), #fff;
   border: 3px solid var(--accent-border);
   border-radius: 16px;
   padding: 24px;
@@ -120,6 +122,8 @@
 }
 
 .chore-claim-btn {
+  /* Anchor to the card bottom so it doesn't shift with title length. */
+  margin-top: auto;
   padding: 14px 28px;
   font-size: 18px;
   font-weight: 700;
@@ -153,6 +157,8 @@
 }
 
 .chore-status-badge {
+  /* Anchor the status row to the card bottom, matching the claim button. */
+  margin-top: auto;
   font-size: 13px;
   font-weight: 700;
   padding: 6px 12px;
@@ -181,18 +187,21 @@
 }
 
 .chore-available-again {
-  font-size: 12px;
+  /* Shown on the card back; anchored to the bottom and kept compact. */
+  margin-top: auto;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text);
   opacity: 0.85;
   display: flex;
   align-items: center;
   gap: 4px;
+  text-align: center;
 }
 
 .chore-available-again::before {
   content: '⏳';
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .chore-claimer-badge {

@@ -120,14 +120,6 @@ function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserI
             </>
           )}
 
-          {chore.status === 'approved' && chore.available_again_at && (
-            <div className="chore-available-again">
-              {t('chore.available_again', {
-                when: formatRelativeFromNow(chore.available_again_at, locale),
-              })}
-            </div>
-          )}
-
           {mutation.isError && (
             <div className="chore-error">{t('chore.already_claimed')}</div>
           )}
@@ -143,6 +135,13 @@ function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserI
             {chore.description || t('card.no_description')}
           </p>
           <div className="chore-points">+{chore.points_value} ★</div>
+          {chore.available_again_at && (
+            <div className="chore-available-again">
+              {t('chore.available_again', {
+                when: formatRelativeFromNow(chore.available_again_at, locale),
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
