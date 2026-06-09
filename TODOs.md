@@ -1,6 +1,9 @@
 # TODOs
 
-- [x] When a chore is "Approved" (i.e the kid completed it and a parent accepted it), there should be a an indicator on the cart on when it will be available again (i.e in X hours).
-    - Backend `chores_for_dashboard` now emits `available_again_at` (the claim-period end as UTC ISO) for any non-available chore; `/api/dashboard/visible-chores` forwards it. Frontend shows a "Διαθέσιμη ξανά {when}" badge on approved cards via `formatRelativeFromNow` (Intl.RelativeTimeFormat, minutes/hours/days). New key `chore.available_again`.
-- [x] The colloring of the background and of the cards should follow the selected accents.
-    - `applyAccent` now derives `--accent-strong` (button gradient) and `--bg-accent-1/2/3` (page-background glow tints) from the chosen swatch. `PageBackground.css` per-tab palettes use `var(--bg-accent-*, <per-tab default>)`, so the background follows the accent when one is picked and keeps the per-tab colours otherwise. Chore cards (border/bg/icon-wrap/claim-button/avatar ring) use `--accent-*` vars instead of hardcoded purple. Status colours (pending/approved/taken) stay semantic.
+## Features:
+- [ ] A kid should be able to get an Award at most once per day. I.e it cannot get more than one ice-screams per day even if they have the stars. You can add a "available again" on the back of the card, similar to the "Chores". However all awards are redeemable once per day per kid, unlike chores that can be per week etc.
+- [ ] Add sound effects to the events. I.e when claiming a chore, an award, or when a card is flipped. Add a button to mute/unmut sounds on the top right of the screen.
+
+## Bugs:
+- [x] Some cards are still transparent and the letters on the front show on the back when it is flipped. This bug appeared when you added accent colors to the cards. It looks like the css for the cards is not handled uniformly. Go through the css and see if it needs to be cleaned-up or sanitized.
+      Fixed: `.chore-card.chore-taken` used `opacity: 0.8` on the whole flip-card face, making it translucent and letting the mirrored front text bleed through the back when flipped. Now dims only the card's inner content (icon/title/points) so the face stays fully opaque.

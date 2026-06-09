@@ -68,6 +68,8 @@
 }
 
 .redeem-btn {
+  /* Anchor to the card bottom so it doesn't shift with title length. */
+  margin-top: auto;
   padding: 12px 24px;
   font-size: 16px;
   font-weight: 700;
@@ -167,6 +169,8 @@
 }
 
 .contribute-btn {
+  /* Anchor to the card bottom so it doesn't shift with title/progress length. */
+  margin-top: auto;
   padding: 12px 20px;
   font-size: 16px;
   font-weight: 700;
@@ -179,6 +183,8 @@
 }
 
 .collab-complete {
+  /* Anchor to the card bottom, matching the contribute button it replaces. */
+  margin-top: auto;
   text-align: center;
   font-weight: 700;
   color: #22c55e;

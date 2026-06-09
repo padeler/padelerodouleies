@@ -71,10 +71,19 @@
   background: linear-gradient(135deg, #fff 0%, #fff8e1 100%);
 }
 
-/* taken by someone else */
+/* Taken by someone else. Muted via a grey palette only — never `opacity`, which
+   would make the whole flip-card face translucent and let the mirrored front
+   text bleed through the back when flipped (imperfect backface-visibility on
+   old tablets relies on each face staying fully opaque). */
 .chore-card.chore-taken {
   border-color: #ddd;
   background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
+}
+
+/* Dim only the taken card's content, keeping the face itself opaque. */
+.chore-card.chore-taken .chore-icon-wrap,
+.chore-card.chore-taken .chore-title,
+.chore-card.chore-taken .chore-points {
   opacity: 0.8;
 }
 
