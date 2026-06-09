@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **In production.** The initial build plan is fully delivered (Phases 1–5 — see [Build history](#build-history)) and the app has been live in production on the LAN-only Synology NAS for over a week (as of 2026-06-08). Work since launch has been incremental — minor features and bug fixes on `main`. The next set of large features will be sequenced in a fresh `PLAN.md` to be added in the coming days.
 
-**Health:** 118 Vitest tests + 83 backend pytest tests all pass; the production build (`npm run build`) and `docker build` both succeed. `mypy --strict` on the backend still reports ~50 pre-existing SQLAlchemy `Column[T]` vs `T` errors (not introduced here).
+**Health:** 119 Vitest tests + 84 backend pytest tests all pass; the production build (`npm run build`) and `docker build` both succeed. `mypy --strict` on the backend still reports ~50 pre-existing SQLAlchemy `Column[T]` vs `T` errors (not introduced here).
 
 > `README.md` is the product spec. The original build plan has shipped and its `PLAN.md` has been removed; a new `PLAN.md` for the next feature set is forthcoming. Until it lands, work from `README.md` and this file — and when any plan disagrees with code written later, the code wins, but flag the drift.
 
@@ -40,6 +40,8 @@ The production frontend build (`tsc`) was broken before M5.2 — test files were
 - **Approved-chore re-availability indicator:** `chores_for_dashboard` emits `available_again_at` (the claim-period end from `_period_bounds` as a UTC ISO timestamp) on every non-`available` chore; `/api/dashboard/visible-chores` forwards it; the kid card renders a `chore.available_again` badge via `formatRelativeFromNow` (Intl.RelativeTimeFormat, minutes/hours/days) — correct for both daily (next Athens midnight) and weekly (next Monday) chores.
 - **Claimed-chore visibility:** chores stay visible with the claimant's name + avatar instead of disappearing.
 - **Notifications:** toast system with confetti celebrations.
+- **Sound effects:** `lib/sound.ts` synthesizes short tones via the Web Audio API (no audio asset files) — `playClaim`/`playReward`/`playFlip`, wired into chore claim, reward redeem, and every card flip. The `AudioContext` is created lazily on first user gesture (autoplay policy) and no-ops where unavailable (e.g. jsdom). Mute is a persisted (`localStorage`) zustand store (`useSoundStore`) toggled by a 🔊/🔇 button in the header top-right.
+- **Daily reward limit:** individual rewards are redeemable once per kid per Athens day (collaborative rewards unaffected). `app/services/rewards.py` (`redeemed_today`/`next_reset_at_iso`) gates `POST /rewards/{id}/redeem` (409 once claimed today) and `/api/marketplace/rewards` emits `available_again_at` (next Athens midnight). The reward card front shows a "claimed today" badge in place of the redeem button; the back shows an "available again {when}" hint via `formatRelativeFromNow` — mirroring the chore `available_again` pattern.
 - **Admin panel:** admin avatar shown next to the name in the header; table pagination (reusable `Pagination`/`usePagination` in `components/Pagination.tsx` — client-side for chores/rewards/users/fulfillment/approvals, server-side via limit/offset for activity). Removed the manual stars-adjustment button from the admin users page.
 - **Misc UI:** keyboard PIN input, lazy icon loading, touch-friendly toggle-based chore form UI, yellow-star favicon, and a playful kid-friendly login screen (animated background, language toggle).
 
@@ -103,9 +105,9 @@ The initial build shipped in five phases: (1) DB models + i18n scaffold → (2) 
 
 ## Testing
 
-- **Frontend:** Vitest (v3.2.4) + jsdom + React Testing Library + MSW. Run `npm test` in `frontend/`. Tests live in `src/**/*.test.{ts,tsx}`. Test config in `vitest.config.ts`, setup in `tests/setup.ts`. 118 tests across 16 files, all passing.
+- **Frontend:** Vitest (v3.2.4) + jsdom + React Testing Library + MSW. Run `npm test` in `frontend/`. Tests live in `src/**/*.test.{ts,tsx}`. Test config in `vitest.config.ts`, setup in `tests/setup.ts`. 119 tests across 16 files, all passing.
 - **E2E:** Playwright in `frontend/tests/responsive.spec.ts`. Requires backend running on :8000 and frontend on :5173. Run `npx playwright test` in `frontend/`. 9 responsive tests.
-- **Backend:** pytest + httpx for FastAPI test client. Run `pytest` in `backend/`. 83 tests, all passing. Tests use the file database with an autouse fixture that deletes all rows after each test.
+- **Backend:** pytest + httpx for FastAPI test client. Run `pytest` in `backend/`. 84 tests, all passing. Tests use the file database with an autouse fixture that deletes all rows after each test.
 - MSW handlers registered via `server.use()` are NOT consumed after a single match — use a closure variable to track call count for sequential response patterns.
 - React 19 + testing-library compatibility: jsdom over happy-dom, `expect.extend(matchers)` pattern for jest-dom, `@testing-library/user-event` for mutation flows that require proper event sequencing.
 - Responsive breakpoint: `useIsMobile()` uses `< 768px` (not `<=`). CSS media queries use `max-width: 768px`. One-pixel off-by-one at exactly 768px is acceptable.

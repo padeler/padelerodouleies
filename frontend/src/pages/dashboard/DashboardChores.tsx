@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import type { VisibleChore } from '../../lib/types';
 import { formatRelativeFromNow } from '../../lib/datetime';
 import { notifyCelebration, notifyError } from '../../lib/notify';
+import { playClaim, playFlip } from '../../lib/sound';
 import { Avatar } from '../../components/Avatar';
 import './flip-card.css';
 import './DashboardChores.css';
@@ -34,6 +35,7 @@ function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserI
   const mutation = useMutation({
     mutationFn: () => claimChore(chore.id),
     onSuccess: () => {
+      playClaim();
       notifyCelebration(t('chore.pending'));
       queryClient.invalidateQueries({ queryKey: ['visible-chores'] });
       queryClient.invalidateQueries({ queryKey: ['pending-stars'] });
@@ -62,7 +64,10 @@ function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserI
   return (
     <div
       className={`flip-card ${flipped ? 'flipped' : ''}`}
-      onClick={() => setFlipped((f) => !f)}
+      onClick={() => {
+        playFlip();
+        setFlipped((f) => !f);
+      }}
     >
       <div className="flip-card-inner">
         <div className={`${cardClass} flip-card-face flip-card-front`}>

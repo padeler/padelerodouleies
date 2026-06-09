@@ -7,6 +7,7 @@ import { useT } from '../i18n/store';
 import LocaleToggle from '../i18n/LocaleToggle';
 import { SettingsModal } from './SettingsModal';
 import { Avatar } from './Avatar';
+import { useSoundStore } from '../lib/sound';
 
 export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {}) {
   const t = useT();
@@ -14,6 +15,8 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
   const { user, clearUser } = useAuth();
   const queryClient = useQueryClient();
   const [showSettings, setShowSettings] = useState(false);
+  const muted = useSoundStore((s) => s.muted);
+  const toggleMuted = useSoundStore((s) => s.toggleMuted);
 
   const handleLogout = async () => {
     console.log('[Header] logout started');
@@ -55,6 +58,16 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
         </div>
         <div className="header-right">
           <LocaleToggle />
+          <button
+            className="sound-btn"
+            type="button"
+            onClick={toggleMuted}
+            title={muted ? t('nav.unmute') : t('nav.mute')}
+            aria-label={muted ? t('nav.unmute') : t('nav.mute')}
+            aria-pressed={muted}
+          >
+            <span className="btn-icon">{muted ? '🔇' : '🔊'}</span>
+          </button>
           <button
             className="settings-btn"
             type="button"

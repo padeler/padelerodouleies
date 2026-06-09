@@ -28,6 +28,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "nav.activity": {"el": "Δραστηριότητα", "en": "Activity"},
     "nav.logout": {"el": "Έξοδος", "en": "Logout"},
     "nav.settings": {"el": "Ρυθμίσεις", "en": "Settings"},
+    "nav.mute": {"el": "Σίγαση ήχων", "en": "Mute sounds"},
+    "nav.unmute": {"el": "Ενεργοποίηση ήχων", "en": "Unmute sounds"},
     # Common
     "common.save": {"el": "Αποθήκευση", "en": "Save"},
     "common.delete": {"el": "Διαγραφή", "en": "Delete"},
@@ -93,6 +95,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "reward.fulfilled": {"el": "Εκτελέστηκε", "en": "Fulfilled"},
     "reward.claimed": {"el": "Διεκδικήθηκε", "en": "Claimed"},
     "reward.complete": {"el": "Στόχος επιτεύχθηκε!", "en": "Goal reached!"},
+    "reward.redeemed_today": {"el": "Το πήρες σήμερα!", "en": "Claimed today!"},
+    "reward.available_again": {"el": "Διαθέσιμο ξανά {when}", "en": "Available again {when}"},
     # Fulfillment
     "fulfillment.empty": {"el": "Δεν υπάρχουν εγγραφές", "en": "No entries"},
     "fulfillment.fulfilled_at": {"el": "Εκτελέστηκε στις", "en": "Fulfilled at"},

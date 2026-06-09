@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMarketplaceRewards, redeemReward, contributeReward } from '../../api/client';
-import { useT } from '../../i18n/store';
+import { useT, useLocale } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import type { MarketplaceReward } from '../../lib/types';
+import { formatRelativeFromNow } from '../../lib/datetime';
 import { notifyCelebration, notifyError } from '../../lib/notify';
+import { playFlip, playReward } from '../../lib/sound';
 import './flip-card.css';
 import './Marketplace.css';
 
 function RewardCard({ reward }: { reward: MarketplaceReward }) {
   const t = useT();
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const stars = user?.current_stars ?? 0;
@@ -19,8 +22,11 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
   const redeemMutation = useMutation({
     mutationFn: () => redeemReward(reward.id),
     onSuccess: () => {
+      playReward();
       notifyCelebration(t('common.success'));
       queryClient.invalidateQueries({ queryKey: ['auth-me'] });
+      // Refresh the marketplace so this reward flips to its "claimed today" state.
+      queryClient.invalidateQueries({ queryKey: ['marketplace-rewards'] });
     },
     onError: () => {
       notifyError(t('common.error'));
@@ -29,13 +35,19 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
 
   if (reward.is_collaborative) return null;
 
+  // An individual reward is redeemable once per kid per day; the backend sets
+  // `available_again_at` (next Athens midnight) once it has been claimed today.
+  const redeemedToday = Boolean(reward.available_again_at);
   const canAfford = stars >= reward.cost_stars;
   const iconSrc = `/api/icons/svg/${reward.icon_name}`;
 
   return (
     <div
       className={`flip-card ${flipped ? 'flipped' : ''}`}
-      onClick={() => setFlipped((f) => !f)}
+      onClick={() => {
+        playFlip();
+        setFlipped((f) => !f);
+      }}
     >
       <div className="flip-card-inner">
         <div className="reward-card flip-card-face flip-card-front">
@@ -44,22 +56,25 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
           </div>
           <h3 className="reward-title">{reward.title}</h3>
           <div className="reward-cost">{reward.cost_stars} ⭐</div>
-          <button
-            className={`redeem-btn ${canAfford ? '' : 'redeem-locked'}`}
-            type="button"
-            disabled={!canAfford || redeemMutation.isPending}
-            onClick={(e) => {
-              e.stopPropagation();
-              redeemMutation.mutate();
-            }}
-          >
-            {redeemMutation.isPending
-              ? t('common.loading')
-              : canAfford
-                ? t('reward.redeem')
-                : `${t('reward.insufficient')} (${stars}/${reward.cost_stars})`}
-          </button>
-          {redeemMutation.isSuccess && <div className="reward-success">{t('common.success')}</div>}
+          {redeemedToday ? (
+            <div className="reward-redeemed-badge">{t('reward.redeemed_today')}</div>
+          ) : (
+            <button
+              className={`redeem-btn ${canAfford ? '' : 'redeem-locked'}`}
+              type="button"
+              disabled={!canAfford || redeemMutation.isPending}
+              onClick={(e) => {
+                e.stopPropagation();
+                redeemMutation.mutate();
+              }}
+            >
+              {redeemMutation.isPending
+                ? t('common.loading')
+                : canAfford
+                  ? t('reward.redeem')
+                  : `${t('reward.insufficient')} (${stars}/${reward.cost_stars})`}
+            </button>
+          )}
           {redeemMutation.isError && <div className="reward-error">{t('common.error')}</div>}
         </div>
 
@@ -73,6 +88,13 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
             {reward.description || t('card.no_description')}
           </p>
           <div className="reward-cost">{reward.cost_stars} ⭐</div>
+          {reward.available_again_at && (
+            <div className="reward-available-again">
+              {t('reward.available_again', {
+                when: formatRelativeFromNow(reward.available_again_at, locale),
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -111,7 +133,10 @@ function CollabCard({ reward }: { reward: MarketplaceReward }) {
   return (
     <div
       className={`flip-card ${flipped ? 'flipped' : ''}`}
-      onClick={() => setFlipped((f) => !f)}
+      onClick={() => {
+        playFlip();
+        setFlipped((f) => !f);
+      }}
     >
       <div className="flip-card-inner">
         <div className="collab-card flip-card-face flip-card-front">

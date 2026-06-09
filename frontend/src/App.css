@@ -110,6 +110,30 @@
   }
 }
 
+.sound-btn {
+  padding: 8px 12px;
+  background: none;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text);
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sound-btn:hover {
+  border-color: var(--accent);
+}
+
+@media (max-width: 540px) {
+  .sound-btn {
+    padding: 6px 8px;
+  }
+}
+
 .hamburger-btn {
   background: none;
   border: none;

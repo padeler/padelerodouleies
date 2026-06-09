@@ -1,5 +1,7 @@
 """Marketplace routes — individual and collaborative rewards."""
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -9,6 +11,7 @@ from app.db.engine import get_session
 from app.db.models import HistoryLedger, Reward, RewardLedger, User
 from app.realtime import broadcaster
 from app.security.session import get_current_user
+from app.services.rewards import next_reset_at_iso, redeemed_today
 
 router = APIRouter(prefix="/api", tags=["marketplace"])
 
@@ -20,9 +23,10 @@ class ContributeRequest(BaseModel):
 @router.get("/marketplace/rewards")
 def list_marketplace_rewards(
     db: Session = Depends(get_session),
-    _user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> list[dict]:
     """Return enabled rewards with collaborative progress info."""
+    now = datetime.now(timezone.utc)
     rewards = db.query(Reward).filter(Reward.is_enabled == True).order_by(Reward.id).all()
     result = []
     for r in rewards:
@@ -33,6 +37,9 @@ def list_marketplace_rewards(
             "icon_name": r.icon_name,
             "cost_stars": r.cost_stars,
             "is_collaborative": r.is_collaborative,
+            # When set, the kid already redeemed this individual reward today and
+            # it becomes available again at this UTC timestamp (next Athens midnight).
+            "available_again_at": None,
         }
         if r.is_collaborative:
             contributions = (
@@ -48,6 +55,8 @@ def list_marketplace_rewards(
                 {"user_id": c.user_id, "user_name": c.user.name, "stars": c.stars_contributed}
                 for c in contributions
             ]
+        elif redeemed_today(db, current_user.id, r.id, now):
+            data["available_again_at"] = next_reset_at_iso(now)
         result.append(data)
     return result
 
@@ -66,6 +75,10 @@ async def redeem_reward(
         raise HTTPException(400, "Use the contribute endpoint for collaborative rewards")
     if not reward.is_enabled:
         raise HTTPException(400, "Reward is disabled")
+
+    # One redemption per kid per reward per Athens day.
+    if redeemed_today(db, current_user.id, reward.id, datetime.now(timezone.utc)):
+        raise HTTPException(409, "Already redeemed today")
 
     if current_user.current_stars < reward.cost_stars:
         raise HTTPException(400, "Insufficient stars")

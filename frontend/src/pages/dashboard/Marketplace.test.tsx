@@ -19,6 +19,8 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   'common.cancel': { el: 'Άκυρο', en: 'Cancel' },
   'common.confirm': { el: 'Επιβεβαίωση', en: 'Confirm' },
   'reward.redeem': { el: 'Εξαργύρωση', en: 'Redeem' },
+  'reward.redeemed_today': { el: 'Το πήρες σήμερα!', en: 'Claimed today!' },
+  'reward.available_again': { el: 'Διαθέσιμο ξανά {when}', en: 'Available again {when}' },
   'reward.insufficient': { el: 'Ανεπαρκή αστέρια', en: 'Not enough stars' },
   'reward.contribute': { el: 'Συνεισφορά', en: 'Contribute' },
   'reward.collaborative_goals': { el: 'Επικοί Στόχοι', en: 'Epic Goals' },
@@ -103,6 +105,29 @@ describe('Marketplace — individual rewards', () => {
       expect(screen.getByText('Πεζοπορία')).toBeInTheDocument();
       expect(screen.getAllByText('30 ⭐').length).toBeGreaterThan(0);
     });
+  });
+
+  it('shows "claimed today" badge and hides redeem button once redeemed today', async () => {
+    server.use(
+      http.get('/api/marketplace/rewards', async () => {
+        return HttpResponse.json([
+          {
+            id: 1,
+            title: 'Παγωτό',
+            description: null,
+            icon_name: 'gift',
+            cost_stars: 5,
+            is_collaborative: false,
+            available_again_at: '2099-01-01T22:00:00+00:00',
+          },
+        ]);
+      }),
+    );
+    renderMarketplace();
+    await waitFor(() => {
+      expect(screen.getByText('Το πήρες σήμερα!')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Εξαργύρωση')).not.toBeInTheDocument();
   });
 
   it('shows empty state for no individual rewards', async () => {

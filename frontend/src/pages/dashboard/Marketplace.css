@@ -98,6 +98,41 @@
   font-weight: 600;
 }
 
+/* Shown in place of the redeem button once the reward was claimed today. */
+.reward-redeemed-badge {
+  margin-top: auto;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2e7d32;
+  background: #e8f5e9;
+  border-radius: 10px;
+  padding: 12px 16px;
+  width: 100%;
+  text-align: center;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Back-face hint: when the reward becomes redeemable again (next midnight). */
+.reward-available-again {
+  margin-top: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.reward-available-again::before {
+  content: '⏳';
+  font-size: 12px;
+}
+
 .reward-error {
   color: #e44;
   font-size: 13px;

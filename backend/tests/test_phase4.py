@@ -188,6 +188,33 @@ async def test_marketplace_reward_redeem(kid_client):
     assert data["new_balance"] == old_stars - 10
 
 
+async def test_reward_redeem_once_per_day(kid_client):
+    """A kid can redeem an individual reward at most once per Athens day."""
+    client, _ = kid_client
+    db = LocalSession()
+    reward = Reward(
+        title="Παγωτό",
+        icon_name="gift", cost_stars=5,
+        is_collaborative=False, is_enabled=True,
+    )
+    db.add(reward)
+    db.commit()
+    reward_id = reward.id
+    db.close()
+
+    first = await client.post(f"/api/rewards/{reward_id}/redeem")
+    assert first.status_code == 200
+
+    # Second redemption the same day is rejected even with enough stars.
+    second = await client.post(f"/api/rewards/{reward_id}/redeem")
+    assert second.status_code == 409
+
+    # The marketplace listing now reports when it becomes available again.
+    listing = await client.get("/api/marketplace/rewards")
+    entry = next(r for r in listing.json() if r["id"] == reward_id)
+    assert entry["available_again_at"] is not None
+
+
 async def test_insufficient_stars(kid_client):
     client, kid_id = kid_client
     db = LocalSession()

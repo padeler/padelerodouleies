@@ -139,6 +139,8 @@ export interface MarketplaceReward {
   current_stars?: number;
   target_stars?: number;
   contributors?: Array<{ user_id: number; user_name: string; stars: number }>;
+  /** ISO timestamp when an individual reward becomes redeemable again; null while available today. */
+  available_again_at?: string | null;
 }
 
 export interface LeaderboardEntry {

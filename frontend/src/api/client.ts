@@ -476,6 +476,7 @@ export async function getMarketplaceRewards() {
     current_stars?: number;
     target_stars?: number;
     contributors?: Array<{ user_id: number; user_name: string; stars: number }>;
+    available_again_at?: string | null;
   }>>('/marketplace/rewards');
 }
 
