@@ -6,6 +6,8 @@
 
 The application balances a highly visual, zero-literacy interface for the 4-year-old with a text-and-numerical interface for the 9-year-old, managed completely by parental administrators via an authorization PIN system.
 
+Check the [user guide](./docs/README.md).
+
 ---
 
 ## 🎯 Project Goals & Requirements
