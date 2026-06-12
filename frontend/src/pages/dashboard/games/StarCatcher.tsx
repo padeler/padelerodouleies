@@ -5,7 +5,6 @@ import { playCatch, playClaim, playWrong } from '../../../lib/sound';
 import { GamePage } from './GamePage';
 import {
   BASKET_W,
-  CATCH_ZONE_H,
   START_LIVES,
   WORLD_H,
   WORLD_W,
@@ -18,6 +17,21 @@ import './StarCatcher.css';
 
 type CatcherPhase = 'ready' | 'running' | 'over';
 
+// Basket sprite: Lucide "shopping-basket" rasterised to an <img> and drawn onto
+// the canvas, so it renders identically everywhere. (The previous emoji basket
+// relied on the system emoji font, which the old LAN tablets lack — it drew a
+// blank box.) Warm straw colour for contrast against the purple night sky.
+const BASKET_COLOR = '#f6c863';
+const BASKET_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${BASKET_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 11-1 9"/><path d="m19 11-4-7"/><path d="M2 11h20"/><path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4"/><path d="M4.5 15.5h15"/><path d="m5 11 4-7"/><path d="m9 11 1 9"/></svg>`;
+const BASKET_DRAW_W = BASKET_W;
+const BASKET_DRAW_H = 58;
+
+function createBasketImage(): HTMLImageElement {
+  const img = new Image(BASKET_DRAW_W, BASKET_DRAW_H);
+  img.src = `data:image/svg+xml;utf8,${encodeURIComponent(BASKET_SVG)}`;
+  return img;
+}
+
 export function StarCatcher() {
   const t = useT();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -25,6 +39,7 @@ export function StarCatcher() {
   const basketXRef = useRef(WORLD_W / 2);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
+  const basketImgRef = useRef<HTMLImageElement>(createBasketImage());
   const [phase, setPhase] = useState<CatcherPhase>('ready');
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(START_LIVES);
@@ -97,8 +112,16 @@ export function StarCatcher() {
     for (const item of world.items) {
       ctx.fillText(item.kind === 'star' ? '⭐' : '💩', item.x, item.y);
     }
-    ctx.font = '44px serif';
-    ctx.fillText('🧺', basketXRef.current, WORLD_H - CATCH_ZONE_H / 2);
+    const basket = basketImgRef.current;
+    if (basket.complete && basket.naturalWidth > 0) {
+      ctx.drawImage(
+        basket,
+        basketXRef.current - BASKET_DRAW_W / 2,
+        WORLD_H - BASKET_DRAW_H - 2,
+        BASKET_DRAW_W,
+        BASKET_DRAW_H,
+      );
+    }
   }
 
   function moveBasket(clientX: number): void {

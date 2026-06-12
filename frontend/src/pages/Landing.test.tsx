@@ -67,7 +67,7 @@ describe('Landing', () => {
     renderLanding();
     await waitFor(() => {
       expect(screen.getByText('Dad')).toBeInTheDocument();
-      expect(screen.getByText('🛡')).toBeInTheDocument();
+      expect(document.querySelector('.admin-badge')).toBeInTheDocument();
     });
   });
 

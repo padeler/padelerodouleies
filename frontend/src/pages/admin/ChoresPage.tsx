@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import { getChores, updateChore, deleteChore } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { Chore } from '../../lib/types';
@@ -87,15 +88,15 @@ export function ChoresPage() {
               <td className="actions">
                 <div className="row-actions">
                   <button className="admin-btn" onClick={() => setEditing(chore)} title={t('btn.edit')}>
-                    <span className="btn-icon">✎</span>
+                    <Pencil className="btn-icon" size={16} />
                     <span className="btn-text">{t('btn.edit')}</span>
                   </button>
                   <button className="admin-btn" onClick={() => handleToggleActive(chore)} title={chore.is_active ? t('btn.disable') : t('btn.enable')}>
-                    <span className="btn-icon">{chore.is_active ? '👁' : '🚫'}</span>
+                    {chore.is_active ? <Eye className="btn-icon" size={16} /> : <EyeOff className="btn-icon" size={16} />}
                     <span className="btn-text">{chore.is_active ? t('btn.disable') : t('btn.enable')}</span>
                   </button>
                   <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(chore)} title={t('btn.delete')}>
-                    <span className="btn-icon">🗑</span>
+                    <Trash2 className="btn-icon" size={16} />
                     <span className="btn-text">{t('btn.delete')}</span>
                   </button>
                 </div>

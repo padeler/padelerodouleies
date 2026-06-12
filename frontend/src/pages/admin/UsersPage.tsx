@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { KeyRound, Star, Trash2 } from 'lucide-react';
 import { getAdminUsers, deleteAdminUser, resetUserPin } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { AdminUser } from '../../lib/types';
@@ -94,16 +95,16 @@ export function UsersPage() {
                     </button>
                     {user.role !== 'admin' && (
                       <button className="admin-btn" onClick={() => setAdjusting(user)} title={t('btn.adjust_stars')}>
-                        <span className="btn-icon">⭐</span>
+                        <Star className="btn-icon" size={16} />
                         <span className="btn-text">{t('btn.adjust_stars')}</span>
                       </button>
                     )}
                     <button className="admin-btn" onClick={() => handleResetPin(user)} title={t('btn.reset_pin')}>
-                      <span className="btn-icon">🔑</span>
+                      <KeyRound className="btn-icon" size={16} />
                       <span className="btn-text">{t('btn.reset_pin')}</span>
                     </button>
                     <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(user)} title={t('btn.delete')} style={{ display: currentUser?.id === user.id ? 'none' : undefined }}>
-                      <span className="btn-icon">🗑</span>
+                      <Trash2 className="btn-icon" size={16} />
                       <span className="btn-text">{t('btn.delete')}</span>
                     </button>
                   </div>

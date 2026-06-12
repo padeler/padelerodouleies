@@ -12,6 +12,7 @@ const navItems = [
   { path: '/admin/fulfillment', key: 'nav.fulfillment', icon: '📦' },
   { path: '/admin/activity', key: 'nav.activity', icon: '📊' },
   { path: '/admin/stats', key: 'nav.stats', icon: '📈' },
+  { path: '/admin/games', key: 'nav.games', icon: '🎮' },
 ];
 
 export function AdminSidebar({ onClose }: { onClose?: () => void } = {}) {

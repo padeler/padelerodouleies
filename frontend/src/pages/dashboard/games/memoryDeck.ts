@@ -1,8 +1,12 @@
 /** Pure helpers for the Memory Match deck — exported separately for unit tests. */
 
+// Restricted to Unicode 6.0/6.1 emoji so every tile renders on the old LAN
+// tablets (e.g. Samsung Tab 4 / Android 4.4 KitKat), whose system emoji font
+// has no glyph for newer emoji (fox/unicorn/butterfly/robot/dino) and would
+// draw them as empty "tofu" boxes. Do not add post-6.1 emoji here.
 export const MEMORY_EMOJI_POOL: readonly string[] = [
-  '🐶', '🐱', '🦊', '🐼', '🦄', '🐸', '🐙', '🦋',
-  '🚀', '🍕', '🎈', '⚽', '🌈', '🍦', '🤖', '🦖',
+  '🐶', '🐱', '🐵', '🐼', '🐧', '🐸', '🐙', '🐝',
+  '🚀', '🍕', '🎈', '⚽', '🌈', '🍦', '🐢', '🐬',
 ];
 
 export type MemoryDifficulty = 'easy' | 'medium' | 'hard';

@@ -179,10 +179,16 @@ export interface StatsPerKid extends StatKid {
   game_scores: Record<string, number>;
 }
 
+// Whole-family game scoreboard (kids + parents who have played).
+export interface StatGamePlayer extends StatKid {
+  game_scores: Record<string, number>;
+}
+
 export interface StatsResponse {
   window_week: StatsWindow;
   window_all: StatsWindow;
   per_kid: StatsPerKid[];
+  game_players: StatGamePlayer[];
 }
 
 export type WSEvent =

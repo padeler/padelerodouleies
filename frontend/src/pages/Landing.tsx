@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ShieldCheck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { getUsers, login, getBootstrapStatus, getPendingStars } from '../api/client';
@@ -37,7 +38,7 @@ function AvatarTile({ user, onSelected }: { user: UserListItem; onSelected: (id:
         />
       </div>
       <span className="avatar-name">{user.name}</span>
-      {user.role === 'admin' && <span className="admin-badge">🛡</span>}
+      {user.role === 'admin' && <ShieldCheck className="admin-badge" size={18} />}
     </button>
   );
 }

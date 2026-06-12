@@ -84,6 +84,12 @@ const SAMPLE: StatsResponse = {
       game_scores: {},
     },
   ],
+  game_players: [
+    { id: 1, name: 'Maria', avatar_kind: 'icon', avatar_value: 'fox', game_scores: { 'memory.easy': 7, simon: 5, catcher: 23 } },
+    { id: 2, name: 'Nikos', avatar_kind: 'icon', avatar_value: 'star', game_scores: {} },
+    // A parent who has played shows up on the family scoreboard.
+    { id: 3, name: 'Dad', avatar_kind: 'icon', avatar_value: 'shield', game_scores: { 'memory.hard': 30 } },
+  ],
 };
 
 function renderStats() {
@@ -143,6 +149,9 @@ describe('Stats', () => {
     expect(screen.getByText('23')).toBeInTheDocument();
     // Nikos has no scores
     expect(screen.getByText('No games played yet')).toBeInTheDocument();
+    // A parent who has played appears on the same scoreboard.
+    expect(screen.getByText('Dad')).toBeInTheDocument();
+    expect(screen.getByText('30')).toBeInTheDocument();
   });
 
   it('shows empty state when there is no data', async () => {
@@ -150,6 +159,7 @@ describe('Stats', () => {
       window_week: { ...SAMPLE.window_week, earned_per_weekday: [], total_stars_earned: 0, total_chores: 0, total_awards: 0, top_earner: null, top_chorer: null, top_buyer: null },
       window_all: { ...SAMPLE.window_all, earned_per_weekday: [], total_stars_earned: 0, total_chores: 0, total_awards: 0, top_earner: null, top_chorer: null, top_buyer: null },
       per_kid: [],
+      game_players: [],
     };
     server.use(http.get('/api/stats', () => HttpResponse.json(empty)));
     renderStats();

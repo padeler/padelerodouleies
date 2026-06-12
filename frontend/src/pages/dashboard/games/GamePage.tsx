@@ -16,7 +16,9 @@ export function GamePage({
   return (
     <div className="game-page">
       <div className="game-page-head">
-        <Link to="/dashboard/games" className="game-back">
+        {/* Relative path link so the hub resolves under either base
+            (/dashboard/games or /admin/games). */}
+        <Link to=".." relative="path" className="game-back">
           ← {t('games.back')}
         </Link>
         <h2>

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
+import { Dumbbell, ShoppingBag, Trophy } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getStats } from '../../api/client';
 import { useT, useLocale } from '../../i18n/store';
 import { formatDateShort } from '../../lib/datetime';
-import type { StatKid, StatsWindow, StatsPerKid } from '../../lib/types';
+import type { StatKid, StatsWindow, StatsPerKid, StatGamePlayer } from '../../lib/types';
 import { Avatar } from '../../components/Avatar';
 import './Stats.css';
 
@@ -41,8 +42,12 @@ export function Stats() {
   const stats = data;
   const win: StatsWindow | undefined = window === 'week' ? stats?.window_week : stats?.window_all;
   const perKid = stats?.per_kid ?? [];
+  const gamePlayers = stats?.game_players ?? [];
 
-  const hasAnyData = (stats?.window_all.total_stars_earned ?? 0) > 0 || perKid.length > 0;
+  const hasAnyData =
+    (stats?.window_all.total_stars_earned ?? 0) > 0 ||
+    perKid.length > 0 ||
+    gamePlayers.some((p) => Object.keys(p.game_scores).length > 0);
 
   return (
     <div className="stats-page">
@@ -85,19 +90,19 @@ export function Stats() {
           <div className="stats-champions">
             <ChampionCard
               title={t('stats.top_earner')}
-              emoji="🏆"
+              icon={<Trophy size={26} />}
               kid={win.top_earner}
               detail={win.top_earner ? `${win.top_earner.stars} ⭐` : null}
             />
             <ChampionCard
               title={t('stats.top_chorer')}
-              emoji="💪"
+              icon={<Dumbbell size={26} />}
               kid={win.top_chorer}
               detail={win.top_chorer ? t('stats.chores_count', { count: String(win.top_chorer.count) }) : null}
             />
             <ChampionCard
               title={t('stats.top_buyer')}
-              emoji="🛍️"
+              icon={<ShoppingBag size={26} />}
               kid={win.top_buyer}
               detail={win.top_buyer ? t('stats.awards_count', { count: String(win.top_buyer.count) }) : null}
             />
@@ -112,8 +117,8 @@ export function Stats() {
 
           <h3 className="stats-section-title">🎮 {t('stats.games_title')}</h3>
           <div className="stats-kid-grid">
-            {perKid.map((kid) => (
-              <GameScoresCard key={kid.id} kid={kid} />
+            {gamePlayers.map((player) => (
+              <GameScoresCard key={player.id} player={player} />
             ))}
           </div>
         </>
@@ -168,19 +173,19 @@ function WeekdayChart({
 
 function ChampionCard({
   title,
-  emoji,
+  icon,
   kid,
   detail,
 }: {
   title: string;
-  emoji: string;
+  icon: ReactNode;
   kid: StatKid | null;
   detail: string | null;
 }) {
   const t = useT();
   return (
     <div className="champion-card">
-      <span className="champion-emoji">{emoji}</span>
+      <span className="champion-emoji">{icon}</span>
       <span className="champion-title">{title}</span>
       {kid ? (
         <>
@@ -195,15 +200,15 @@ function ChampionCard({
   );
 }
 
-function GameScoresCard({ kid }: { kid: StatsPerKid }) {
+function GameScoresCard({ player }: { player: StatGamePlayer }) {
   const t = useT();
-  const rows = GAME_SCORE_ROWS.filter((row) => kid.game_scores[row.key] !== undefined);
+  const rows = GAME_SCORE_ROWS.filter((row) => player.game_scores[row.key] !== undefined);
   return (
     <div className="kid-stat-card">
       <div className="kid-stat-head">
-        <Avatar kind={kid.avatar_kind} value={kid.avatar_value} size={44} className="kid-stat-avatar" />
+        <Avatar kind={player.avatar_kind} value={player.avatar_value} size={44} className="kid-stat-avatar" />
         <div className="kid-stat-name">
-          <strong>{kid.name}</strong>
+          <strong>{player.name}</strong>
         </div>
       </div>
       <div className="kid-stat-rows">
@@ -218,7 +223,7 @@ function GameScoresCard({ kid }: { kid: StatsPerKid }) {
               {row.emoji} {t(row.titleKey)}
               {row.subKey ? ` · ${t(row.subKey)}` : ''}
             </span>
-            <span className="ksr-value">{kid.game_scores[row.key]}</span>
+            <span className="ksr-value">{player.game_scores[row.key]}</span>
           </div>
         ))}
       </div>

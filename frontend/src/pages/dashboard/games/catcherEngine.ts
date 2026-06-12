@@ -10,12 +10,14 @@ export const CATCH_ZONE_H = 44;
 export const ITEM_R = 16;
 export const START_LIVES = 3;
 
-const BASE_FALL_SPEED = 110; // px/s
-const SPEED_PER_POINT = 4;
-const MAX_FALL_SPEED = 300;
-const BASE_SPAWN_INTERVAL = 1.2; // s
-const MIN_SPAWN_INTERVAL = 0.5;
-const SPAWN_SHRINK_PER_POINT = 0.02;
+// Difficulty ramp: tuned to keep climbing well into a long run rather than
+// plateauing early — items fall faster and spawn denser the higher you score.
+const BASE_FALL_SPEED = 120; // px/s
+const SPEED_PER_POINT = 7; // steeper acceleration per caught star
+const MAX_FALL_SPEED = 440; // higher ceiling so speed keeps rising to ~score 46
+const BASE_SPAWN_INTERVAL = 1.1; // s
+const MIN_SPAWN_INTERVAL = 0.32; // denser screen at high scores
+const SPAWN_SHRINK_PER_POINT = 0.035;
 const BOMB_PROBABILITY = 0.15;
 
 export type ItemKind = 'star' | 'bomb';

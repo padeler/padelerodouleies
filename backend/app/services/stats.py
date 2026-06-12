@@ -36,6 +36,20 @@ def _kid_brief(user: User) -> dict[str, Any]:
     }
 
 
+def _game_players(db: Session) -> list[dict[str, Any]]:
+    """Best game scores for every active user, so the Stats games section is a
+    whole-family scoreboard. Kids always appear; parents appear once they have
+    played at least one game (keeps non-playing admins out of the list)."""
+    users = db.query(User).filter(User.is_active == True).all()
+    scores = scores_by_user(db, [u.id for u in users])
+    players: list[dict[str, Any]] = []
+    for user in users:
+        user_scores = scores.get(user.id, {})
+        if user.role == "user" or user_scores:
+            players.append({**_kid_brief(user), "game_scores": user_scores})
+    return players
+
+
 def _top(counter: dict[int, int], kid_map: dict[int, User], value_key: str) -> dict[str, Any] | None:
     """Return the kid with the highest counter value, or None if all are zero.
 
@@ -153,7 +167,7 @@ def compute_stats(db: Session, now: datetime) -> dict[str, Any]:
 
     if not kid_ids:
         empty = _cumulative([], [], kid_map)
-        return {"window_week": empty, "window_all": empty, "per_kid": []}
+        return {"window_week": empty, "window_all": empty, "per_kid": [], "game_players": _game_players(db)}
 
     history = db.query(HistoryLedger).filter(HistoryLedger.user_id.in_(kid_ids)).all()
     rewards = db.query(RewardLedger).filter(RewardLedger.user_id.in_(kid_ids)).all()
@@ -167,4 +181,5 @@ def compute_stats(db: Session, now: datetime) -> dict[str, Any]:
         "window_week": _cumulative(week_history, week_rewards, kid_map),
         "window_all": _cumulative(history, rewards, kid_map),
         "per_kid": _per_kid(history, kids, scores_by_user(db, kid_ids)),
+        "game_players": _game_players(db),
     }

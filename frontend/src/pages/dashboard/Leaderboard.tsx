@@ -5,6 +5,7 @@ import { useT } from '../../i18n/store';
 import { useAuth } from '../../hooks/useAuth';
 import { notifyCelebration } from '../../lib/notify';
 import type { LeaderboardEntry } from '../../lib/types';
+import { Medal } from 'lucide-react';
 import { Avatar } from '../../components/Avatar';
 import './Leaderboard.css';
 
@@ -27,8 +28,9 @@ export function Leaderboard() {
     const myEntry = data.find((e) => e.id === user.id);
     if (myEntry && myEntry.ranking <= 3) {
       celebrated.current = true;
-      const medals = ['🥇', '🥈', '🥉'];
-      notifyCelebration(`${medals[myEntry.ranking - 1]} ${user.name}!`, 'leaderboard-celebration');
+      // 🏆 is Unicode 6.0 (renders on the old LAN tablets); 🥇🥈🥉 are Emoji 9.0
+      // and would show as empty "tofu" boxes there.
+      notifyCelebration(`🏆 ${user.name}!`, 'leaderboard-celebration');
     }
   }, [data, user]);
 
@@ -87,7 +89,6 @@ export function Leaderboard() {
 
 function PodiumFigure({ entry, rank }: { entry: LeaderboardEntry; rank: number }) {
   const heights = [120, 90, 70];
-  const labels = ['🥇', '🥈', '🥉'];
   const colors = ['#ffd700', '#c0c0c0', '#cd7f32'];
 
   return (
@@ -106,7 +107,7 @@ function PodiumFigure({ entry, rank }: { entry: LeaderboardEntry; rank: number }
           background: colors[rank - 1],
         }}
       >
-        <span className="podium-label">{labels[rank - 1]}</span>
+        <Medal className="podium-label" size={30} color="rgba(255, 255, 255, 0.95)" />
       </div>
     </div>
   );

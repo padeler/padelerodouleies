@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LogOut, Settings, Volume2, VolumeX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { logout } from '../api/client';
@@ -66,7 +67,7 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
             aria-label={muted ? t('nav.unmute') : t('nav.mute')}
             aria-pressed={muted}
           >
-            <span className="btn-icon">{muted ? '🔇' : '🔊'}</span>
+            {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </button>
           <button
             className="settings-btn"
@@ -74,11 +75,11 @@ export function Header({ onToggleSidebar }: { onToggleSidebar?: () => void } = {
             onClick={() => setShowSettings(true)}
             title={t('nav.settings')}
           >
-            <span className="btn-icon">⚙</span>
+            <Settings className="btn-icon" size={18} />
             <span className="btn-text">{t('nav.settings')}</span>
           </button>
           <button className="logout-btn" onClick={handleLogout}>
-            <span className="btn-icon">⏻</span>
+            <LogOut className="btn-icon" size={18} />
             <span className="btn-text">{t('nav.logout')}</span>
           </button>
         </div>

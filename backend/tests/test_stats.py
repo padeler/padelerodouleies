@@ -6,7 +6,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient, Cookies
 
 from app.db.engine import LocalSession
-from app.db.models import HistoryLedger, Reward, RewardLedger, User
+from app.db.models import GameScore, HistoryLedger, Reward, RewardLedger, User
 from app.main import app
 from app.security.pins import hash_pin
 from app.services.stats import compute_stats
@@ -132,6 +132,37 @@ def test_compute_stats_excludes_deleted_users():
         # Deleted kid's 50 stars excluded from cumulative totals.
         assert stats["window_all"]["total_stars_earned"] == 8
         assert stats["window_all"]["top_earner"]["name"] == "ActiveKid"
+    finally:
+        db.close()
+
+
+def test_game_players_include_parents_who_have_played():
+    """game_players lists every active kid plus any parent who has a game score,
+    so the Stats games section is a whole-family scoreboard. A parent who has
+    never played is left out."""
+    db = LocalSession()
+    try:
+        kid = User(name="GamerKid", role="user", avatar_value="fox",
+                   pin_hash=hash_pin("1234"), is_active=True)
+        playing_parent = User(name="GamerDad", role="admin", avatar_value="shield",
+                              pin_hash=hash_pin("5678"), is_active=True)
+        idle_parent = User(name="IdleMom", role="admin", avatar_value="crown",
+                           pin_hash=hash_pin("4321"), is_active=True)
+        db.add_all([kid, playing_parent, idle_parent])
+        db.commit()
+        db.add_all([
+            GameScore(user_id=kid.id, game="catcher", best_score=12),
+            GameScore(user_id=playing_parent.id, game="catcher", best_score=20),
+        ])
+        db.commit()
+
+        stats = compute_stats(db, _now())
+        players = {p["name"]: p for p in stats["game_players"]}
+        # Kid always present; parent present because they have a score; idle parent absent.
+        assert set(players) == {"GamerKid", "GamerDad"}
+        assert players["GamerDad"]["game_scores"]["catcher"] == 20
+        # The parent does not leak into the chore/reward per-kid rows.
+        assert {k["name"] for k in stats["per_kid"]} == {"GamerKid"}
     finally:
         db.close()
 

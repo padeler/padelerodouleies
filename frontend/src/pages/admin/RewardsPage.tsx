@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import { getRewards, updateReward, deleteReward } from '../../api/client';
 import { useT } from '../../i18n/store';
 import type { Reward } from '../../lib/types';
@@ -79,15 +80,15 @@ export function RewardsPage() {
               <td className="actions">
                 <div className="row-actions">
                   <button className="admin-btn" onClick={() => setEditing(reward)} title={t('btn.edit')}>
-                    <span className="btn-icon">✎</span>
+                    <Pencil className="btn-icon" size={16} />
                     <span className="btn-text">{t('btn.edit')}</span>
                   </button>
                   <button className="admin-btn" onClick={() => handleToggle(reward)} title={reward.is_enabled ? t('btn.disable') : t('btn.enable')}>
-                    <span className="btn-icon">{reward.is_enabled ? '👁' : '🚫'}</span>
+                    {reward.is_enabled ? <Eye className="btn-icon" size={16} /> : <EyeOff className="btn-icon" size={16} />}
                     <span className="btn-text">{reward.is_enabled ? t('btn.disable') : t('btn.enable')}</span>
                   </button>
                   <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(reward)} title={t('btn.delete')}>
-                    <span className="btn-icon">🗑</span>
+                    <Trash2 className="btn-icon" size={16} />
                     <span className="btn-text">{t('btn.delete')}</span>
                   </button>
                 </div>
