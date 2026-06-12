@@ -15,6 +15,7 @@ from sqlalchemy import (
     JSON,
     String,
     Time,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import relationship
@@ -120,6 +121,26 @@ class RewardLedger(Base):
 
     reward = relationship("Reward", back_populates="ledger_entries")
     user = relationship("User", back_populates="reward_entries")
+
+
+class GameScore(Base):
+    """Per-user best score for each mini-game on the Games tab.
+
+    One row per (user, game); the games service only overwrites a row when the
+    new score beats the stored best (direction depends on the game — see
+    app/services/games.py). No star economy involvement.
+    """
+
+    __tablename__ = "game_scores"
+    __table_args__ = (UniqueConstraint("user_id", "game", name="uq_game_scores_user_game"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    game = Column(String(40), nullable=False)  # e.g. "memory.easy" | "simon" | "catcher"
+    best_score = Column(Integer, nullable=False)
+    updated_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    user = relationship("User")
 
 
 class PendingClaim(Base):

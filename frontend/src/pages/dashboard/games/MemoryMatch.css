@@ -1,0 +1,121 @@
+/* Memory Match board. Card sizing uses the padding-bottom square trick instead
+   of aspect-ratio (unsupported on the old LAN tablets). */
+
+.mm-controls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.mm-controls button {
+  margin: 0 4px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-border);
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mm-controls button.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border-color: transparent;
+  color: #fff;
+}
+
+.mm-board {
+  position: relative;
+  display: grid;
+  grid-gap: 10px;
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.mm-easy,
+.mm-medium {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.mm-hard {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.mm-card {
+  position: relative;
+  height: 0;
+  padding: 0 0 100% 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-perspective: 600px;
+  perspective: 600px;
+}
+
+.mm-card.matched {
+  cursor: default;
+}
+
+.mm-card-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: transform 0.45s cubic-bezier(0.4, 0.2, 0.2, 1);
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+
+.mm-card.face-up .mm-card-inner {
+  transform: rotateY(180deg);
+}
+
+.mm-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 34px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.mm-front {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 24px;
+}
+
+.mm-back {
+  background: var(--bg);
+  border: 2px solid var(--accent-border);
+  transform: rotateY(180deg);
+}
+
+.mm-card.matched .mm-back {
+  border-color: #6bcb77;
+  background: rgba(107, 203, 119, 0.14);
+}
+
+@media (max-width: 480px) {
+  .mm-face {
+    font-size: 26px;
+    border-radius: 10px;
+  }
+  .mm-front {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-card-inner {
+    transition: none;
+  }
+}

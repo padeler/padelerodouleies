@@ -39,6 +39,14 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   'stats.weekday_fri': { el: 'Παρ', en: 'Fri' },
   'stats.weekday_sat': { el: 'Σάβ', en: 'Sat' },
   'stats.weekday_sun': { el: 'Κυρ', en: 'Sun' },
+  'stats.games_title': { el: 'Σκορ Παιχνιδιών', en: 'Game scores' },
+  'stats.games_none': { el: 'Δεν έχει παίξει ακόμα', en: 'No games played yet' },
+  'games.memory.title': { el: 'Παιχνίδι Μνήμης', en: 'Memory Match' },
+  'games.memory.easy': { el: 'Εύκολο', en: 'Easy' },
+  'games.memory.medium': { el: 'Μέτριο', en: 'Medium' },
+  'games.memory.hard': { el: 'Δύσκολο', en: 'Hard' },
+  'games.simon.title': { el: 'Σάιμον', en: 'Simon' },
+  'games.catcher.title': { el: 'Πιάσε τα Αστέρια', en: 'Star Catcher' },
 };
 
 const SAMPLE: StatsResponse = {
@@ -66,12 +74,14 @@ const SAMPLE: StatsResponse = {
       total_earned: 40, total_spent: 15,
       best_day: { date: '2026-06-03', stars: 12 },
       best_week: { week_start: '2026-06-01', stars: 30 },
+      game_scores: { 'memory.easy': 7, simon: 5, catcher: 23 },
     },
     {
       id: 2, name: 'Nikos', avatar_kind: 'icon', avatar_value: 'star', current_stars: 5,
       total_earned: 30, total_spent: 25,
       best_day: null,
       best_week: null,
+      game_scores: {},
     },
   ],
 };
@@ -120,6 +130,19 @@ describe('Stats', () => {
     await userEvent.click(screen.getByRole('button', { name: 'All time' }));
     // all-time total stars earned = 70
     await waitFor(() => expect(screen.getByText('70')).toBeInTheDocument());
+  });
+
+  it('shows per-kid game scores with labels, and a hint for kids without scores', async () => {
+    server.use(http.get('/api/stats', () => HttpResponse.json(SAMPLE)));
+    renderStats();
+    await waitFor(() => expect(screen.getByText(/Game scores/)).toBeInTheDocument());
+    // Maria's rows: memory.easy, simon, catcher
+    expect(screen.getByText('🃏 Memory Match · Easy')).toBeInTheDocument();
+    expect(screen.getByText('🚦 Simon')).toBeInTheDocument();
+    expect(screen.getByText('⭐ Star Catcher')).toBeInTheDocument();
+    expect(screen.getByText('23')).toBeInTheDocument();
+    // Nikos has no scores
+    expect(screen.getByText('No games played yet')).toBeInTheDocument();
   });
 
   it('shows empty state when there is no data', async () => {

@@ -505,3 +505,14 @@ export async function getLeaderboard() {
 export async function getStats() {
   return request<import('../lib/types').StatsResponse>('/stats');
 }
+
+export async function getGameScores() {
+  return request<Record<string, number>>('/games/scores');
+}
+
+export async function submitGameScore(game: string, score: number) {
+  return request<{ best_score: number; improved: boolean }>('/games/scores', {
+    method: 'POST',
+    body: JSON.stringify({ game, score }),
+  });
+}

@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import HistoryLedger, RewardLedger, User
 from app.services.chores import TZ
+from app.services.games import scores_by_user
 
 _UTC = ZoneInfo("UTC")
 
@@ -93,7 +94,11 @@ def _cumulative(
     }
 
 
-def _per_kid(history: list[HistoryLedger], kids: list[User]) -> list[dict[str, Any]]:
+def _per_kid(
+    history: list[HistoryLedger],
+    kids: list[User],
+    game_scores: dict[int, dict[str, int]],
+) -> list[dict[str, Any]]:
     """Per-kid all-time totals plus best day / best week."""
     earned: dict[int, int] = defaultdict(int)
     spent: dict[int, int] = defaultdict(int)
@@ -133,6 +138,7 @@ def _per_kid(history: list[HistoryLedger], kids: list[User]) -> list[dict[str, A
             "total_spent": spent.get(kid.id, 0),
             "best_day": best_day,
             "best_week": best_week,
+            "game_scores": game_scores.get(kid.id, {}),
         })
 
     result.sort(key=lambda x: x["total_earned"], reverse=True)
@@ -160,5 +166,5 @@ def compute_stats(db: Session, now: datetime) -> dict[str, Any]:
     return {
         "window_week": _cumulative(week_history, week_rewards, kid_map),
         "window_all": _cumulative(history, rewards, kid_map),
-        "per_kid": _per_kid(history, kids),
+        "per_kid": _per_kid(history, kids, scores_by_user(db, kid_ids)),
     }

@@ -7,6 +7,16 @@ import type { StatKid, StatsWindow, StatsPerKid } from '../../lib/types';
 import { Avatar } from '../../components/Avatar';
 import './Stats.css';
 
+// Display order + labels for the Games-tab best scores (keys match the backend
+// game key set in app/services/games.py).
+const GAME_SCORE_ROWS: { key: string; emoji: string; titleKey: string; subKey?: string }[] = [
+  { key: 'memory.easy', emoji: '🃏', titleKey: 'games.memory.title', subKey: 'games.memory.easy' },
+  { key: 'memory.medium', emoji: '🃏', titleKey: 'games.memory.title', subKey: 'games.memory.medium' },
+  { key: 'memory.hard', emoji: '🃏', titleKey: 'games.memory.title', subKey: 'games.memory.hard' },
+  { key: 'simon', emoji: '🚦', titleKey: 'games.simon.title' },
+  { key: 'catcher', emoji: '⭐', titleKey: 'games.catcher.title' },
+];
+
 const WEEKDAY_KEYS = [
   'stats.weekday_mon',
   'stats.weekday_tue',
@@ -99,6 +109,13 @@ export function Stats() {
               <KidStatCard key={kid.id} kid={kid} />
             ))}
           </div>
+
+          <h3 className="stats-section-title">🎮 {t('stats.games_title')}</h3>
+          <div className="stats-kid-grid">
+            {perKid.map((kid) => (
+              <GameScoresCard key={kid.id} kid={kid} />
+            ))}
+          </div>
         </>
       )}
     </div>
@@ -174,6 +191,37 @@ function ChampionCard({
       ) : (
         <span className="champion-none">{t('stats.none_yet')}</span>
       )}
+    </div>
+  );
+}
+
+function GameScoresCard({ kid }: { kid: StatsPerKid }) {
+  const t = useT();
+  const rows = GAME_SCORE_ROWS.filter((row) => kid.game_scores[row.key] !== undefined);
+  return (
+    <div className="kid-stat-card">
+      <div className="kid-stat-head">
+        <Avatar kind={kid.avatar_kind} value={kid.avatar_value} size={44} className="kid-stat-avatar" />
+        <div className="kid-stat-name">
+          <strong>{kid.name}</strong>
+        </div>
+      </div>
+      <div className="kid-stat-rows">
+        {rows.length === 0 && (
+          <div className="kid-stat-row">
+            <span className="ksr-label">{t('stats.games_none')}</span>
+          </div>
+        )}
+        {rows.map((row) => (
+          <div key={row.key} className="kid-stat-row">
+            <span className="ksr-label">
+              {row.emoji} {t(row.titleKey)}
+              {row.subKey ? ` · ${t(row.subKey)}` : ''}
+            </span>
+            <span className="ksr-value">{kid.game_scores[row.key]}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

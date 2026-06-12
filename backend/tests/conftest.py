@@ -15,6 +15,7 @@ def _rollback_db():
     yield
     session: Session = next(get_session())
     try:
+        session.execute(text("DELETE FROM game_scores"))
         session.execute(text("DELETE FROM pending_claims"))
         session.execute(text("DELETE FROM reward_ledger"))
         session.execute(text("DELETE FROM history_ledger"))

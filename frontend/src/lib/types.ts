@@ -175,6 +175,8 @@ export interface StatsPerKid extends StatKid {
   total_spent: number;
   best_day: { date: string; stars: number } | null;
   best_week: { week_start: string; stars: number } | null;
+  // Best score per Games-tab game key (e.g. "memory.easy", "simon", "catcher").
+  game_scores: Record<string, number>;
 }
 
 export interface StatsResponse {

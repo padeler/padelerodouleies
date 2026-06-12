@@ -65,6 +65,7 @@
 .page-bg-fulfillment { --bg-c1: var(--bg-accent-1, #ffa45b); --bg-c2: var(--bg-accent-2, #e0995b); --bg-c3: var(--bg-accent-3, #ffcf5b); }
 .page-bg-activity    { --bg-c1: var(--bg-accent-1, #a855f7); --bg-c2: var(--bg-accent-2, #7b5cff); --bg-c3: var(--bg-accent-3, #c084fc); }
 .page-bg-stats       { --bg-c1: var(--bg-accent-1, #4dd0b1); --bg-c2: var(--bg-accent-2, #4d96ff); --bg-c3: var(--bg-accent-3, #ffd93d); }
+.page-bg-games       { --bg-c1: var(--bg-accent-1, #ff6b9d); --bg-c2: var(--bg-accent-2, #7b5cff); --bg-c3: var(--bg-accent-3, #4dc3ff); }
 
 /* Dark themes: soften the glow so it reads as ambient, not neon */
 @media (prefers-color-scheme: dark) {

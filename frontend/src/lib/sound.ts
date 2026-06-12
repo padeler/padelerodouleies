@@ -112,3 +112,25 @@ export function playReward(): void {
 export function playFlip(): void {
   playTones([{ freq: 440, delay: 0, duration: 0.08, type: 'triangle', gain: 0.12 }]);
 }
+
+/** One note per Simon pad (C major: C4 / E4 / G4 / C5). */
+const SIMON_FREQS = [261.63, 329.63, 392.0, 523.25] as const;
+
+export function playSimonPad(pad: number, duration = 0.3): void {
+  const freq = SIMON_FREQS[pad];
+  if (freq === undefined) throw new Error(`Invalid Simon pad index: ${pad}`);
+  playTones([{ freq, delay: 0, duration, type: 'triangle', gain: 0.2 }]);
+}
+
+/** Quick high blip when a falling star is caught. */
+export function playCatch(): void {
+  playTones([{ freq: 987.77, delay: 0, duration: 0.07, type: 'sine', gain: 0.14 }]); // B5
+}
+
+/** Low descending buzz on a mistake / lost life. */
+export function playWrong(): void {
+  playTones([
+    { freq: 196.0, delay: 0, duration: 0.16, type: 'square', gain: 0.08 }, // G3
+    { freq: 146.83, delay: 0.14, duration: 0.24, type: 'square', gain: 0.08 }, // D3
+  ]);
+}

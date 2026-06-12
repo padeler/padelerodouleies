@@ -1,0 +1,22 @@
+/* Star Catcher stage. The canvas keeps its intrinsic 360×480 ratio via
+   width:100% + height:auto (replaced-element ratio — works on old browsers,
+   no aspect-ratio needed). Fixed night-sky gradient so the emoji sprites stay
+   readable in both themes. */
+
+.catcher-stage {
+  position: relative;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.catcher-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 2px solid var(--accent-border);
+  border-radius: 16px;
+  box-sizing: border-box;
+  background: linear-gradient(#2b2350, #4a3a7d);
+  touch-action: none;
+  cursor: pointer;
+}
