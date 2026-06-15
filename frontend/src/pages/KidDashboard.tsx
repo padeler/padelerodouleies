@@ -13,6 +13,8 @@ import { GamesHub } from './dashboard/games/GamesHub';
 import { MemoryMatch } from './dashboard/games/MemoryMatch';
 import { Simon } from './dashboard/games/Simon';
 import { StarCatcher } from './dashboard/games/StarCatcher';
+import { Snake } from './dashboard/games/Snake';
+import { WhackAMole } from './dashboard/games/WhackAMole';
 import { useRealtime } from '../hooks/useRealtime';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { getPendingStars } from '../api/client';
@@ -65,6 +67,8 @@ export function KidDashboard() {
             <Route path="games/memory" element={<MemoryMatch />} />
             <Route path="games/simon" element={<Simon />} />
             <Route path="games/catcher" element={<StarCatcher />} />
+            <Route path="games/snake" element={<Snake />} />
+            <Route path="games/whack" element={<WhackAMole />} />
           </Routes>
         </main>
       </div>

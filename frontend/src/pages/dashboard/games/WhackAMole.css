@@ -1,0 +1,61 @@
+/* Whack-a-Mole board. 3×3 grid of square holes via the padding-bottom trick
+   (no aspect-ratio on the old tablets); the critter pop-up animates transform
+   + opacity only — GPU-cheap. */
+
+.whack-stage {
+  position: relative;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.whack-board {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 12px;
+}
+
+.whack-hole {
+  position: relative;
+  height: 0;
+  padding: 0 0 100% 0;
+  border: 2px solid var(--accent-border);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #6b4a2f, #3f2a18);
+  cursor: pointer;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+.whack-hole:disabled {
+  cursor: default;
+}
+
+/* The critter sits at the bottom of its hole and pops up when ".up". */
+.whack-critter {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6%;
+  font-size: 44px;
+  line-height: 1;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(60%) scale(0.6);
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  pointer-events: none;
+}
+
+.whack-critter.up {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whack-critter {
+    transition: opacity 0.12s ease;
+    transform: none;
+  }
+  .whack-critter.up {
+    transform: none;
+  }
+}

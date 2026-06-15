@@ -22,6 +22,8 @@ GAME_SCORE_DIRECTIONS: dict[str, Direction] = {
     "memory.hard": "lower",
     "simon": "higher",
     "catcher": "higher",
+    "snake": "higher",
+    "whack": "higher",
 }
 
 

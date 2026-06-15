@@ -16,6 +16,8 @@ const GAME_SCORE_ROWS: { key: string; emoji: string; titleKey: string; subKey?: 
   { key: 'memory.hard', emoji: '🃏', titleKey: 'games.memory.title', subKey: 'games.memory.hard' },
   { key: 'simon', emoji: '🚦', titleKey: 'games.simon.title' },
   { key: 'catcher', emoji: '⭐', titleKey: 'games.catcher.title' },
+  { key: 'snake', emoji: '🐍', titleKey: 'games.snake.title' },
+  { key: 'whack', emoji: '🐹', titleKey: 'games.whack.title' },
 ];
 
 const WEEKDAY_KEYS = [

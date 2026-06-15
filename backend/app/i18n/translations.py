@@ -294,6 +294,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "games.catcher.desc": {"el": "Πιάσε τα αστέρια που πέφτουν με το καλάθι!", "en": "Catch the falling stars with the basket!"},
     "games.catcher.howto": {"el": "Σύρε το καλάθι για να πιάσεις τα αστέρια. Πρόσεχε τις κακές εκπλήξεις!", "en": "Drag the basket to catch the stars. Watch out for stinky surprises!"},
     "games.catcher.lives": {"el": "Ζωές", "en": "Lives"},
+    "games.snake.title": {"el": "Φιδάκι", "en": "Snake"},
+    "games.snake.desc": {"el": "Οδήγησε το φίδι, μάζεψε μήλα και μεγάλωσε!", "en": "Steer the snake, eat apples and grow!"},
+    "games.snake.howto": {"el": "Σύρε για να στρίψεις. Μάζεψε τα μήλα και μη χτυπήσεις στους τοίχους ή στον εαυτό σου!", "en": "Swipe to turn. Eat the apples and don't hit the walls or yourself!"},
+    "games.whack.title": {"el": "Χτύπα το Χάμστερ", "en": "Whack-a-Mole"},
+    "games.whack.desc": {"el": "Χτύπα τα χάμστερ που ξεπροβάλλουν όσο πιο γρήγορα μπορείς!", "en": "Tap the critters as they pop up, as fast as you can!"},
+    "games.whack.howto": {"el": "Χτύπα τα χάμστερ που ξεπροβάλλουν πριν κρυφτούν ξανά. Έχεις 30 δευτερόλεπτα!", "en": "Tap the critters as they pop up before they hide again. You have 30 seconds!"},
+    "games.whack.time": {"el": "Χρόνος", "en": "Time"},
 }
 
 

@@ -11,6 +11,8 @@ import { GamesHub } from './dashboard/games/GamesHub';
 import { MemoryMatch } from './dashboard/games/MemoryMatch';
 import { Simon } from './dashboard/games/Simon';
 import { StarCatcher } from './dashboard/games/StarCatcher';
+import { Snake } from './dashboard/games/Snake';
+import { WhackAMole } from './dashboard/games/WhackAMole';
 
 export function AdminPanel() {
   return (
@@ -28,6 +30,8 @@ export function AdminPanel() {
         <Route path="games/memory" element={<MemoryMatch />} />
         <Route path="games/simon" element={<Simon />} />
         <Route path="games/catcher" element={<StarCatcher />} />
+        <Route path="games/snake" element={<Snake />} />
+        <Route path="games/whack" element={<WhackAMole />} />
       </Route>
     </Routes>
   );

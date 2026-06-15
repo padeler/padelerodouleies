@@ -1,0 +1,75 @@
+/* Snake stage. The canvas keeps its intrinsic 360×480 ratio via
+   width:100% + height:auto (replaced-element ratio — works on old browsers,
+   no aspect-ratio needed). Fixed dark playfield so the green snake and the
+   apple stay readable in both themes. */
+
+.snake-stage {
+  position: relative;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.snake-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 2px solid var(--accent-border);
+  border-radius: 16px;
+  box-sizing: border-box;
+  background: linear-gradient(#1e2b22, #2f4636);
+  touch-action: none;
+  cursor: pointer;
+}
+
+/* On-screen direction pad — easier than swiping on the old tablet. A compact,
+   translucent cross overlaid on the bottom of the play area (named grid areas,
+   empty center cell) so it never pushes content off small screens. */
+.snake-dpad {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  display: grid;
+  grid-template-columns: 44px 44px 44px;
+  grid-template-areas:
+    '. up .'
+    'left down right';
+  grid-gap: 6px;
+  justify-content: center;
+}
+
+.dpad-up {
+  grid-area: up;
+}
+.dpad-left {
+  grid-area: left;
+}
+.dpad-down {
+  grid-area: down;
+}
+.dpad-right {
+  grid-area: right;
+}
+
+.snake-dpad-btn {
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+.snake-dpad-btn:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.snake-dpad-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
