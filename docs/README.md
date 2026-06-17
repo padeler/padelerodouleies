@@ -252,6 +252,10 @@ Tap the **⚙ Ρυθμίσεις / Settings** gear in the header. Kids and paren
 The **🔊 / 🔇** button next to the gear mutes or unmutes the app's sound effects (the
 little tones on claims, redemptions, and card flips); the choice is remembered.
 
+Every chore and reward card has a small **🔊 speaker button** in its top-right corner.
+Tapping it reads the card's title and description aloud — handy for pre-readers — in
+Greek or English depending on the text. This plays regardless of the mute setting above.
+
 ---
 
 ## On phones & tablets
