@@ -15,6 +15,9 @@ import { Simon } from './dashboard/games/Simon';
 import { StarCatcher } from './dashboard/games/StarCatcher';
 import { Snake } from './dashboard/games/Snake';
 import { WhackAMole } from './dashboard/games/WhackAMole';
+import { ExercisesHub } from './dashboard/exercises/ExercisesHub';
+import { BundleList } from './dashboard/exercises/BundleList';
+import { BundlePlayer } from './dashboard/exercises/BundlePlayer';
 import { useRealtime } from '../hooks/useRealtime';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { getPendingStars } from '../api/client';
@@ -69,6 +72,9 @@ export function KidDashboard() {
             <Route path="games/catcher" element={<StarCatcher />} />
             <Route path="games/snake" element={<Snake />} />
             <Route path="games/whack" element={<WhackAMole />} />
+            <Route path="exercises" element={<ExercisesHub />} />
+            <Route path="exercises/:subject" element={<BundleList />} />
+            <Route path="exercises/:subject/:bundleId" element={<BundlePlayer />} />
           </Routes>
         </main>
       </div>

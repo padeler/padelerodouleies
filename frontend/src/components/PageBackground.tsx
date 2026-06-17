@@ -11,7 +11,8 @@ export type BgVariant =
   | 'fulfillment'
   | 'activity'
   | 'stats'
-  | 'games';
+  | 'games'
+  | 'exercises';
 
 /**
  * Maps a route pathname to a tab-specific background variant. Each variant
@@ -25,6 +26,7 @@ export function bgVariantForPath(pathname: string): BgVariant {
     if (pathname.includes('/fulfillment')) return 'fulfillment';
     if (pathname.includes('/activity')) return 'activity';
     if (pathname.includes('/stats')) return 'stats';
+    if (pathname.includes('/exercises')) return 'exercises';
     return 'approvals';
   }
   if (pathname.startsWith('/dashboard')) {
@@ -33,6 +35,7 @@ export function bgVariantForPath(pathname: string): BgVariant {
     if (pathname.includes('/leaderboard')) return 'leaderboard';
     if (pathname.includes('/stats')) return 'stats';
     if (pathname.includes('/games')) return 'games';
+    if (pathname.includes('/exercises')) return 'exercises';
     return 'chores';
   }
   return 'login';

@@ -211,6 +211,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # User form labels
     "user.role": {"el": "Ρόλος", "en": "Role"},
     "user.avatar": {"el": "Εικόνα", "en": "Avatar"},
+    "user.birthdate": {"el": "Ημερομηνία γέννησης", "en": "Birthdate"},
     # Button labels
     "btn.edit": {"el": "Επεξεργασία", "en": "Edit"},
     "btn.delete": {"el": "Διαγραφή", "en": "Delete"},
@@ -302,6 +303,31 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "games.whack.desc": {"el": "Χτύπα τα χάμστερ που ξεπροβάλλουν όσο πιο γρήγορα μπορείς!", "en": "Tap the critters as they pop up, as fast as you can!"},
     "games.whack.howto": {"el": "Χτύπα τα χάμστερ που ξεπροβάλλουν πριν κρυφτούν ξανά. Έχεις 30 δευτερόλεπτα!", "en": "Tap the critters as they pop up before they hide again. You have 30 seconds!"},
     "games.whack.time": {"el": "Χρόνος", "en": "Time"},
+    # Exercises
+    "nav.exercises": {"el": "Ασκήσεις", "en": "Exercises"},
+    "exercises.title": {"el": "Ασκήσεις", "en": "Exercises"},
+    "exercises.empty": {"el": "Δεν υπάρχουν ασκήσεις για σένα ακόμα.", "en": "No exercises for you yet."},
+    "exercises.back": {"el": "Πίσω", "en": "Back"},
+    "exercises.completed": {"el": "Ολοκληρώθηκε", "en": "Completed"},
+    "exercises.start": {"el": "Ξεκίνα", "en": "Start"},
+    "exercises.continue": {"el": "Συνέχισε", "en": "Continue"},
+    "exercises.exercise_count": {"el": "{count} ασκήσεις", "en": "{count} exercises"},
+    "exercises.progress": {"el": "Άσκηση {current} από {total}", "en": "Exercise {current} of {total}"},
+    "exercises.correct": {"el": "Μπράβο!", "en": "Correct!"},
+    "exercises.wrong": {"el": "Προσπάθησε ξανά!", "en": "Try again!"},
+    "exercises.hint": {"el": "Βοήθεια", "en": "Hint"},
+    "exercises.check": {"el": "Έλεγχος", "en": "Check"},
+    "exercises.next": {"el": "Επόμενο", "en": "Next"},
+    "exercises.finish": {"el": "Τέλος", "en": "Finish"},
+    "exercises.well_done": {"el": "Τέλεια! Τα κατάφερες!", "en": "Great! You did it!"},
+    "exercises.earned_stars": {"el": "Κέρδισες {stars} ⭐!", "en": "You earned {stars} ⭐!"},
+    # Subject-group labels (closed enum)
+    "exercises.subject.language": {"el": "Γλώσσα", "en": "Language"},
+    "exercises.subject.math": {"el": "Μαθηματικά", "en": "Math"},
+    "exercises.subject.geography": {"el": "Γεωγραφία", "en": "Geography"},
+    "exercises.subject.history": {"el": "Ιστορία", "en": "History"},
+    "exercises.subject.logic": {"el": "Λογική", "en": "Logic"},
+    "exercises.subject.nature": {"el": "Φύση", "en": "Nature"},
 }
 
 

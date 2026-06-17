@@ -15,6 +15,7 @@ function buildUserSchema(isCreate: boolean) {
     .object({
       name: z.string().min(1, 'Required').max(100),
       role: z.enum(['admin', 'user']),
+      birthdate: z.string().optional(),
       pin: z.string().regex(/^\d{4}$/, '4 digits required').optional(),
     })
     .superRefine((data, ctx) => {
@@ -27,6 +28,7 @@ function buildUserSchema(isCreate: boolean) {
 type UserForm = {
   name: string;
   role: 'admin' | 'user';
+  birthdate?: string;
   pin?: string;
 };
 
@@ -47,6 +49,7 @@ export function UserModal({ user, onClose }: UserModalProps) {
   const defaultValues: UserForm = {
     name: user?.name ?? '',
     role: user?.role ?? 'user',
+    birthdate: user?.birthdate ?? '',
     pin: undefined,
   };
 
@@ -63,6 +66,8 @@ export function UserModal({ user, onClose }: UserModalProps) {
         role: data.role,
         avatar_kind: avatar.kind,
         avatar_value: avatar.value,
+        // Empty string clears the birthdate; otherwise send the ISO date.
+        birthdate: data.birthdate ? data.birthdate : null,
       };
       if (user) {
         return updateAdminUser(user.id, payload);
@@ -111,6 +116,12 @@ export function UserModal({ user, onClose }: UserModalProps) {
                 <option value="user">{t('user.role_user')}</option>
                 <option value="admin">{t('user.role_admin')}</option>
               </select>
+            )} />
+          </div>
+          <div className="admin-form-group">
+            <label>{t('user.birthdate')}</label>
+            <Controller name="birthdate" control={control} render={({ field }) => (
+              <input type="date" {...field} value={field.value ?? ''} />
             )} />
           </div>
           <div className="admin-form-group">

@@ -102,6 +102,7 @@ class AdminUserCreate(BaseModel):
     avatar_kind: str = "icon"
     avatar_value: str = "fox"
     role: str = "user"
+    birthdate: date | None = None
     pin: str = Field(min_length=4, max_length=4)
 
 

@@ -36,6 +36,8 @@ export interface AdminUser {
   current_stars: number;
   preferred_locale: string;
   is_active: boolean;
+  /** ISO date (YYYY-MM-DD) the admin set; drives age-targeted exercises. */
+  birthdate?: string | null;
 }
 
 export interface PendingClaim {
@@ -149,6 +151,67 @@ export interface LeaderboardEntry {
   name: string;
   avatar_kind: string;
   avatar_value: string;
+  current_stars: number;
+}
+
+/* -- Exercises -- */
+
+export type ExerciseSubject =
+  | 'language'
+  | 'math'
+  | 'geography'
+  | 'history'
+  | 'logic'
+  | 'nature';
+
+/** One bundle as listed for a kid (age-filtered, with completion status). */
+export interface ExerciseBundleSummary {
+  id: string;
+  version: number;
+  title: string;
+  subject: ExerciseSubject;
+  age_min: number;
+  age_max: number;
+  stars: number;
+  exercise_count: number;
+  completed: boolean;
+}
+
+export interface ExerciseOption {
+  id: string;
+  image?: string;
+  text?: string;
+}
+
+/** A single exercise in the kid-view manifest — answers/TTS text are stripped. */
+export interface ExerciseView {
+  id: string;
+  type: 'multiple_choice' | 'numeric_entry' | 'counting' | 'ordering' | 'match_pairs';
+  prompt: string;
+  hint?: string;
+  options?: ExerciseOption[];
+  items?: ExerciseOption[];
+  image?: string;
+  max_count?: number;
+  pairs?: Array<{ left: ExerciseOption; right: ExerciseOption }>;
+}
+
+export interface ExerciseManifest {
+  schema_version: number;
+  id: string;
+  version: number;
+  title: string;
+  subject: ExerciseSubject;
+  age_min: number;
+  age_max: number;
+  stars: number;
+  exercises: ExerciseView[];
+}
+
+export interface ExerciseAnswerResult {
+  correct: boolean;
+  completed: boolean;
+  stars_awarded: number;
   current_stars: number;
 }
 

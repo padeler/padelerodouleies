@@ -369,6 +369,7 @@ def create_admin_user(
         role=req.role,
         avatar_kind=req.avatar_kind,
         avatar_value=req.avatar_value,
+        birthdate=req.birthdate,
         pin_hash=pin_utils.hash_pin(req.pin),
     )
     db.add(user)

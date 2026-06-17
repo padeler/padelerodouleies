@@ -314,6 +314,7 @@ export async function getAdminUsers() {
     current_stars: number;
     preferred_locale: string;
     is_active: boolean;
+    birthdate: string | null;
   }>>('/admin/users');
 }
 
@@ -504,6 +505,43 @@ export async function getLeaderboard() {
 
 export async function getStats() {
   return request<import('../lib/types').StatsResponse>('/stats');
+}
+
+/* -- Exercises -- */
+
+export async function getExerciseBundles() {
+  return request<import('../lib/types').ExerciseBundleSummary[]>('/exercises/bundles');
+}
+
+export async function getExerciseBundle(bundleId: string) {
+  return request<import('../lib/types').ExerciseManifest>(
+    `/exercises/bundles/${encodeURIComponent(bundleId)}`,
+  );
+}
+
+export async function postExerciseAnswer(
+  bundleId: string,
+  exerciseId: string,
+  response: unknown,
+) {
+  return request<import('../lib/types').ExerciseAnswerResult>(
+    `/exercises/bundles/${encodeURIComponent(bundleId)}/answers`,
+    { method: 'POST', body: JSON.stringify({ exercise_id: exerciseId, response }) },
+  );
+}
+
+/** URL of a bundle image asset (served auth-gated by the backend). */
+export function exerciseAssetUrl(bundleId: string, path: string): string {
+  return `/api/exercises/assets/${encodeURIComponent(bundleId)}/${path}`;
+}
+
+/** URL of the spoken prompt/hint for an exercise (for SpeakButton). */
+export function exerciseTtsUrl(
+  bundleId: string,
+  exerciseId: string,
+  kind: 'prompt' | 'hint',
+): string {
+  return `/api/exercises/tts/${encodeURIComponent(bundleId)}/${encodeURIComponent(exerciseId)}/${kind}.mp3`;
 }
 
 export async function getGameScores() {
