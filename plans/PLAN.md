@@ -1,6 +1,11 @@
 # PLAN.md — Exercises Extension
 
-**Status: DRAFT — for discussion, not yet approved for implementation.**
+**Status: IN PROGRESS.** The MVP — **M1–M3 — is implemented** on the
+`feat/exercises-mvp` branch (validator + bundle format, discovery/persistence/kid
+API, and the kid "Ασκήσεις" tab with the `multiple_choice` + `numeric_entry`
+players), not yet merged to `main`. M4–M7 are still to do. The normative bundle
+format now lives in [docs/EXERCISE_FORMAT.md](../docs/EXERCISE_FORMAT.md) (the
+Pydantic models in `backend/app/schemas/exercises.py` are its source of truth).
 
 Adds school-material-based exercises for the kids: an offline generation workflow that
 produces self-contained exercise *bundles*, a mounted volume where bundles are dropped
@@ -223,7 +228,7 @@ errors) pass, and gets a semver tag on merge to `main` (per workflow memory).
 > [milestones-1-3.md](./milestones-1-3.md). The bullets below stay high-level; the
 > step-by-step execution lives there.
 
-### M1 — Bundle spec, validator, sample bundles *(foundation, no UI)*
+### M1 — Bundle spec, validator, sample bundles *(foundation, no UI)* ✅ done
 - `EXERCISE_FORMAT.md`: the normative spec (schema, types, asset rules, versioning).
 - `backend/app/schemas/exercises.py`: Pydantic models = the validator.
 - `backend/app/services/exercise_bundles.py`: load + validate a bundle dir; explicit
@@ -234,7 +239,7 @@ errors) pass, and gets a semver tag on merge to `main` (per workflow memory).
   kid-facing schema.
 - **Detailed steps:** [milestones-1-3.md → M1](./milestones-1-3.md#m1--bundle-spec-validator-sample-bundles-no-ui).
 
-### M2 — Discovery, persistence, kid API
+### M2 — Discovery, persistence, kid API ✅ done
 - Migration: `User.birthdate` + `EXERCISE_ATTEMPTS` + `EXERCISE_COMPLETIONS`.
 - Discovery service with mtime cache; `EXERCISES_DIR` env (default
   `/app/data/exercises`, dev default `backend/data/exercises`).
@@ -245,7 +250,7 @@ errors) pass, and gets a semver tag on merge to `main` (per workflow memory).
   asset path-traversal rejection, invalid bundle reporting.
 - **Detailed steps:** [milestones-1-3.md → M2](./milestones-1-3.md#m2--discovery-persistence-kid-api-no-ui-yet).
 
-### M3 — Kid UI MVP (multiple-choice + numeric-entry players)
+### M3 — Kid UI MVP (multiple-choice + numeric-entry players) ✅ done
 - New kid tab `/dashboard/exercises` ("Ασκήσεις"), `nav.exercises` translations, a
   `bgVariant`, sidebar entry.
 - Two-level navigation: subject-group cards (only non-empty groups render; labels
