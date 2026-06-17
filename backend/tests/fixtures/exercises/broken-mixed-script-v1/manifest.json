@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "broken-mixed-script",
+  "version": 1,
+  "title": "Broken bundle",
+  "subject": "language",
+  "age_min": 4,
+  "age_max": 6,
+  "stars": 2,
+  "exercises": [
+    {
+      "id": "ex-01",
+      "type": "multiple_choice",
+      "prompt": "Ποιο είναι το apple;",
+      "options": [
+        { "id": "a", "text": "μήλο" },
+        { "id": "b", "text": "μπάλα" }
+      ],
+      "answer": "a"
+    }
+  ]
+}

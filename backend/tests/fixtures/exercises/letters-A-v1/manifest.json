@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "letters-A",
+  "version": 1,
+  "title": "Το γράμμα Α",
+  "subject": "language",
+  "age_min": 4,
+  "age_max": 6,
+  "stars": 3,
+  "exercises": [
+    {
+      "id": "ex-01",
+      "type": "multiple_choice",
+      "prompt": "Ποια εικόνα αρχίζει από Α;",
+      "prompt_tts": null,
+      "options": [
+        { "id": "a", "image": "apple.png", "text": "μήλο" },
+        { "id": "b", "image": "ball.png", "text": "μπάλα" }
+      ],
+      "answer": "a",
+      "hint": "Α όπως... αρκούδα!",
+      "hint_tts": null
+    },
+    {
+      "id": "ex-02",
+      "type": "multiple_choice",
+      "prompt": "Ποιο ζώο κάνει νιάου;",
+      "options": [
+        { "id": "cat", "text": "γάτα" },
+        { "id": "dog", "text": "σκύλος" },
+        { "id": "cow", "text": "αγελάδα" }
+      ],
+      "answer": "cat"
+    }
+  ]
+}

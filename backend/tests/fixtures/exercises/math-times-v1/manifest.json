@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "math-times",
+  "version": 1,
+  "title": "Πολλαπλασιασμός",
+  "subject": "math",
+  "age_min": 7,
+  "age_max": 9,
+  "stars": 5,
+  "exercises": [
+    {
+      "id": "ex-01",
+      "type": "numeric_entry",
+      "prompt": "2 * 3 + 4 = ?",
+      "prompt_tts": "δύο επί τρία, συν τέσσερα",
+      "answer": 10,
+      "hint": "Πρώτα ο πολλαπλασιασμός!"
+    },
+    {
+      "id": "ex-02",
+      "type": "numeric_entry",
+      "prompt": "5 * 5 = ?",
+      "answer": 25
+    }
+  ]
+}
