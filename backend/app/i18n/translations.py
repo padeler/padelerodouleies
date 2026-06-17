@@ -62,6 +62,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "card.details": {"el": "Λεπτομέρειες", "en": "Details"},
     "card.no_description": {"el": "Δεν υπάρχει περιγραφή", "en": "No description"},
     "card.flip_back": {"el": "Πίσω", "en": "Back"},
+    "card.listen": {"el": "Άκουσέ το", "en": "Listen"},
     "reward.new": {"el": "Νέο Βραβείο", "en": "New Reward"},
     "reward.table.empty": {"el": "Δεν υπάρχουν βραβεία ακόμα", "en": "No rewards yet"},
     "reward.table.icon": {"el": "Εικονίδιο", "en": "Icon"},

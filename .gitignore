@@ -42,3 +42,6 @@ venv
 .playwright-mcp/
 data
 frontend/test-results
+
+# Local Piper TTS voice models (fetched via backend/scripts/fetch_voices.sh)
+backend/voices/

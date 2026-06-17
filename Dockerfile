@@ -27,6 +27,11 @@ COPY backend/ /app/backend/
 # Install the application and its runtime dependencies into the venv.
 RUN pip install --upgrade pip && pip install /app/backend
 
+# Piper (CPU neural TTS) for the card speaker buttons. Kept out of pyproject so
+# local dev installs stay lean (tests patch the synthesizer); only the image
+# carries onnxruntime. The `piper` CLI lands in the venv that is copied to runtime.
+RUN pip install piper-tts
+
 # Bake the icon SVGs into the image (no runtime CDN fetches on the LAN).
 # fetch_icons.py is idempotent: it skips any SVG already present in the context.
 COPY scripts/fetch_icons.py /app/scripts/fetch_icons.py
@@ -40,14 +45,27 @@ ENV TZ=Europe/Athens \
     PATH="/opt/venv/bin:$PATH" \
     DB_PATH=/app/data/padelerodouleies.db \
     STATIC_DIR=/app/static \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    TTS_DIR=/app/data/tts \
+    TTS_VOICE_EL=/app/voices/el_GR-rapunzelina-low.onnx \
+    TTS_VOICE_EN=/app/voices/en_US-amy-low.onnx
 
-# tzdata so TZ resolves to Athens local time; curl for the compose healthcheck.
+# tzdata so TZ resolves to Athens local time; curl for the compose healthcheck;
+# ffmpeg encodes Piper's WAV to MP3; libgomp1 is onnxruntime's OpenMP runtime.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends tzdata curl \
+    && apt-get install -y --no-install-recommends tzdata curl ffmpeg libgomp1 \
     && rm -rf /var/lib/apt/lists/* \
     && ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime \
     && echo "$TZ" > /etc/timezone
+
+# Piper voice models (Greek default + English), baked in so the LAN-only box
+# never fetches at runtime. "low" quality (~60MB each) stays CPU-cheap.
+RUN mkdir -p /app/voices \
+    && BASE=https://huggingface.co/rhasspy/piper-voices/resolve/main \
+    && curl -fsSL -o /app/voices/el_GR-rapunzelina-low.onnx      "$BASE/el/el_GR/rapunzelina/low/el_GR-rapunzelina-low.onnx" \
+    && curl -fsSL -o /app/voices/el_GR-rapunzelina-low.onnx.json "$BASE/el/el_GR/rapunzelina/low/el_GR-rapunzelina-low.onnx.json" \
+    && curl -fsSL -o /app/voices/en_US-amy-low.onnx      "$BASE/en/en_US/amy/low/en_US-amy-low.onnx" \
+    && curl -fsSL -o /app/voices/en_US-amy-low.onnx.json "$BASE/en/en_US/amy/low/en_US-amy-low.onnx.json"
 
 COPY --from=backend-build /opt/venv /opt/venv
 COPY --from=backend-build /app/backend /app/backend

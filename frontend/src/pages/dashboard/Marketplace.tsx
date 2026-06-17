@@ -8,6 +8,7 @@ import type { MarketplaceReward } from '../../lib/types';
 import { formatRelativeFromNow } from '../../lib/datetime';
 import { notifyCelebration, notifyError } from '../../lib/notify';
 import { playFlip, playReward } from '../../lib/sound';
+import { SpeakButton } from '../../components/SpeakButton';
 import './flip-card.css';
 import './Marketplace.css';
 
@@ -51,6 +52,7 @@ function RewardCard({ reward }: { reward: MarketplaceReward }) {
     >
       <div className="flip-card-inner">
         <div className="reward-card flip-card-face flip-card-front">
+          <SpeakButton src={`/api/tts/reward/${reward.id}.mp3`} />
           <div className="reward-icon-wrap">
             <img src={iconSrc} alt="" className="reward-icon" />
           </div>
@@ -140,6 +142,7 @@ function CollabCard({ reward }: { reward: MarketplaceReward }) {
     >
       <div className="flip-card-inner">
         <div className="collab-card flip-card-face flip-card-front">
+          <SpeakButton src={`/api/tts/reward/${reward.id}.mp3`} />
           <div className="collab-header">
             <img src={iconSrc} alt="" className="collab-icon" />
             <h3 className="collab-title">{reward.title}</h3>

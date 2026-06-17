@@ -81,7 +81,58 @@
   white-space: pre-wrap;
 }
 
+/* Speaker button: top-right of the card front. Explicit top/right (not `inset`)
+   and transform/opacity-only transitions for the old tablets. */
+.speak-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--accent-strong, #6b4fa0);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.speak-btn:hover {
+  opacity: 1;
+}
+
+.speak-btn-active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+html[data-theme="dark"] .speak-btn {
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--accent, #b79cf0);
+}
+
+.speak-btn-icon {
+  display: block;
+}
+
+.speak-btn-spin {
+  animation: speak-btn-spin 0.8s linear infinite;
+}
+
+@keyframes speak-btn-spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .speak-btn-spin {
+    animation: none;
+  }
   .flip-card-inner {
     transition: none;
   }

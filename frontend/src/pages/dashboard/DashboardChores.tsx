@@ -8,6 +8,7 @@ import { formatRelativeFromNow } from '../../lib/datetime';
 import { notifyCelebration, notifyError } from '../../lib/notify';
 import { playClaim, playFlip } from '../../lib/sound';
 import { Avatar } from '../../components/Avatar';
+import { SpeakButton } from '../../components/SpeakButton';
 import './flip-card.css';
 import './DashboardChores.css';
 
@@ -71,6 +72,7 @@ function ChoreCard({ chore, currentUserId }: { chore: VisibleChore; currentUserI
     >
       <div className="flip-card-inner">
         <div className={`${cardClass} flip-card-face flip-card-front`}>
+          <SpeakButton src={`/api/tts/chore/${chore.id}.mp3`} />
           <div className="chore-icon-wrap">
             <img src={iconSrc} alt="" className="chore-icon" />
           </div>
