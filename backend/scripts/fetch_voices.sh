@@ -14,7 +14,7 @@ BASE="https://huggingface.co/rhasspy/piper-voices/resolve/main"
 
 # Relative paths under $BASE for each model (the .onnx.json sidecar is fetched too).
 VOICES=(
-  "el/el_GR/rapunzelina/low/el_GR-rapunzelina-low.onnx"
+  "el/el_GR/joy/medium/el_GR-joy-medium.onnx"
   "en/en_US/amy/low/en_US-amy-low.onnx"
 )
 

@@ -34,7 +34,7 @@ PIPER_BIN = os.getenv("PIPER_BIN", "piper")
 # /app/voices and overrides these via env; the dev default is backend/voices,
 # populated by scripts/fetch_voices.sh.
 _VOICES_DIR = Path(__file__).parents[2] / "voices"
-VOICE_EL = Path(os.getenv("TTS_VOICE_EL", str(_VOICES_DIR / "el_GR-rapunzelina-low.onnx")))
+VOICE_EL = Path(os.getenv("TTS_VOICE_EL", str(_VOICES_DIR / "el_GR-joy-medium.onnx")))
 VOICE_EN = Path(os.getenv("TTS_VOICE_EN", str(_VOICES_DIR / "en_US-amy-low.onnx")))
 
 # The Greek and extended-Greek Unicode blocks. One match is enough to read the

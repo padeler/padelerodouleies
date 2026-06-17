@@ -47,7 +47,7 @@ ENV TZ=Europe/Athens \
     STATIC_DIR=/app/static \
     PYTHONUNBUFFERED=1 \
     TTS_DIR=/app/data/tts \
-    TTS_VOICE_EL=/app/voices/el_GR-rapunzelina-low.onnx \
+    TTS_VOICE_EL=/app/voices/el_GR-joy-medium.onnx \
     TTS_VOICE_EN=/app/voices/en_US-amy-low.onnx
 
 # tzdata so TZ resolves to Athens local time; curl for the compose healthcheck;
@@ -59,11 +59,12 @@ RUN apt-get update \
     && echo "$TZ" > /etc/timezone
 
 # Piper voice models (Greek default + English), baked in so the LAN-only box
-# never fetches at runtime. "low" quality (~60MB each) stays CPU-cheap.
+# never fetches at runtime. Greek is medium quality (joy, clearer than the low
+# rapunzelina voice); English stays low. CPU-cheap thanks to lazy synth + cache.
 RUN mkdir -p /app/voices \
     && BASE=https://huggingface.co/rhasspy/piper-voices/resolve/main \
-    && curl -fsSL -o /app/voices/el_GR-rapunzelina-low.onnx      "$BASE/el/el_GR/rapunzelina/low/el_GR-rapunzelina-low.onnx" \
-    && curl -fsSL -o /app/voices/el_GR-rapunzelina-low.onnx.json "$BASE/el/el_GR/rapunzelina/low/el_GR-rapunzelina-low.onnx.json" \
+    && curl -fsSL -o /app/voices/el_GR-joy-medium.onnx      "$BASE/el/el_GR/joy/medium/el_GR-joy-medium.onnx" \
+    && curl -fsSL -o /app/voices/el_GR-joy-medium.onnx.json "$BASE/el/el_GR/joy/medium/el_GR-joy-medium.onnx.json" \
     && curl -fsSL -o /app/voices/en_US-amy-low.onnx      "$BASE/en/en_US/amy/low/en_US-amy-low.onnx" \
     && curl -fsSL -o /app/voices/en_US-amy-low.onnx.json "$BASE/en/en_US/amy/low/en_US-amy-low.onnx.json"
 
