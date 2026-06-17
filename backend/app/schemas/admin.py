@@ -1,6 +1,6 @@
 """Pydantic schemas for admin endpoints."""
 
-from datetime import datetime, time as dtime
+from datetime import date, datetime, time as dtime
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -94,6 +94,7 @@ class AdminUserRead(BaseModel):
     current_stars: int
     preferred_locale: str
     is_active: bool
+    birthdate: date | None = None
 
 
 class AdminUserCreate(BaseModel):
@@ -110,6 +111,7 @@ class AdminUserUpdate(BaseModel):
     avatar_value: str | None = None
     role: str | None = None
     is_active: bool | None = None
+    birthdate: date | None = None
 
 
 class PinResetRequest(BaseModel):

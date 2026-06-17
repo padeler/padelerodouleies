@@ -12,7 +12,10 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from pydantic import ValidationError
 
@@ -22,6 +25,12 @@ logger = logging.getLogger(__name__)
 
 MANIFEST_NAME = "manifest.json"
 ASSETS_DIRNAME = "assets"
+
+# Where bundles live. Container default is the RAID bind mount; the dev default
+# sits under the backend root, mirroring the TTS_DIR env pattern in tts.py.
+EXERCISES_DIR = Path(
+    os.getenv("EXERCISES_DIR", str(Path(__file__).parents[2] / "data" / "exercises"))
+)
 
 
 class BundleValidationError(ValueError):
@@ -74,3 +83,101 @@ def load_bundle(bundle_dir: Path) -> BundleManifest:
 
     logger.debug("loaded bundle %s v%s (%d exercises)", manifest.id, manifest.version, len(manifest.exercises))
     return manifest
+
+
+# -- Discovery (scan-on-request, mtime-cached) ------------------------------
+
+
+@dataclass(frozen=True)
+class DiscoveredBundle:
+    """A valid bundle on disk: its directory plus the parsed manifest."""
+
+    dir: Path
+    manifest: BundleManifest
+
+
+@dataclass(frozen=True)
+class InvalidBundle:
+    """A bundle directory that failed validation, kept for admin surfacing."""
+
+    dir: Path
+    error: str
+
+
+@dataclass(frozen=True)
+class Discovery:
+    valid: tuple[DiscoveredBundle, ...]
+    invalid: tuple[InvalidBundle, ...]
+
+
+# Per-root cache of (signature, Discovery). Discovery re-runs only when the
+# signature (child dir set + mtimes) changes — no background scheduler
+# (invariant #2). Bundles are immutable, so a manifest's mtime is a faithful
+# identity for its content.
+_cache: dict[Path, tuple[Any, Discovery]] = {}
+
+
+def _signature(root: Path) -> Any:
+    """A cheap fingerprint of the bundles root: its mtime + each child's."""
+    if not root.is_dir():
+        return None
+    entries: list[tuple[str, int]] = []
+    for child in sorted(root.iterdir()):
+        if child.is_dir():
+            try:
+                entries.append((child.name, child.stat().st_mtime_ns))
+            except OSError:
+                continue
+    return (root.stat().st_mtime_ns, tuple(entries))
+
+
+def _scan(root: Path) -> Discovery:
+    valid: list[DiscoveredBundle] = []
+    invalid: list[InvalidBundle] = []
+    if not root.is_dir():
+        logger.info("exercises dir does not exist: %s", root)
+        return Discovery(valid=(), invalid=())
+    for child in sorted(root.iterdir()):
+        if not child.is_dir():
+            continue
+        try:
+            manifest = load_bundle(child)
+            valid.append(DiscoveredBundle(dir=child, manifest=manifest))
+        except BundleValidationError as exc:
+            logger.warning("invalid bundle %s: %s", child.name, exc)
+            invalid.append(InvalidBundle(dir=child, error=str(exc)))
+    return Discovery(valid=tuple(valid), invalid=tuple(invalid))
+
+
+def discover(root: Path | None = None) -> Discovery:
+    """Discover all bundles under ``root`` (default ``EXERCISES_DIR``).
+
+    Result is cached on the directory signature and recomputed only when the
+    set of bundle dirs or their mtimes change. Invalid bundles are returned
+    with their validation error, never silently dropped.
+    """
+    root = (root or EXERCISES_DIR).resolve()
+    signature = _signature(root)
+    cached = _cache.get(root)
+    if cached is not None and cached[0] == signature:
+        return cached[1]
+    result = _scan(root)
+    _cache[root] = (signature, result)
+    logger.info("discovered %d valid / %d invalid bundle(s) in %s", len(result.valid), len(result.invalid), root)
+    return result
+
+
+def clear_cache() -> None:
+    """Drop the discovery cache (admin Rescan button / tests)."""
+    _cache.clear()
+
+
+def get_bundle(bundle_id: str, root: Path | None = None) -> DiscoveredBundle | None:
+    """The valid bundle for ``bundle_id``, picking the highest ``version``.
+
+    Returns ``None`` when no valid bundle with that id exists (callers 404).
+    """
+    matches = [b for b in discover(root).valid if b.manifest.id == bundle_id]
+    if not matches:
+        return None
+    return max(matches, key=lambda b: b.manifest.version)

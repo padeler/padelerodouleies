@@ -9,6 +9,7 @@ from datetime import datetime, time
 from sqlalchemy import (
     Boolean,
     Column,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -36,6 +37,7 @@ class User(Base):
     preferred_locale = Column(String(5), nullable=False, default="el")
     preferred_theme = Column(String(10), nullable=False, default="system")
     accent_color = Column(String(7), nullable=True)  # "#RRGGBB" — NULL uses the theme default
+    birthdate = Column(Date, nullable=True)  # admin-set; drives age-targeted exercises
     failed_pin_attempts = Column(Integer, nullable=False, default=0)
     locked_until = Column(DateTime, nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
@@ -139,6 +141,55 @@ class GameScore(Base):
     game = Column(String(40), nullable=False)  # e.g. "memory.easy" | "simon" | "catcher"
     best_score = Column(Integer, nullable=False)
     updated_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    user = relationship("User")
+
+
+class ExerciseAttempt(Base):
+    """Append-only record of every exercise answer a kid submits.
+
+    One row per submission (right or wrong). "Progress" is always derived from
+    these rows — they are never mutated — so any future star policy is
+    computable retroactively (PLAN.md Q1). Timestamps are naive UTC, matching
+    the ledger convention (see the _start_of history).
+    """
+
+    __tablename__ = "exercise_attempts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    bundle_id = Column(String(80), nullable=False)
+    bundle_version = Column(Integer, nullable=False)
+    exercise_id = Column(String(40), nullable=False)
+    response_json = Column(JSON, nullable=False)  # the raw kid response, as posted
+    correct = Column(Boolean, nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    user = relationship("User")
+
+
+class ExerciseCompletion(Base):
+    """Records the one-time star award for finishing a (kid, bundle, version).
+
+    Unique on (user_id, bundle_id, bundle_version) so completion — and the star
+    award — is idempotent. The history_ledger_id FK ties the star delta to its
+    visible ledger row (invariant #4).
+    """
+
+    __tablename__ = "exercise_completions"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "bundle_id", "bundle_version", name="uq_exercise_completion"
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    bundle_id = Column(String(80), nullable=False)
+    bundle_version = Column(Integer, nullable=False)
+    stars_awarded = Column(Integer, nullable=False)
+    history_ledger_id = Column(Integer, ForeignKey("history_ledger.id"), nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     user = relationship("User")
 

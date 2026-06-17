@@ -376,7 +376,7 @@ def create_admin_user(
     db.refresh(user)
     return JSONResponse(
         status_code=201,
-        content=AdminUserRead.model_validate(user).model_dump(),
+        content=AdminUserRead.model_validate(user).model_dump(mode="json"),
     )
 
 
@@ -405,7 +405,7 @@ def update_admin_user(
         setattr(user, k, v)
     db.commit()
     db.refresh(user)
-    return JSONResponse(content=AdminUserRead.model_validate(user).model_dump())
+    return JSONResponse(content=AdminUserRead.model_validate(user).model_dump(mode="json"))
 
 
 @router.delete("/users/{user_id}")
@@ -597,6 +597,7 @@ def list_history(
         "manual_adjust": "Manual star adjustment",
         "reward_purchase": "Reward purchase",
         "reward_refund": "Reward refund",
+        "exercise_complete": "Completed exercises",
     }
 
     q = db.query(HistoryLedger).join(User, HistoryLedger.user_id == User.id)

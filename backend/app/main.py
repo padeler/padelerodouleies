@@ -42,6 +42,7 @@ from app.api.leaderboard import router as leaderboard_router
 from app.api.stats import router as stats_router
 from app.api.games import router as games_router
 from app.api.tts import router as tts_router
+from app.api.exercises import router as exercises_router
 
 app.include_router(i18n_router)
 app.include_router(bootstrap_router)
@@ -54,6 +55,7 @@ app.include_router(leaderboard_router)
 app.include_router(stats_router)
 app.include_router(games_router)
 app.include_router(tts_router)
+app.include_router(exercises_router)
 
 
 @app.get("/api/health")

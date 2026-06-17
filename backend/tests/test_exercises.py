@@ -196,3 +196,234 @@ def test_ordering_answer_must_cover_items() -> None:
     ]
     with pytest.raises(Exception):
         BundleManifest.model_validate(base)
+
+
+# ===========================================================================
+# M2 — discovery, persistence, grading, kid API
+# ===========================================================================
+
+from datetime import date, datetime, timezone
+
+from httpx import ASGITransport, AsyncClient, Cookies
+
+from app.db.engine import LocalSession
+from app.db.models import ExerciseAttempt, ExerciseCompletion, HistoryLedger, User
+from app.main import app
+from app.security.pins import hash_pin
+from app.services import exercise_bundles, exercises
+from app.services.exercises import age_for, grade, submit_answer, visible_bundles
+
+
+@pytest.fixture
+def exercises_dir(monkeypatch):
+    """Point discovery at the test fixtures dir (incl. the broken bundle)."""
+    monkeypatch.setattr(exercise_bundles, "EXERCISES_DIR", FIXTURES)
+    exercise_bundles.clear_cache()
+    yield FIXTURES
+    exercise_bundles.clear_cache()
+
+
+# -- discovery --------------------------------------------------------------
+
+def test_discover_separates_valid_and_invalid(exercises_dir) -> None:
+    result = exercise_bundles.discover()
+    valid_ids = {b.manifest.id for b in result.valid}
+    assert valid_ids == {"letters-A", "math-times"}
+    assert len(result.invalid) == 1
+    assert "mono-script" in result.invalid[0].error or "mixes" in result.invalid[0].error
+
+
+def test_discover_is_mtime_cached(exercises_dir) -> None:
+    first = exercise_bundles.discover()
+    second = exercise_bundles.discover()
+    assert first is second  # same object returned from cache
+
+
+def test_get_bundle_picks_highest_version(exercises_dir) -> None:
+    bundle = exercise_bundles.get_bundle("letters-A")
+    assert bundle is not None and bundle.manifest.version == 1
+    assert exercise_bundles.get_bundle("nope") is None
+
+
+# -- age targeting ----------------------------------------------------------
+
+def test_age_for_boundaries() -> None:
+    assert age_for(date(2020, 6, 17), date(2026, 6, 17)) == 6  # birthday today
+    assert age_for(date(2020, 6, 18), date(2026, 6, 17)) == 5  # day before birthday
+    assert age_for(date(2020, 1, 1), date(2026, 12, 31)) == 6
+
+
+def test_visible_bundles_age_filtering(exercises_dir) -> None:
+    young = User(name="Young", role="user", birthdate=date(2021, 1, 1))  # ~5
+    older = User(name="Older", role="user", birthdate=date(2018, 1, 1))  # ~8
+    no_bd = User(name="NoBd", role="user", birthdate=None)
+    assert {b.manifest.id for b in visible_bundles(young)} == {"letters-A"}
+    assert {b.manifest.id for b in visible_bundles(older)} == {"math-times"}
+    assert visible_bundles(no_bd) == []
+
+
+# -- grading (pure) ---------------------------------------------------------
+
+def test_grade_multiple_choice_and_numeric(exercises_dir) -> None:
+    mc = exercise_bundles.get_bundle("letters-A").manifest.exercises[0]
+    assert grade(mc, "a") is True
+    assert grade(mc, "b") is False
+    ne = exercise_bundles.get_bundle("math-times").manifest.exercises[0]
+    assert grade(ne, 10) is True
+    assert grade(ne, "10") is True
+    assert grade(ne, " 10 ") is True
+    assert grade(ne, 11) is False
+
+
+def test_grade_rejects_malformed_response(exercises_dir) -> None:
+    ne = exercise_bundles.get_bundle("math-times").manifest.exercises[0]
+    with pytest.raises(exercises.ResponseError):
+        grade(ne, "abc")
+    with pytest.raises(exercises.ResponseError):
+        grade(ne, True)
+
+
+# -- submission + completion (DB) -------------------------------------------
+
+def _complete_letters_a(db, user):
+    bundle = exercise_bundles.get_bundle("letters-A")
+    submit_answer(db, user, bundle, "ex-01", "a")
+    return submit_answer(db, user, bundle, "ex-02", "cat")
+
+
+def test_submission_records_attempts_and_naive_utc(exercises_dir) -> None:
+    db = LocalSession()
+    try:
+        kid = User(name="ExKid1", role="user", pin_hash=hash_pin("1234"), birthdate=date(2021, 1, 1))
+        db.add(kid)
+        db.commit()
+        bundle = exercise_bundles.get_bundle("letters-A")
+        res = submit_answer(db, kid, bundle, "ex-01", "b")  # wrong
+        assert res.correct is False and res.completed is False
+        attempt = db.query(ExerciseAttempt).filter(ExerciseAttempt.user_id == kid.id).first()
+        assert attempt.correct is False
+        assert attempt.created_at.tzinfo is None  # naive UTC like the ledger
+    finally:
+        db.close()
+
+
+def test_completion_awards_stars_once_idempotent(exercises_dir) -> None:
+    db = LocalSession()
+    try:
+        kid = User(name="ExKid2", role="user", pin_hash=hash_pin("1234"),
+                   birthdate=date(2021, 1, 1), current_stars=0)
+        db.add(kid)
+        db.commit()
+        res = _complete_letters_a(db, kid)
+        assert res.completed is True
+        assert res.stars_awarded == 3
+        assert kid.current_stars == 3
+        assert db.query(ExerciseCompletion).filter(ExerciseCompletion.user_id == kid.id).count() == 1
+        ledger_rows = db.query(HistoryLedger).filter(
+            HistoryLedger.user_id == kid.id,
+            HistoryLedger.action_type == "exercise_complete",
+        ).all()
+        assert len(ledger_rows) == 1
+        assert ledger_rows[0].points_delta == 3
+        assert ledger_rows[0].ref_table == "exercise_completions"
+
+        # Re-answering after completion must not double-award.
+        bundle = exercise_bundles.get_bundle("letters-A")
+        again = submit_answer(db, kid, bundle, "ex-01", "a")
+        assert again.completed is False and again.stars_awarded == 0
+        assert kid.current_stars == 3
+        assert db.query(ExerciseCompletion).filter(ExerciseCompletion.user_id == kid.id).count() == 1
+    finally:
+        db.close()
+
+
+# -- API --------------------------------------------------------------------
+
+async def _login_kid(birthdate):
+    db = LocalSession()
+    kid = User(name=f"ApiKid{datetime.now(timezone.utc).timestamp()}", role="user",
+               pin_hash=hash_pin("1234"), birthdate=birthdate)
+    db.add(kid)
+    db.commit()
+    uid = kid.id
+    db.close()
+    transport = ASGITransport(app=app)
+    client = AsyncClient(transport=transport, base_url="http://testserver", cookies=Cookies())
+    resp = await client.post("/api/auth/login", json={"user_id": uid, "pin": "1234"})
+    assert resp.status_code == 200
+    return client, uid
+
+
+async def test_api_requires_auth() -> None:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as c:
+        assert (await c.get("/api/exercises/bundles")).status_code == 401
+
+
+async def test_api_list_and_manifest_no_answers(exercises_dir) -> None:
+    client, _ = await _login_kid(date(2021, 1, 1))
+    try:
+        resp = await client.get("/api/exercises/bundles")
+        assert resp.status_code == 200
+        bundles = resp.json()
+        assert {b["id"] for b in bundles} == {"letters-A"}
+        assert bundles[0]["completed"] is False
+
+        resp = await client.get("/api/exercises/bundles/letters-A")
+        assert resp.status_code == 200
+        assert "answer" not in json.dumps(resp.json())
+    finally:
+        await client.aclose()
+
+
+async def test_api_asset_serving_and_traversal(exercises_dir) -> None:
+    client, _ = await _login_kid(date(2021, 1, 1))
+    try:
+        ok = await client.get("/api/exercises/assets/letters-A/apple.png")
+        assert ok.status_code == 200
+        assert ok.headers["content-type"].startswith("image/")
+        # Encoded ".." so the client does not collapse it before the server guard.
+        bad = await client.get("/api/exercises/assets/letters-A/%2e%2e/manifest.json")
+        assert bad.status_code == 404
+        missing = await client.get("/api/exercises/assets/letters-A/nope.png")
+        assert missing.status_code == 404
+    finally:
+        await client.aclose()
+
+
+async def test_api_answer_flow_and_broadcast(exercises_dir) -> None:
+    client, uid = await _login_kid(date(2021, 1, 1))
+    try:
+        r1 = await client.post("/api/exercises/bundles/letters-A/answers",
+                               json={"exercise_id": "ex-01", "response": "b"})
+        assert r1.json()["correct"] is False
+        r2 = await client.post("/api/exercises/bundles/letters-A/answers",
+                               json={"exercise_id": "ex-01", "response": "a"})
+        assert r2.json()["correct"] is True and r2.json()["completed"] is False
+        r3 = await client.post("/api/exercises/bundles/letters-A/answers",
+                               json={"exercise_id": "ex-02", "response": "cat"})
+        body = r3.json()
+        assert body["completed"] is True and body["stars_awarded"] == 3 and body["current_stars"] == 3
+
+        # completion now reflected in the list
+        listing = (await client.get("/api/exercises/bundles")).json()
+        assert listing[0]["completed"] is True
+    finally:
+        await client.aclose()
+
+
+async def test_api_tts_unavailable_returns_503(exercises_dir, monkeypatch) -> None:
+    from app.services import tts as tts_service
+
+    def boom(_text):
+        raise tts_service.TTSUnavailableError("no piper")
+
+    monkeypatch.setattr(tts_service, "get_or_synthesize", boom)
+    client, _ = await _login_kid(date(2021, 1, 1))
+    try:
+        resp = await client.get("/api/exercises/tts/letters-A/ex-01/prompt.mp3")
+        assert resp.status_code == 503
+        bad_kind = await client.get("/api/exercises/tts/letters-A/ex-01/whoops.mp3")
+        assert bad_kind.status_code == 404
+    finally:
+        await client.aclose()
