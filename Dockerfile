@@ -61,12 +61,19 @@ RUN apt-get update \
 # Piper voice models (Greek default + English), baked in so the LAN-only box
 # never fetches at runtime. Greek is medium quality (joy, clearer than the low
 # rapunzelina voice); English stays low. CPU-cheap thanks to lazy synth + cache.
+# Hugging Face rate-limits (HTTP 429) shared CI runner IPs, so each file is
+# fetched with backoff retries; --retry-all-errors is required for curl to
+# retry on 429 (plain --retry ignores it).
 RUN mkdir -p /app/voices \
     && BASE=https://huggingface.co/rhasspy/piper-voices/resolve/main \
-    && curl -fsSL -o /app/voices/el_GR-joy-medium.onnx      "$BASE/el/el_GR/joy/medium/el_GR-joy-medium.onnx" \
-    && curl -fsSL -o /app/voices/el_GR-joy-medium.onnx.json "$BASE/el/el_GR/joy/medium/el_GR-joy-medium.onnx.json" \
-    && curl -fsSL -o /app/voices/en_US-amy-low.onnx      "$BASE/en/en_US/amy/low/en_US-amy-low.onnx" \
-    && curl -fsSL -o /app/voices/en_US-amy-low.onnx.json "$BASE/en/en_US/amy/low/en_US-amy-low.onnx.json"
+    && for f in \
+         el/el_GR/joy/medium/el_GR-joy-medium.onnx \
+         el/el_GR/joy/medium/el_GR-joy-medium.onnx.json \
+         en/en_US/amy/low/en_US-amy-low.onnx \
+         en/en_US/amy/low/en_US-amy-low.onnx.json ; do \
+         curl -fsSL --retry 8 --retry-all-errors --retry-delay 15 \
+           -o "/app/voices/$(basename "$f")" "$BASE/$f" ; \
+       done
 
 COPY --from=backend-build /opt/venv /opt/venv
 COPY --from=backend-build /app/backend /app/backend
