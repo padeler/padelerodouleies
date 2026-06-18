@@ -15,7 +15,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.db.engine import get_session
-from app.db.models import Chore, HistoryLedger, PendingClaim, Reward, RewardLedger, User
+from app.db.models import Chore, ExerciseCompletion, HistoryLedger, PendingClaim, Reward, RewardLedger, User
 from app.realtime import broadcaster
 from app.schemas.admin import (
     AdminUserCreate,
@@ -643,5 +643,60 @@ def list_history(
                 entry["item_title"] = reward.title
                 entry["item_icon"] = reward.icon_name
         entries.append(entry)
+
+
+# ---------------------------------------------------------------------
+# Exercise statistics (admin view)
+# ---------------------------------------------------------------------
+
+@router.get("/exercises/stats")
+def get_exercise_stats(
+    db: Session = Depends(get_session),
+    _admin: User = Depends(require_admin),
+) -> dict[str, Any]:
+    """All bundle metadata + per-kid completion counts for the admin exercises view."""
+    from app.services.exercise_bundles import discover
+
+    discovery = discover()
+
+    bundles_out = [
+        {
+            "id": b.manifest.id,
+            "version": b.manifest.version,
+            "title": b.manifest.title,
+            "subject": b.manifest.subject,
+            "age_min": b.manifest.age_min,
+            "age_max": b.manifest.age_max,
+            "stars": b.manifest.stars,
+            "exercise_count": len(b.manifest.exercises),
+        }
+        for b in discovery.valid
+    ]
+    invalid_out = [
+        {"dir": str(b.dir.name), "error": b.error}
+        for b in discovery.invalid
+    ]
+
+    kids = db.query(User).filter(User.is_active == True, User.role == "user").order_by(User.id).all()
+
+    kid_stats = []
+    for kid in kids:
+        completions = (
+            db.query(ExerciseCompletion)
+            .filter(ExerciseCompletion.user_id == kid.id)
+            .all()
+        )
+        total_stars = sum(c.stars_awarded for c in completions)
+        kid_stats.append({
+            "user_id": kid.id,
+            "name": kid.name,
+            "avatar_kind": kid.avatar_kind,
+            "avatar_value": kid.avatar_value,
+            "completed_count": len(completions),
+            "total_stars": total_stars,
+            "completed_bundle_ids": [c.bundle_id for c in completions],
+        })
+
+    return {"bundles": bundles_out, "invalid": invalid_out, "kid_stats": kid_stats}
 
     return {"total": total, "entries": entries}

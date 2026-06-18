@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { exerciseAssetUrl } from '../../../api/client';
+import { exerciseAssetUrl, exerciseOptionTtsUrl } from '../../../api/client';
+import { SpeakButton } from '../../../components/SpeakButton';
 import type { ExerciseView } from '../../../lib/types';
 
 function shuffle<T>(items: T[]): T[] {
@@ -28,24 +29,28 @@ export function MultipleChoicePlayer({ bundleId, exercise, disabled, onAnswer }:
   return (
     <div className={`mc-options mc-count-${options.length}`}>
       {options.map((opt) => (
-        <button
-          key={opt.id}
-          type="button"
-          className="mc-option"
-          disabled={disabled}
-          onClick={() => onAnswer(opt.id)}
-        >
-          {opt.image && (
-            <span className="mc-option-img-wrap">
-              <img
-                className="mc-option-img"
-                src={exerciseAssetUrl(bundleId, opt.image)}
-                alt={opt.text ?? ''}
-              />
-            </span>
+        <div key={opt.id} className="mc-option-wrap">
+          <button
+            type="button"
+            className="mc-option"
+            disabled={disabled}
+            onClick={() => onAnswer(opt.id)}
+          >
+            {opt.image && (
+              <span className="mc-option-img-wrap">
+                <img
+                  className="mc-option-img"
+                  src={exerciseAssetUrl(bundleId, opt.image)}
+                  alt={opt.text ?? ''}
+                />
+              </span>
+            )}
+            {opt.text && <span className="mc-option-text">{opt.text}</span>}
+          </button>
+          {opt.text && (
+            <SpeakButton src={exerciseOptionTtsUrl(bundleId, exercise.id, opt.id)} />
           )}
-          {opt.text && <span className="mc-option-text">{opt.text}</span>}
-        </button>
+        </div>
       ))}
     </div>
   );

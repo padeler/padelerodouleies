@@ -215,6 +215,33 @@ export interface ExerciseAnswerResult {
   current_stars: number;
 }
 
+export interface AdminExerciseBundleSummary {
+  id: string;
+  version: number;
+  title: string;
+  subject: string;
+  age_min: number;
+  age_max: number;
+  stars: number;
+  exercise_count: number;
+}
+
+export interface AdminExerciseKidStat {
+  user_id: number;
+  name: string;
+  avatar_kind: string;
+  avatar_value: string;
+  completed_count: number;
+  total_stars: number;
+  completed_bundle_ids: string[];
+}
+
+export interface AdminExerciseStats {
+  bundles: AdminExerciseBundleSummary[];
+  invalid: { dir: string; error: string }[];
+  kid_stats: AdminExerciseKidStat[];
+}
+
 export interface StatKid {
   id: number;
   name: string;

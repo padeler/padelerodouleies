@@ -11,7 +11,7 @@ import { useI18nStore } from '../../../i18n/store';
 // Stub confetti/audio so jsdom stays quiet and we can spy on the celebration.
 const notifyCelebration = vi.fn();
 vi.mock('../../../lib/notify', () => ({ notifyCelebration: (...a: unknown[]) => notifyCelebration(...a) }));
-vi.mock('../../../lib/sound', () => ({ playReward: vi.fn(), playWrong: vi.fn() }));
+vi.mock('../../../lib/sound', () => ({ playReward: vi.fn(), playWrong: vi.fn(), playSuccess: vi.fn() }));
 
 const server = setupServer();
 

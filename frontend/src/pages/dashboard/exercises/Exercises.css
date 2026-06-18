@@ -193,10 +193,15 @@
   grid-template-columns: repeat(2, 1fr);
 }
 
+.mc-option-wrap {
+  position: relative;
+}
+
 .mc-option {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   padding: 16px;
   background: var(--bg);
   border: 3px solid var(--accent-border);

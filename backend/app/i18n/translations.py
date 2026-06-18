@@ -74,6 +74,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "user.table.name": {"el": "Όνομα", "en": "Name"},
     "user.table.role": {"el": "Ρόλος", "en": "Role"},
     "user.table.stars": {"el": "Αστέρια", "en": "Stars"},
+    "user.table.birthdate": {"el": "Ημ. Γέννησης", "en": "Birthdate"},
     "user.table.active": {"el": "Ενεργός", "en": "Active"},
     "user.reset_pin": {"el": "Επαναφορά PIN", "en": "Reset PIN"},
     "user.role_user": {"el": "Παιδί", "en": "Child"},
@@ -331,6 +332,20 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "exercises.subject.logic": {"el": "Λογική", "en": "Logic"},
     "exercises.subject.nature": {"el": "Φύση", "en": "Nature"},
     "exercises.unsupported_type": {"el": "Αυτός ο τύπος άσκησης δεν είναι διαθέσιμος ακόμα.", "en": "This exercise type is not available yet."},
+    # Admin exercises stats
+    "exercises.admin.title": {"el": "Ασκήσεις — Στατιστικά", "en": "Exercises — Statistics"},
+    "exercises.admin.bundles_heading": {"el": "Διαθέσιμα πακέτα", "en": "Available bundles"},
+    "exercises.admin.no_bundles": {"el": "Δεν βρέθηκαν πακέτα ασκήσεων.", "en": "No exercise bundles found."},
+    "exercises.admin.invalid_heading": {"el": "Μη έγκυρα πακέτα", "en": "Invalid bundles"},
+    "exercises.admin.col_age": {"el": "Ηλικία", "en": "Age"},
+    "exercises.admin.col_stars": {"el": "Αστέρια", "en": "Stars"},
+    "exercises.admin.col_count": {"el": "Ασκήσεις", "en": "Exercises"},
+    "exercises.admin.age_range": {"el": "{min}–{max} ετών", "en": "Ages {min}–{max}"},
+    "exercises.admin.kid_stats_heading": {"el": "Πρόοδος παιδιών", "en": "Kids' progress"},
+    "exercises.admin.col_completed": {"el": "Ολοκλ.", "en": "Done"},
+    "exercises.admin.col_stars_earned": {"el": "Αστέρια", "en": "Stars"},
+    "exercises.admin.completed": {"el": "{count} ολοκλ.", "en": "{count} done"},
+    "exercises.admin.stars_earned": {"el": "{stars} ⭐", "en": "{stars} ⭐"},
 }
 
 

@@ -4,7 +4,7 @@ import { useT } from '../../../i18n/store';
 import { SpeakButton } from '../../../components/SpeakButton';
 import { exerciseTtsUrl } from '../../../api/client';
 import { notifyCelebration } from '../../../lib/notify';
-import { playReward, playWrong } from '../../../lib/sound';
+import { playReward, playSuccess, playWrong } from '../../../lib/sound';
 import { useExerciseBundle, useSubmitAnswer } from './useExercises';
 import { MultipleChoicePlayer } from './MultipleChoicePlayer';
 import { NumericEntryPlayer } from './NumericEntryPlayer';
@@ -68,6 +68,7 @@ export function BundlePlayer() {
         if (isLast) {
           setStars(result.stars_awarded);
           later(() => {
+            playSuccess();
             notifyCelebration(t('exercises.well_done'));
             setFinished(true);
           }, 600);

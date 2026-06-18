@@ -134,3 +134,14 @@ export function playWrong(): void {
     { freq: 146.83, delay: 0.14, duration: 0.24, type: 'square', gain: 0.08 }, // D3
   ]);
 }
+
+/** Triumphant ascending fanfare on exercise bundle completion. */
+export function playSuccess(): void {
+  playTones([
+    { freq: 523.25, delay: 0, duration: 0.1 },    // C5
+    { freq: 659.25, delay: 0.09, duration: 0.1 }, // E5
+    { freq: 783.99, delay: 0.18, duration: 0.1 }, // G5
+    { freq: 987.77, delay: 0.27, duration: 0.1 }, // B5
+    { freq: 1046.5, delay: 0.36, duration: 0.35 }, // C6
+  ]);
+}

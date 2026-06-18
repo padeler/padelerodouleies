@@ -135,6 +135,37 @@ def get_exercise_tts(
     )
 
 
+@router.get("/tts/{bundle_id}/{exercise_id}/option/{option_id}.mp3")
+def get_option_tts(
+    bundle_id: str,
+    exercise_id: str,
+    option_id: str,
+    current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken text for one multiple-choice option, synthesized + cached server-side."""
+    bundle = _get_visible_bundle(bundle_id, current_user)
+    exercise = next((e for e in bundle.manifest.exercises if e.id == exercise_id), None)
+    if exercise is None:
+        raise HTTPException(404, f"Exercise not found: {exercise_id}")
+
+    options = getattr(exercise, "options", None)
+    if not options:
+        raise HTTPException(404, f"Exercise {exercise_id} has no options")
+    option = next((o for o in options if o.id == option_id), None)
+    if option is None or not option.text:
+        raise HTTPException(404, f"Option {option_id} not found or has no text")
+
+    try:
+        path = tts.get_or_synthesize(option.text)
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for option %s/%s/%s: %s", bundle_id, exercise_id, option_id, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
 @router.post("/bundles/{bundle_id}/answers")
 async def post_answer(
     bundle_id: str,

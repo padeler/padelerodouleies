@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Volume2, Loader2 } from 'lucide-react';
 import { useT } from '../i18n/store';
 import { notifyError } from '../lib/notify';
@@ -28,6 +28,17 @@ export function SpeakButton({ src }: SpeakButtonProps) {
   const t = useT();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [status, setStatus] = useState<Status>('idle');
+
+  // When the src URL changes (e.g. question advances), stop any current playback
+  // and discard the stale audio element so the next tap fetches the new clip.
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      if (activeAudio === audioRef.current) activeAudio = null;
+      audioRef.current = null;
+    }
+    setStatus('idle');
+  }, [src]);
 
   function stopActiveOther() {
     if (activeAudio && activeAudio !== audioRef.current) {

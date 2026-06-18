@@ -544,6 +544,19 @@ export function exerciseTtsUrl(
   return `/api/exercises/tts/${encodeURIComponent(bundleId)}/${encodeURIComponent(exerciseId)}/${kind}.mp3`;
 }
 
+/** URL of the spoken text for a multiple-choice option (for SpeakButton). */
+export function exerciseOptionTtsUrl(
+  bundleId: string,
+  exerciseId: string,
+  optionId: string,
+): string {
+  return `/api/exercises/tts/${encodeURIComponent(bundleId)}/${encodeURIComponent(exerciseId)}/option/${encodeURIComponent(optionId)}.mp3`;
+}
+
+export async function getAdminExerciseStats() {
+  return request<import('../lib/types').AdminExerciseStats>('/admin/exercises/stats');
+}
+
 export async function getGameScores() {
   return request<Record<string, number>>('/games/scores');
 }

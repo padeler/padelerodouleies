@@ -40,6 +40,8 @@ VOICE_EN = Path(os.getenv("TTS_VOICE_EN", str(_VOICES_DIR / "en_US-amy-low.onnx"
 # The Greek and extended-Greek Unicode blocks. One match is enough to read the
 # text with the Greek voice; the project default locale is Greek anyway.
 _GREEK_RE = re.compile(r"[Ͱ-Ͽἀ-῿]")
+# ASCII letters signal English script; digits/symbols have no script affiliation.
+_LATIN_RE = re.compile(r"[a-zA-Z]")
 
 
 class TTSUnavailableError(RuntimeError):
@@ -47,8 +49,16 @@ class TTSUnavailableError(RuntimeError):
 
 
 def detect_language(text: str) -> str:
-    """Return ``'el'`` if the text contains any Greek letter, else ``'en'``."""
-    return "el" if _GREEK_RE.search(text) else "en"
+    """Return ``'el'`` for Greek text or purely non-Latin text (e.g. digits), ``'en'`` for Latin.
+
+    Greek is the app default locale (invariant #5), so numbers and symbols that
+    carry no script affiliation are read with the Greek voice.
+    """
+    if _GREEK_RE.search(text):
+        return "el"
+    if _LATIN_RE.search(text):
+        return "en"
+    return "el"
 
 
 def voice_for_language(lang: str) -> Path:
