@@ -40,6 +40,7 @@ exercises/
   "age_min": 4,
   "age_max": 6,
   "stars": 3,               // award for completing the bundle
+  "difficulty": 1,          // 1 (easiest) – 5 (hardest); shown as dots on the kid card
   "exercises": [ /* … */ ]
 }
 ```
@@ -55,6 +56,7 @@ exercises/
 | `subject` | enum | one of `language`, `math`, `geography`, `history`, `logic`, `nature` |
 | `age_min` / `age_max` | int | `0 ≤ age_min ≤ age_max ≤ 120` |
 | `stars` | int | ≥ 0; awarded once per (kid, bundle, version) on completion |
+| `difficulty` | int | 1–5; displayed as filled/empty dots on the kid bundle card; bundles are sorted easier → harder within a subject group |
 | `exercises` | list | non-empty; unique exercise `id`s |
 
 `subject` is a **closed enum** so its label can be translated (invariant #5); it
