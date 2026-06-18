@@ -4,7 +4,7 @@
 branch: validator + bundle format, discovery/persistence/kid API, the kid
 "Ασκήσεις" tab with **all five exercise types playable** (M4), and the admin
 rescan + kid-Stats surfacing (M5). M6's dev-machine generation skill is scaffolded
-(`tools/exercise-gen/`); its acceptance test (one bundle from real school
+(`exercise_lab/tools/exercise-gen/`); its acceptance test (one bundle from real school
 material) and M7 rollout remain. Not yet merged to `main`. The normative bundle
 format now lives in [docs/EXERCISE_FORMAT.md](../docs/EXERCISE_FORMAT.md) (the
 Pydantic models in `backend/app/schemas/exercises.py` are its source of truth).
@@ -286,8 +286,10 @@ errors) pass, and gets a semver tag on merge to `main` (per workflow memory).
 - Optional: exercises in the Stats tab (per-kid solved counts) — stretch, can slip.
 
 ### M6 — Generation agent (dev-machine tooling, not shipped in the container)
-- `tools/exercise-gen/`: a Claude Code project skill + prompt templates that take
-  school material (photos/PDFs) + target kid/age and emit a bundle directory.
+- `exercise_lab/`: the dev-machine lab for all agentic exercise generation — the
+  Claude Code project skill + prompt templates under `exercise_lab/tools/exercise-gen/`,
+  plus the source textbook PDFs under `exercise_lab/books/` (git-ignored). Takes
+  school material (photos/PDFs) + target kid/age and emits a bundle directory.
 - The skill's contract: read `EXERCISE_FORMAT.md`, generate `manifest.json` + assets,
   then **run the M1 validator** (`python -m app.schemas.exercises <dir>` entry point)
   and iterate until clean.

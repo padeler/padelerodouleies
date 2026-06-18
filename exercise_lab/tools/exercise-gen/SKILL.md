@@ -13,12 +13,13 @@ content (PLAN.md §1).
 
 ## Contract (do these in order)
 
-1. **Read the normative spec** [`docs/EXERCISE_FORMAT.md`](../../docs/EXERCISE_FORMAT.md).
+1. **Read the normative spec** [`docs/EXERCISE_FORMAT.md`](../../../docs/EXERCISE_FORMAT.md).
    The Pydantic models in `backend/app/schemas/exercises.py` are its source of
    truth — when in doubt, the models win.
 2. **Collect inputs** from the user:
    - source material: image/PDF/text file paths (photos of the actual worksheet,
-     scans, or typed notes),
+     scans, or typed notes) — the school textbook PDFs live under
+     `exercise_lab/books/` (git-ignored),
    - **target kid age** (drives `age_min`/`age_max`),
    - **subject** — one of the closed enum: `language`, `math`, `geography`,
      `history`, `logic`, `nature`.
