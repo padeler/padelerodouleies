@@ -7,6 +7,7 @@
   "age_min": 6,
   "age_max": 9,
   "stars": 5,
+  "difficulty": 2,
   "exercises": [
     {
       "id": "ex-01",

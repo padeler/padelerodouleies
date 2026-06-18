@@ -668,6 +668,7 @@ def get_exercise_stats(
             "age_min": b.manifest.age_min,
             "age_max": b.manifest.age_max,
             "stars": b.manifest.stars,
+            "difficulty": b.manifest.difficulty,
             "exercise_count": len(b.manifest.exercises),
         }
         for b in discovery.valid

@@ -339,6 +339,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "exercises.admin.invalid_heading": {"el": "Μη έγκυρα πακέτα", "en": "Invalid bundles"},
     "exercises.admin.col_age": {"el": "Ηλικία", "en": "Age"},
     "exercises.admin.col_stars": {"el": "Αστέρια", "en": "Stars"},
+    "exercises.admin.col_difficulty": {"el": "Δυσκολία", "en": "Difficulty"},
     "exercises.admin.col_count": {"el": "Ασκήσεις", "en": "Exercises"},
     "exercises.admin.age_range": {"el": "{min}–{max} ετών", "en": "Ages {min}–{max}"},
     "exercises.admin.kid_stats_heading": {"el": "Πρόοδος παιδιών", "en": "Kids' progress"},

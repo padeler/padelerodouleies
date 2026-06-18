@@ -13,6 +13,7 @@ export function AdminExercisesPage() {
   }
 
   const { bundles, invalid, kid_stats } = data;
+  const sortedBundles = bundles.slice().sort((a, b) => a.difficulty - b.difficulty);
 
   return (
     <div className="exercises-hub">
@@ -27,18 +28,20 @@ export function AdminExercisesPage() {
             <tr>
               <th>{t('exercises.title')}</th>
               <th>{t('exercises.admin.col_age')}</th>
+              <th>{t('exercises.admin.col_difficulty')}</th>
               <th>{t('exercises.admin.col_stars')}</th>
               <th>{t('exercises.admin.col_count')}</th>
             </tr>
           </thead>
           <tbody>
-            {bundles.map((b) => (
+            {sortedBundles.map((b) => (
               <tr key={b.id}>
                 <td>
                   <span style={{ marginRight: 6 }}>{t(`exercises.subject.${b.subject}`)}</span>
                   {b.title}
                 </td>
                 <td>{t('exercises.admin.age_range', { min: String(b.age_min), max: String(b.age_max) })}</td>
+                <td>{b.difficulty}/5</td>
                 <td>{b.stars}</td>
                 <td>{b.exercise_count}</td>
               </tr>

@@ -182,6 +182,7 @@ class BundleManifest(_Strict):
     age_min: int = Field(ge=0, le=120)
     age_max: int = Field(ge=0, le=120)
     stars: int = Field(ge=0)
+    difficulty: int = Field(ge=1, le=5)
     exercises: list[Exercise] = Field(min_length=1)
 
     def model_post_init(self, _ctx: Any) -> None:

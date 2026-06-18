@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "arxaia-ellada",
+  "version": 1,
+  "title": "Αρχαία Ελλάδα",
+  "subject": "history",
+  "age_min": 9,
+  "age_max": 13,
+  "stars": 5,
+  "difficulty": 4,
+  "exercises": [
+    {
+      "id": "ex-01",
+      "type": "multiple_choice",
+      "prompt": "Πού γεννήθηκαν οι Ολυμπιακοί Αγώνες;",
+      "options": [
+        {
+          "id": "a",
+          "text": "Αθήνα"
+        },
+        {
+          "id": "b",
+          "text": "Σπάρτη"
+        },
+        {
+          "id": "c",
+          "text": "Ολυμπία"
+        }
+      ],
+      "answer": "c"
+    },
+    {
+      "id": "ex-02",
+      "type": "numeric_entry",
+      "prompt": "Κάθε πόσα χρόνια γίνονταν οι αρχαίοι Ολυμπιακοί Αγώνες;",
+      "prompt_tts": "Κάθε πόσα χρόνια γίνονταν οι αρχαίοι Ολυμπιακοί Αγώνες;",
+      "answer": 4
+    },
+    {
+      "id": "ex-03",
+      "type": "multiple_choice",
+      "prompt": "Ποια πόλη ήταν γνωστή για τους πολεμιστές της;",
+      "options": [
+        {
+          "id": "a",
+          "text": "Αθήνα"
+        },
+        {
+          "id": "b",
+          "text": "Κόρινθος"
+        },
+        {
+          "id": "c",
+          "text": "Σπάρτη"
+        }
+      ],
+      "answer": "c",
+      "hint": "Οι πολεμιστές της ήταν οι πιο γενναίοι."
+    },
+    {
+      "id": "ex-04",
+      "type": "multiple_choice",
+      "prompt": "Τι ήταν ο Παρθενώνας;",
+      "options": [
+        {
+          "id": "a",
+          "text": "Παλάτι"
+        },
+        {
+          "id": "b",
+          "text": "Ναός"
+        },
+        {
+          "id": "c",
+          "text": "Θέατρο"
+        }
+      ],
+      "answer": "b",
+      "hint": "Βρίσκεται στην Ακρόπολη των Αθηνών."
+    },
+    {
+      "id": "ex-05",
+      "type": "multiple_choice",
+      "prompt": "Ποιος ήταν ο Αχιλλέας;",
+      "options": [
+        {
+          "id": "a",
+          "text": "Θεός"
+        },
+        {
+          "id": "b",
+          "text": "Ήρωας"
+        },
+        {
+          "id": "c",
+          "text": "Βασιλιάς"
+        }
+      ],
+      "answer": "b",
+      "hint": "Πολέμησε στην Τροία."
+    }
+  ]
+}

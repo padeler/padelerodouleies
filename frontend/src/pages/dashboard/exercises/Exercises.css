@@ -91,6 +91,26 @@
   color: var(--text-h);
 }
 
+.exercise-difficulty {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.difficulty-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-border);
+  margin: 0 2px;
+}
+
+.difficulty-dot.filled {
+  background: var(--accent);
+}
+
 .exercise-bundle-card.done {
   border-color: #6bcb77;
 }

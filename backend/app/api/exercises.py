@@ -69,6 +69,7 @@ def list_bundles(
             "age_min": m.age_min,
             "age_max": m.age_max,
             "stars": m.stars,
+            "difficulty": m.difficulty,
             "exercise_count": len(m.exercises),
             "completed": (m.id, m.version) in completed,
         })

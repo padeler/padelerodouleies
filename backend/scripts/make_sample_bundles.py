@@ -104,6 +104,7 @@ BUNDLES: list[dict[str, Any]] = [
         "age_min": 4,
         "age_max": 6,
         "stars": 3,
+        "difficulty": 1,
         "exercises": [
             {
                 "id": "ex-01",
@@ -152,6 +153,7 @@ BUNDLES: list[dict[str, Any]] = [
         "age_min": 6,
         "age_max": 9,
         "stars": 5,
+        "difficulty": 2,
         "exercises": [
             {
                 "id": "ex-01",
@@ -197,6 +199,7 @@ BUNDLES: list[dict[str, Any]] = [
         "age_min": 5,
         "age_max": 8,
         "stars": 4,
+        "difficulty": 2,
         "exercises": [
             {
                 "id": "ex-01",
@@ -244,6 +247,7 @@ BUNDLES: list[dict[str, Any]] = [
         "age_min": 4,
         "age_max": 7,
         "stars": 3,
+        "difficulty": 1,
         "exercises": [
             {
                 "id": "ex-01",
@@ -281,6 +285,483 @@ BUNDLES: list[dict[str, Any]] = [
             },
         ],
     },
+    # --- NEW BUNDLES ---
+    {
+        "schema_version": 1,
+        "id": "syllaves-glwssa",
+        "version": 1,
+        "title": "Συλλαβές και λέξεις",
+        "subject": "language",
+        "age_min": 6,
+        "age_max": 9,
+        "stars": 4,
+        "difficulty": 2,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "numeric_entry",
+                "prompt": "Πόσες συλλαβές έχει η λέξη 'βιβλίο';",
+                "prompt_tts": "Πόσες συλλαβές έχει η λέξη βιβλίο;",
+                "answer": 3,
+                "hint": "Μέτρα τα φωνήεντα: ι, ί, ο.",
+            },
+            {
+                "id": "ex-02",
+                "type": "numeric_entry",
+                "prompt": "Πόσα γράμματα έχει η λέξη 'σπίτι';",
+                "prompt_tts": "Πόσα γράμματα έχει η λέξη σπίτι;",
+                "answer": 5,
+            },
+            {
+                "id": "ex-03",
+                "type": "multiple_choice",
+                "prompt": "Ποια λέξη έχει 3 συλλαβές;",
+                "options": [
+                    {"id": "a", "text": "σπίτι"},
+                    {"id": "b", "text": "άλογο"},
+                    {"id": "c", "text": "μήλο"},
+                ],
+                "answer": "b",
+                "hint": "ά-λο-γο.",
+            },
+            {
+                "id": "ex-04",
+                "type": "multiple_choice",
+                "prompt": "Ποια λέξη αρχίζει από φωνήεν;",
+                "options": [
+                    {"id": "a", "text": "σπίτι"},
+                    {"id": "b", "text": "αστέρι"},
+                    {"id": "c", "text": "βουνό"},
+                ],
+                "answer": "b",
+                "hint": "Τα φωνήεντα είναι: α, ε, η, ι, ο, υ, ω.",
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "pollaplasiasmvos",
+        "version": 1,
+        "title": "Πολλαπλασιασμός",
+        "subject": "math",
+        "age_min": 8,
+        "age_max": 11,
+        "stars": 5,
+        "difficulty": 4,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "numeric_entry",
+                "prompt": "2 × 3 = ?",
+                "prompt_tts": "δύο επί τρία",
+                "answer": 6,
+                "hint": "Δύο φορές τρία.",
+            },
+            {
+                "id": "ex-02",
+                "type": "numeric_entry",
+                "prompt": "5 × 4 = ?",
+                "prompt_tts": "πέντε επί τέσσερα",
+                "answer": 20,
+            },
+            {
+                "id": "ex-03",
+                "type": "multiple_choice",
+                "prompt": "Πόσο κάνει 3 × 3;",
+                "options": [
+                    {"id": "a", "text": "6"},
+                    {"id": "b", "text": "9"},
+                    {"id": "c", "text": "12"},
+                ],
+                "answer": "b",
+            },
+            {
+                "id": "ex-04",
+                "type": "numeric_entry",
+                "prompt": "7 × 2 = ?",
+                "prompt_tts": "εφτά επί δύο",
+                "answer": 14,
+            },
+            {
+                "id": "ex-05",
+                "type": "multiple_choice",
+                "prompt": "Ποιο από αυτά είναι πολλαπλάσιο του 5;",
+                "options": [
+                    {"id": "a", "text": "12"},
+                    {"id": "b", "text": "15"},
+                    {"id": "c", "text": "22"},
+                ],
+                "answer": "b",
+                "hint": "5, 10, 15, 20...",
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "epoces-fysis",
+        "version": 1,
+        "title": "Εποχές",
+        "subject": "nature",
+        "age_min": 5,
+        "age_max": 8,
+        "stars": 3,
+        "difficulty": 1,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "multiple_choice",
+                "prompt": "Πότε χιονίζει;",
+                "options": [
+                    {"id": "a", "text": "Άνοιξη"},
+                    {"id": "b", "text": "Καλοκαίρι"},
+                    {"id": "c", "text": "Χειμώνας"},
+                ],
+                "answer": "c",
+            },
+            {
+                "id": "ex-02",
+                "type": "multiple_choice",
+                "prompt": "Ποια εποχή ανθίζουν τα λουλούδια;",
+                "options": [
+                    {"id": "a", "text": "Φθινόπωρο"},
+                    {"id": "b", "text": "Άνοιξη"},
+                    {"id": "c", "text": "Χειμώνας"},
+                ],
+                "answer": "b",
+                "hint": "Τα δέντρα γίνονται πράσινα.",
+            },
+            {
+                "id": "ex-03",
+                "type": "numeric_entry",
+                "prompt": "Πόσες εποχές έχει ο χρόνος;",
+                "prompt_tts": "Πόσες εποχές έχει ο χρόνος;",
+                "answer": 4,
+            },
+            {
+                "id": "ex-04",
+                "type": "multiple_choice",
+                "prompt": "Τι κάνουν τα δέντρα το φθινόπωρο;",
+                "options": [
+                    {"id": "a", "text": "ανθίζουν"},
+                    {"id": "b", "text": "χάνουν τα φύλλα"},
+                    {"id": "c", "text": "καρπίζουν"},
+                ],
+                "answer": "b",
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "arithmitika-motiva",
+        "version": 1,
+        "title": "Αριθμητικά μοτίβα",
+        "subject": "logic",
+        "age_min": 7,
+        "age_max": 10,
+        "stars": 4,
+        "difficulty": 3,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "numeric_entry",
+                "prompt": "Τι ακολουθεί; 10, 20, 30, ?",
+                "prompt_tts": "Τι ακολουθεί; δέκα, είκοσι, τριάντα",
+                "answer": 40,
+                "hint": "Προσθέτουμε δέκα κάθε φορά.",
+            },
+            {
+                "id": "ex-02",
+                "type": "numeric_entry",
+                "prompt": "Τι ακολουθεί; 1, 3, 5, ?",
+                "prompt_tts": "Τι ακολουθεί; ένα, τρία, πέντε",
+                "answer": 7,
+                "hint": "Περιττοί αριθμοί.",
+            },
+            {
+                "id": "ex-03",
+                "type": "multiple_choice",
+                "prompt": "Ποιος αριθμός λείπει; 5, ?, 15, 20",
+                "prompt_tts": "Ποιος αριθμός λείπει; πέντε, ερωτηματικό, δεκαπέντε, είκοσι",
+                "options": [
+                    {"id": "a", "text": "8"},
+                    {"id": "b", "text": "10"},
+                    {"id": "c", "text": "12"},
+                ],
+                "answer": "b",
+                "hint": "Προσθέτουμε πέντε κάθε φορά.",
+            },
+            {
+                "id": "ex-04",
+                "type": "numeric_entry",
+                "prompt": "Τι ακολουθεί; 100, 90, 80, ?",
+                "prompt_tts": "Τι ακολουθεί; εκατό, ενενήντα, ογδόντα",
+                "answer": 70,
+                "hint": "Αφαιρούμε δέκα κάθε φορά.",
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "ellada-geografia",
+        "version": 1,
+        "title": "Η Ελλάδα μας",
+        "subject": "geography",
+        "age_min": 8,
+        "age_max": 12,
+        "stars": 4,
+        "difficulty": 3,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "multiple_choice",
+                "prompt": "Ποια είναι η πρωτεύουσα της Ελλάδας;",
+                "options": [
+                    {"id": "a", "text": "Θεσσαλονίκη"},
+                    {"id": "b", "text": "Αθήνα"},
+                    {"id": "c", "text": "Πάτρα"},
+                ],
+                "answer": "b",
+            },
+            {
+                "id": "ex-02",
+                "type": "multiple_choice",
+                "prompt": "Ποιο είναι το ψηλότερο βουνό της Ελλάδας;",
+                "options": [
+                    {"id": "a", "text": "Παρνασσός"},
+                    {"id": "b", "text": "Όλυμπος"},
+                    {"id": "c", "text": "Ταΰγετος"},
+                ],
+                "answer": "b",
+                "hint": "Εκεί έμεναν οι θεοί της αρχαίας Ελλάδας.",
+            },
+            {
+                "id": "ex-03",
+                "type": "multiple_choice",
+                "prompt": "Ποιο είναι το μεγαλύτερο νησί της Ελλάδας;",
+                "options": [
+                    {"id": "a", "text": "Ρόδος"},
+                    {"id": "b", "text": "Κέρκυρα"},
+                    {"id": "c", "text": "Κρήτη"},
+                ],
+                "answer": "c",
+            },
+            {
+                "id": "ex-04",
+                "type": "multiple_choice",
+                "prompt": "Σε ποια ήπειρο βρίσκεται η Ελλάδα;",
+                "options": [
+                    {"id": "a", "text": "Ασία"},
+                    {"id": "b", "text": "Αφρική"},
+                    {"id": "c", "text": "Ευρώπη"},
+                ],
+                "answer": "c",
+            },
+            {
+                "id": "ex-05",
+                "type": "numeric_entry",
+                "prompt": "Πόσες περιφέρειες έχει η Ελλάδα;",
+                "prompt_tts": "Πόσες περιφέρειες έχει η Ελλάδα;",
+                "answer": 13,
+                "hint": "Η Αττική είναι μία από αυτές.",
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "eyropi-geografia",
+        "version": 1,
+        "title": "Η Ευρώπη",
+        "subject": "geography",
+        "age_min": 9,
+        "age_max": 13,
+        "stars": 5,
+        "difficulty": 4,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "multiple_choice",
+                "prompt": "Ποια είναι η πρωτεύουσα της Γαλλίας;",
+                "options": [
+                    {"id": "a", "text": "Βερολίνο"},
+                    {"id": "b", "text": "Παρίσι"},
+                    {"id": "c", "text": "Μαδρίτη"},
+                ],
+                "answer": "b",
+            },
+            {
+                "id": "ex-02",
+                "type": "multiple_choice",
+                "prompt": "Ποια είναι η πρωτεύουσα της Γερμανίας;",
+                "options": [
+                    {"id": "a", "text": "Αμβούργο"},
+                    {"id": "b", "text": "Μόναχο"},
+                    {"id": "c", "text": "Βερολίνο"},
+                ],
+                "answer": "c",
+            },
+            {
+                "id": "ex-03",
+                "type": "multiple_choice",
+                "prompt": "Ποια χώρα είναι η μεγαλύτερη σε έκταση στην Ευρώπη;",
+                "options": [
+                    {"id": "a", "text": "Γαλλία"},
+                    {"id": "b", "text": "Ουκρανία"},
+                    {"id": "c", "text": "Ρωσία"},
+                ],
+                "answer": "c",
+                "hint": "Εκτείνεται και στην Ασία.",
+            },
+            {
+                "id": "ex-04",
+                "type": "numeric_entry",
+                "prompt": "Πόσα κράτη-μέλη έχει η Ευρωπαϊκή Ένωση;",
+                "prompt_tts": "Πόσα κράτη μέλη έχει η Ευρωπαϊκή Ένωση;",
+                "answer": 27,
+                "hint": "Η Ελλάδα είναι ένα από αυτά.",
+            },
+            {
+                "id": "ex-05",
+                "type": "multiple_choice",
+                "prompt": "Ποιο ποτάμι περνά από τις περισσότερες ευρωπαϊκές χώρες;",
+                "options": [
+                    {"id": "a", "text": "Σηκουάνας"},
+                    {"id": "b", "text": "Τάμεσης"},
+                    {"id": "c", "text": "Δούναβης"},
+                ],
+                "answer": "c",
+                "hint": "Περνά από δέκα χώρες.",
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "arxaia-ellada",
+        "version": 1,
+        "title": "Αρχαία Ελλάδα",
+        "subject": "history",
+        "age_min": 9,
+        "age_max": 13,
+        "stars": 5,
+        "difficulty": 4,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "multiple_choice",
+                "prompt": "Πού γεννήθηκαν οι Ολυμπιακοί Αγώνες;",
+                "options": [
+                    {"id": "a", "text": "Αθήνα"},
+                    {"id": "b", "text": "Σπάρτη"},
+                    {"id": "c", "text": "Ολυμπία"},
+                ],
+                "answer": "c",
+            },
+            {
+                "id": "ex-02",
+                "type": "numeric_entry",
+                "prompt": "Κάθε πόσα χρόνια γίνονταν οι αρχαίοι Ολυμπιακοί Αγώνες;",
+                "prompt_tts": "Κάθε πόσα χρόνια γίνονταν οι αρχαίοι Ολυμπιακοί Αγώνες;",
+                "answer": 4,
+            },
+            {
+                "id": "ex-03",
+                "type": "multiple_choice",
+                "prompt": "Ποια πόλη ήταν γνωστή για τους πολεμιστές της;",
+                "options": [
+                    {"id": "a", "text": "Αθήνα"},
+                    {"id": "b", "text": "Κόρινθος"},
+                    {"id": "c", "text": "Σπάρτη"},
+                ],
+                "answer": "c",
+                "hint": "Οι πολεμιστές της ήταν οι πιο γενναίοι.",
+            },
+            {
+                "id": "ex-04",
+                "type": "multiple_choice",
+                "prompt": "Τι ήταν ο Παρθενώνας;",
+                "options": [
+                    {"id": "a", "text": "Παλάτι"},
+                    {"id": "b", "text": "Ναός"},
+                    {"id": "c", "text": "Θέατρο"},
+                ],
+                "answer": "b",
+                "hint": "Βρίσκεται στην Ακρόπολη των Αθηνών.",
+            },
+            {
+                "id": "ex-05",
+                "type": "multiple_choice",
+                "prompt": "Ποιος ήταν ο Αχιλλέας;",
+                "options": [
+                    {"id": "a", "text": "Θεός"},
+                    {"id": "b", "text": "Ήρωας"},
+                    {"id": "c", "text": "Βασιλιάς"},
+                ],
+                "answer": "b",
+                "hint": "Πολέμησε στην Τροία.",
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "epanastasi-1821",
+        "version": 1,
+        "title": "Η Επανάσταση του 1821",
+        "subject": "history",
+        "age_min": 10,
+        "age_max": 14,
+        "stars": 5,
+        "difficulty": 5,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "numeric_entry",
+                "prompt": "Πότε άρχισε η Ελληνική Επανάσταση;",
+                "prompt_tts": "Πότε άρχισε η Ελληνική Επανάσταση;",
+                "answer": 1821,
+            },
+            {
+                "id": "ex-02",
+                "type": "multiple_choice",
+                "prompt": "Τι γιορτάζουμε στις 25 Μαρτίου;",
+                "options": [
+                    {"id": "a", "text": "Χριστούγεννα"},
+                    {"id": "b", "text": "Πρωτοχρονιά"},
+                    {"id": "c", "text": "Την Ελληνική Επανάσταση"},
+                ],
+                "answer": "c",
+            },
+            {
+                "id": "ex-03",
+                "type": "multiple_choice",
+                "prompt": "Ποιος ήταν ο Θεόδωρος Κολοκοτρώνης;",
+                "options": [
+                    {"id": "a", "text": "Ποιητής"},
+                    {"id": "b", "text": "Στρατηγός"},
+                    {"id": "c", "text": "Ναύαρχος"},
+                ],
+                "answer": "b",
+                "hint": "Πολέμησε για την ελευθερία της Ελλάδας.",
+            },
+            {
+                "id": "ex-04",
+                "type": "multiple_choice",
+                "prompt": "Ποιος ήταν ο πρώτος κυβερνήτης της Ελλάδας;",
+                "options": [
+                    {"id": "a", "text": "Αλέξανδρος Υψηλάντης"},
+                    {"id": "b", "text": "Ιωάννης Καποδίστριας"},
+                    {"id": "c", "text": "Δημήτριος Υψηλάντης"},
+                ],
+                "answer": "b",
+            },
+            {
+                "id": "ex-05",
+                "type": "numeric_entry",
+                "prompt": "Σε ποιον αιώνα ξεκίνησε η Ελληνική Επανάσταση;",
+                "prompt_tts": "Σε ποιον αιώνα ξεκίνησε η Ελληνική Επανάσταση;",
+                "answer": 19,
+                "hint": "Το 1821 ανήκει στον...",
+            },
+        ],
+    },
 ]
 
 
@@ -294,9 +775,12 @@ def _images_needed(manifest: dict[str, Any]) -> set[str]:
 
 
 def main() -> None:
+    # Remove only bundle dirs (named *-v<N>), preserving README.md and other files.
     if OUT_ROOT.exists():
-        shutil.rmtree(OUT_ROOT)
-    OUT_ROOT.mkdir(parents=True)
+        for child in OUT_ROOT.iterdir():
+            if child.is_dir():
+                shutil.rmtree(child)
+    OUT_ROOT.mkdir(parents=True, exist_ok=True)
 
     for manifest in BUNDLES:
         bundle_dir = OUT_ROOT / f"{manifest['id']}-v{manifest['version']}"

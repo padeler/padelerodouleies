@@ -173,6 +173,7 @@ export interface ExerciseBundleSummary {
   age_min: number;
   age_max: number;
   stars: number;
+  difficulty: number;
   exercise_count: number;
   completed: boolean;
 }
@@ -223,6 +224,7 @@ export interface AdminExerciseBundleSummary {
   age_min: number;
   age_max: number;
   stars: number;
+  difficulty: number;
   exercise_count: number;
 }
 

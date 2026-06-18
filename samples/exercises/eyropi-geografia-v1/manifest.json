@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "eyropi-geografia",
+  "version": 1,
+  "title": "Η Ευρώπη",
+  "subject": "geography",
+  "age_min": 9,
+  "age_max": 13,
+  "stars": 5,
+  "difficulty": 4,
+  "exercises": [
+    {
+      "id": "ex-01",
+      "type": "multiple_choice",
+      "prompt": "Ποια είναι η πρωτεύουσα της Γαλλίας;",
+      "options": [
+        {
+          "id": "a",
+          "text": "Βερολίνο"
+        },
+        {
+          "id": "b",
+          "text": "Παρίσι"
+        },
+        {
+          "id": "c",
+          "text": "Μαδρίτη"
+        }
+      ],
+      "answer": "b"
+    },
+    {
+      "id": "ex-02",
+      "type": "multiple_choice",
+      "prompt": "Ποια είναι η πρωτεύουσα της Γερμανίας;",
+      "options": [
+        {
+          "id": "a",
+          "text": "Αμβούργο"
+        },
+        {
+          "id": "b",
+          "text": "Μόναχο"
+        },
+        {
+          "id": "c",
+          "text": "Βερολίνο"
+        }
+      ],
+      "answer": "c"
+    },
+    {
+      "id": "ex-03",
+      "type": "multiple_choice",
+      "prompt": "Ποια χώρα είναι η μεγαλύτερη σε έκταση στην Ευρώπη;",
+      "options": [
+        {
+          "id": "a",
+          "text": "Γαλλία"
+        },
+        {
+          "id": "b",
+          "text": "Ουκρανία"
+        },
+        {
+          "id": "c",
+          "text": "Ρωσία"
+        }
+      ],
+      "answer": "c",
+      "hint": "Εκτείνεται και στην Ασία."
+    },
+    {
+      "id": "ex-04",
+      "type": "numeric_entry",
+      "prompt": "Πόσα κράτη-μέλη έχει η Ευρωπαϊκή Ένωση;",
+      "prompt_tts": "Πόσα κράτη μέλη έχει η Ευρωπαϊκή Ένωση;",
+      "answer": 27,
+      "hint": "Η Ελλάδα είναι ένα από αυτά."
+    },
+    {
+      "id": "ex-05",
+      "type": "multiple_choice",
+      "prompt": "Ποιο ποτάμι περνά από τις περισσότερες ευρωπαϊκές χώρες;",
+      "options": [
+        {
+          "id": "a",
+          "text": "Σηκουάνας"
+        },
+        {
+          "id": "b",
+          "text": "Τάμεσης"
+        },
+        {
+          "id": "c",
+          "text": "Δούναβης"
+        }
+      ],
+      "answer": "c",
+      "hint": "Περνά από δέκα χώρες."
+    }
+  ]
+}

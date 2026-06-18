@@ -5,13 +5,26 @@ import { useExerciseBundles } from './useExercises';
 import type { ExerciseSubject } from '../../../lib/types';
 import './Exercises.css';
 
-/** Bundles within one subject group. */
+function DifficultyDots({ value }: { value: number }) {
+  return (
+    <span className="exercise-difficulty">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className={`difficulty-dot${i <= value ? ' filled' : ''}`} />
+      ))}
+    </span>
+  );
+}
+
+/** Bundles within one subject group, sorted easier → harder. */
 export function BundleList() {
   const t = useT();
   const { subject } = useParams<{ subject: string }>();
   const { data: bundles, isLoading } = useExerciseBundles();
 
-  const inGroup = (bundles ?? []).filter((b) => b.subject === subject);
+  const inGroup = (bundles ?? [])
+    .filter((b) => b.subject === subject)
+    .slice()
+    .sort((a, b) => a.difficulty - b.difficulty);
 
   return (
     <div className="exercises-hub">
@@ -37,6 +50,7 @@ export function BundleList() {
               <span className="exercise-bundle-meta">
                 {t('exercises.exercise_count', { count: String(b.exercise_count) })}
               </span>
+              <DifficultyDots value={b.difficulty} />
               <span className="exercise-bundle-stars">⭐ {b.stars}</span>
             </Link>
           ))}
