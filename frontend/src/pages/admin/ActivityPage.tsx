@@ -14,6 +14,7 @@ const actionTypes = [
   { value: 'manual_adjust', key: 'history.action_label_manual' },
   { value: 'reward_purchase', key: 'history.action_label_purchase' },
   { value: 'reward_refund', key: 'history.action_label_refund' },
+  { value: 'exercise_complete', key: 'history.action_label_exercise' },
 ];
 
 function UserAvatar({ kind, value, name }: { kind: 'icon' | 'image'; value: string; name: string }) {

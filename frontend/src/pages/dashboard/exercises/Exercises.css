@@ -149,6 +149,7 @@
 }
 
 .exercise-prompt {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,6 +187,10 @@
 
 .mc-options.mc-count-3 {
   grid-template-columns: repeat(3, 1fr);
+}
+
+.mc-options.mc-count-4 {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .mc-option {
@@ -306,6 +311,7 @@
 }
 
 .exercise-hint {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,6 +331,17 @@
 .exercise-hint-text {
   color: var(--text);
   margin-right: 8px;
+}
+
+/* -- Unsupported exercise type -- */
+
+.exercise-unsupported {
+  text-align: center;
+  padding: 24px;
+  color: var(--text);
+  font-size: 16px;
+  border: 2px dashed var(--accent-border);
+  border-radius: 12px;
 }
 
 /* -- Finish screen -- */

@@ -20,7 +20,7 @@ from app.realtime import broadcaster
 from app.schemas.exercises import kid_view
 from app.security.session import get_current_user
 from app.services import tts
-from app.services.exercise_bundles import ASSETS_DIRNAME, discover, get_bundle
+from app.services.exercise_bundles import ASSETS_DIRNAME, DiscoveredBundle
 from app.services.exercises import (
     ResponseError,
     completed_bundle_keys,
@@ -31,6 +31,15 @@ from app.services.exercises import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/exercises", tags=["exercises"])
+
+
+def _get_visible_bundle(bundle_id: str, user: User) -> DiscoveredBundle:
+    """Return the bundle only if it exists and is age-appropriate for the user; 404 otherwise."""
+    visible = {b.manifest.id: b for b in visible_bundles(user)}
+    bundle = visible.get(bundle_id)
+    if bundle is None:
+        raise HTTPException(404, f"Bundle not found: {bundle_id}")
+    return bundle
 
 
 class AnswerSubmission(BaseModel):
@@ -72,9 +81,7 @@ def get_bundle_manifest(
     current_user: User = Depends(get_current_user),
 ) -> dict[str, Any]:
     """The kid-view manifest (no answers, no TTS text) for one bundle."""
-    bundle = get_bundle(bundle_id)
-    if bundle is None:
-        raise HTTPException(404, f"Bundle not found: {bundle_id}")
+    bundle = _get_visible_bundle(bundle_id, current_user)
     return kid_view(bundle.manifest)
 
 
@@ -85,9 +92,7 @@ def get_asset(
     current_user: User = Depends(get_current_user),
 ) -> FileResponse:
     """Serve a bundle image asset, guarded against path traversal."""
-    bundle = get_bundle(bundle_id)
-    if bundle is None:
-        raise HTTPException(404, f"Bundle not found: {bundle_id}")
+    bundle = _get_visible_bundle(bundle_id, current_user)
     assets_dir = (bundle.dir / ASSETS_DIRNAME).resolve()
     target = (assets_dir / path).resolve()
     if assets_dir not in target.parents or not target.is_file():
@@ -105,9 +110,7 @@ def get_exercise_tts(
     """Spoken prompt or hint for one exercise, synthesized + cached server-side."""
     if kind not in ("prompt", "hint"):
         raise HTTPException(404, f"Unknown TTS kind: {kind}")
-    bundle = get_bundle(bundle_id)
-    if bundle is None:
-        raise HTTPException(404, f"Bundle not found: {bundle_id}")
+    bundle = _get_visible_bundle(bundle_id, current_user)
     exercise = next((e for e in bundle.manifest.exercises if e.id == exercise_id), None)
     if exercise is None:
         raise HTTPException(404, f"Exercise not found: {exercise_id}")
@@ -140,9 +143,7 @@ async def post_answer(
     db: Session = Depends(get_session),
 ) -> dict[str, Any]:
     """Grade one answer; award stars + broadcast on first bundle completion."""
-    bundle = get_bundle(bundle_id)
-    if bundle is None:
-        raise HTTPException(404, f"Bundle not found: {bundle_id}")
+    bundle = _get_visible_bundle(bundle_id, current_user)
     try:
         result = submit_answer(db, current_user, bundle, payload.exercise_id, payload.response)
     except KeyError as exc:

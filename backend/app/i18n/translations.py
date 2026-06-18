@@ -119,6 +119,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "history.action_declined": {"el": "Απορρίφθηκε από Γονέα: {reason}", "en": "Declined by Parent: {reason}"},
     "history.action_manual": {"el": "Χειροκίνητη ρύθμιση: {reason}", "en": "Manual adjustment: {reason}"},
     "history.action_purchase": {"el": "Αγόρασε: {title}", "en": "Purchased: {title}"},
+    "history.action_exercise": {"el": "Ολοκλήρωσε ασκήσεις!", "en": "Completed exercises!"},
     "history.empty": {"el": "Δεν υπάρχει ιστορικό ακόμα", "en": "No history yet"},
     # Admin
     "admin.approve": {"el": "Έγκριση", "en": "Approve"},
@@ -187,6 +188,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "history.action_label_manual": {"el": "Χειροκίνητη ρύθμιση αστέρων", "en": "Manual star adjustment"},
     "history.action_label_purchase": {"el": "Αγορά βραβείου", "en": "Reward purchase"},
     "history.action_label_refund": {"el": "Επιστροφή βραβείου", "en": "Reward refund"},
+    "history.action_label_exercise": {"el": "Ολοκλήρωση άσκησης", "en": "Completed exercises"},
     # Chore/Reward form labels
     "chore.title_placeholder": {"el": "Τίτλος", "en": "Title"},
     "chore.description_placeholder": {"el": "Περιγραφή (προαιρετικό)", "en": "Description (optional)"},
@@ -328,6 +330,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "exercises.subject.history": {"el": "Ιστορία", "en": "History"},
     "exercises.subject.logic": {"el": "Λογική", "en": "Logic"},
     "exercises.subject.nature": {"el": "Φύση", "en": "Nature"},
+    "exercises.unsupported_type": {"el": "Αυτός ο τύπος άσκησης δεν είναι διαθέσιμος ακόμα.", "en": "This exercise type is not available yet."},
 }
 
 

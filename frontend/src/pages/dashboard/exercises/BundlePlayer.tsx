@@ -119,13 +119,17 @@ export function BundlePlayer() {
           resetSignal={resetSignal}
           onAnswer={handleAnswer}
         />
-      ) : (
+      ) : exercise.type === 'multiple_choice' ? (
         <MultipleChoicePlayer
           bundleId={bundleId}
           exercise={exercise}
           disabled={submit.isPending || feedback === 'correct'}
           onAnswer={handleAnswer}
         />
+      ) : (
+        <div className="exercise-unsupported">
+          {t('exercises.unsupported_type')}
+        </div>
       )}
 
       {feedback !== 'none' && (

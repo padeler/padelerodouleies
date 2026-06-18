@@ -18,6 +18,7 @@ function getActionLabel(entry: KidHistoryEntry, t: (key: string, params?: Record
   if (entry.action_type === 'chore_declined') return t('history.action_declined', { reason: entry.admin_note ?? '' });
   if (entry.action_type === 'manual_adjust') return t('history.action_manual', { reason: entry.admin_note ?? '' });
   if (entry.action_type === 'reward_purchase') return t('history.action_purchase', { title: entry.item_title ?? entry.chore_title ?? '' });
+  if (entry.action_type === 'exercise_complete') return t('history.action_exercise');
   return entry.action_type;
 }
 
