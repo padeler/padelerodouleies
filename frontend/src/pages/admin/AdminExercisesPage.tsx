@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Play, RefreshCw } from 'lucide-react';
 import { getAdminExerciseStats, rescanExercises } from '../../api/client';
 import { useT } from '../../i18n/store';
+import { notifyError, notifyInfo, notifySuccess } from '../../lib/notify';
 import { Avatar } from '../../components/Avatar';
 import './AdminPage.css';
 
@@ -11,7 +13,14 @@ export function AdminExercisesPage() {
   const { data, isLoading } = useQuery({ queryKey: ['admin-exercise-stats'], queryFn: getAdminExerciseStats });
   const rescan = useMutation({
     mutationFn: rescanExercises,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-exercise-stats'] }),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-exercise-stats'] });
+      notifySuccess(t('exercises.admin.rescan_done', { valid: String(result.valid) }));
+      if (result.invalid > 0) {
+        notifyInfo(t('exercises.admin.rescan_invalid', { invalid: String(result.invalid) }));
+      }
+    },
+    onError: () => notifyError(t('exercises.admin.rescan_failed')),
   });
 
   if (isLoading || !data) {
@@ -49,6 +58,7 @@ export function AdminExercisesPage() {
               <th>{t('exercises.admin.col_difficulty')}</th>
               <th>{t('exercises.admin.col_stars')}</th>
               <th>{t('exercises.admin.col_count')}</th>
+              <th>{t('exercises.admin.col_preview')}</th>
             </tr>
           </thead>
           <tbody>
@@ -62,6 +72,12 @@ export function AdminExercisesPage() {
                 <td>{b.difficulty}/5</td>
                 <td>{b.stars}</td>
                 <td>{b.exercise_count}</td>
+                <td>
+                  <Link to={b.id} className="admin-btn" style={{ textDecoration: 'none' }} aria-label={t('exercises.admin.preview')}>
+                    <Play size={16} aria-hidden="true" />
+                    {t('exercises.admin.preview')}
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -14,6 +14,7 @@ import { StarCatcher } from './dashboard/games/StarCatcher';
 import { Snake } from './dashboard/games/Snake';
 import { WhackAMole } from './dashboard/games/WhackAMole';
 import { AdminExercisesPage } from './admin/AdminExercisesPage';
+import { BundlePlayer } from './dashboard/exercises/BundlePlayer';
 
 export function AdminPanel() {
   return (
@@ -34,6 +35,7 @@ export function AdminPanel() {
         <Route path="games/snake" element={<Snake />} />
         <Route path="games/whack" element={<WhackAMole />} />
         <Route path="exercises" element={<AdminExercisesPage />} />
+        <Route path="exercises/:bundleId" element={<BundlePlayer />} />
       </Route>
     </Routes>
   );

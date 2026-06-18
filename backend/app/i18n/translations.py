@@ -337,6 +337,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # Admin exercises stats
     "exercises.admin.title": {"el": "Ασκήσεις — Στατιστικά", "en": "Exercises — Statistics"},
     "exercises.admin.rescan": {"el": "Επανασάρωση", "en": "Rescan"},
+    "exercises.admin.rescan_done": {"el": "Επανασάρωση ασκήσεων — φορτώθηκαν {valid} πακέτα", "en": "Exercises rescanned — loaded {valid} bundles"},
+    "exercises.admin.rescan_invalid": {"el": "Παραλείφθηκαν {invalid} μη έγκυρα πακέτα", "en": "Skipped {invalid} invalid bundles"},
+    "exercises.admin.rescan_failed": {"el": "Η επανασάρωση απέτυχε", "en": "Rescan failed"},
     "exercises.admin.bundles_heading": {"el": "Διαθέσιμα πακέτα", "en": "Available bundles"},
     "exercises.admin.no_bundles": {"el": "Δεν βρέθηκαν πακέτα ασκήσεων.", "en": "No exercise bundles found."},
     "exercises.admin.invalid_heading": {"el": "Μη έγκυρα πακέτα", "en": "Invalid bundles"},
@@ -344,6 +347,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "exercises.admin.col_stars": {"el": "Αστέρια", "en": "Stars"},
     "exercises.admin.col_difficulty": {"el": "Δυσκολία", "en": "Difficulty"},
     "exercises.admin.col_count": {"el": "Ασκήσεις", "en": "Exercises"},
+    "exercises.admin.col_preview": {"el": "Δοκιμή", "en": "Preview"},
+    "exercises.admin.preview": {"el": "Δοκιμή", "en": "Play"},
     "exercises.admin.age_range": {"el": "{min}–{max} ετών", "en": "Ages {min}–{max}"},
     "exercises.admin.kid_stats_heading": {"el": "Πρόοδος παιδιών", "en": "Kids' progress"},
     "exercises.admin.col_completed": {"el": "Ολοκλ.", "en": "Done"},

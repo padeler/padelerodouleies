@@ -20,10 +20,11 @@ from app.realtime import broadcaster
 from app.schemas.exercises import kid_view
 from app.security.session import get_current_user
 from app.services import tts
-from app.services.exercise_bundles import ASSETS_DIRNAME, DiscoveredBundle
+from app.services.exercise_bundles import ASSETS_DIRNAME, DiscoveredBundle, get_bundle
 from app.services.exercises import (
     ResponseError,
     completed_bundle_keys,
+    grade,
     submit_answer,
     visible_bundles,
 )
@@ -34,7 +35,17 @@ router = APIRouter(prefix="/api/exercises", tags=["exercises"])
 
 
 def _get_visible_bundle(bundle_id: str, user: User) -> DiscoveredBundle:
-    """Return the bundle only if it exists and is age-appropriate for the user; 404 otherwise."""
+    """Return the bundle only if the user may see it; 404 otherwise.
+
+    Kids are age-gated (birthdate-derived). Admins are the content managers, so
+    they may preview *any* valid bundle for verification (not age-gated) — this
+    powers the admin "play" button on the Exercises tab.
+    """
+    if user.role == "admin":
+        bundle = get_bundle(bundle_id)
+        if bundle is None:
+            raise HTTPException(404, f"Bundle not found: {bundle_id}")
+        return bundle
     visible = {b.manifest.id: b for b in visible_bundles(user)}
     bundle = visible.get(bundle_id)
     if bundle is None:
@@ -176,6 +187,26 @@ async def post_answer(
 ) -> dict[str, Any]:
     """Grade one answer; award stars + broadcast on first bundle completion."""
     bundle = _get_visible_bundle(bundle_id, current_user)
+
+    # Admin preview: grade only — never record an attempt or award stars. The
+    # response mirrors the kid shape so the shared player works unchanged.
+    if current_user.role == "admin":
+        exercise = next(
+            (e for e in bundle.manifest.exercises if e.id == payload.exercise_id), None
+        )
+        if exercise is None:
+            raise HTTPException(404, f"Exercise not found: {payload.exercise_id}")
+        try:
+            correct = grade(exercise, payload.response)
+        except ResponseError as exc:
+            raise HTTPException(400, str(exc)) from exc
+        return {
+            "correct": correct,
+            "completed": False,
+            "stars_awarded": 0,
+            "current_stars": current_user.current_stars,
+        }
+
     try:
         result = submit_answer(db, current_user, bundle, payload.exercise_id, payload.response)
     except KeyError as exc:

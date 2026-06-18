@@ -491,3 +491,40 @@ async def test_api_tts_unavailable_returns_503(exercises_dir, monkeypatch) -> No
         assert bad_kind.status_code == 404
     finally:
         await client.aclose()
+
+
+async def test_admin_preview_bypasses_age_gate_and_never_awards(exercises_dir) -> None:
+    """An admin can play any bundle (no age gate); grading records nothing and awards no stars."""
+    # A kid aged ~5 cannot even see math-times (ages 7-9) — the admin can.
+    kid_client, _ = await _login_kid(date(2021, 1, 1))
+    try:
+        assert (await kid_client.get("/api/exercises/bundles/math-times")).status_code == 404
+    finally:
+        await kid_client.aclose()
+
+    admin_client, admin_id = await _login_admin()
+    try:
+        manifest = await admin_client.get("/api/exercises/bundles/math-times")
+        assert manifest.status_code == 200
+        assert "answer" not in json.dumps(manifest.json())  # still the kid view
+
+        # Wrong then right — both graded, neither recorded.
+        wrong = await admin_client.post("/api/exercises/bundles/math-times/answers",
+                                        json={"exercise_id": "ex-01", "response": 99})
+        assert wrong.json()["correct"] is False
+        for ex_id, ans in (("ex-01", 10), ("ex-02", 25)):
+            body = (await admin_client.post("/api/exercises/bundles/math-times/answers",
+                                            json={"exercise_id": ex_id, "response": ans})).json()
+            assert body["correct"] is True
+            assert body["completed"] is False and body["stars_awarded"] == 0
+    finally:
+        await admin_client.aclose()
+
+    # No attempts/completions written, admin balance untouched.
+    db = LocalSession()
+    try:
+        assert db.query(ExerciseAttempt).filter(ExerciseAttempt.user_id == admin_id).count() == 0
+        assert db.query(ExerciseCompletion).filter(ExerciseCompletion.user_id == admin_id).count() == 0
+        assert db.get(User, admin_id).current_stars == 0
+    finally:
+        db.close()
