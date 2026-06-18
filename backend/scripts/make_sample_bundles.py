@@ -1,14 +1,15 @@
 """Generate ready-to-deploy sample exercise bundles.
 
-Writes a handful of valid bundles under ``samples/exercises/`` (version-
-controlled, deployable as-is) covering the two MVP-playable exercise types
-(``multiple_choice`` + ``numeric_entry``) across several subject groups and age
-bands, so the kid "Ασκήσεις" tab has real content to test against.
+Writes a set of valid bundles under ``samples/exercises/`` covering **all five**
+exercise types (``multiple_choice``, ``numeric_entry``, ``counting``,
+``ordering``, ``match_pairs``) across several subject groups and age bands, so the
+kid "Ασκήσεις" tab has real content to test against. ``samples/`` is git-ignored;
+this script is the tracked source of truth — regenerate locally as needed.
 
-Images for the image-option bundle are drawn with Pillow (simple shapes — no
-font/emoji dependency), so the asset-serving path is exercised too. Every bundle
-is validated with the M1 loader before being kept, so a generated bundle always
-loads clean.
+Images (multiple-choice/match options and the ``counting`` scenes) are drawn with
+Pillow (simple shapes — no font/emoji dependency), so the asset-serving path is
+exercised too. Every bundle is validated with the M1 loader before being kept, so
+a generated bundle always loads clean.
 
 Run from the backend dir:  python -m scripts.make_sample_bundles
 """
@@ -84,11 +85,65 @@ def draw_fish(path: Path) -> None:
     _save(img, path)
 
 
+# -- counting scenes: N small shapes laid out on a grid -----------------------
+
+
+def _small_apple(d: ImageDraw.ImageDraw, cx: int, cy: int) -> None:
+    s = SS
+    r = 26 * s
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(220, 40, 40))
+    d.rectangle([cx - 3 * s, cy - r - 12 * s, cx + 3 * s, cy - r + 4 * s], fill=(120, 70, 30))
+    d.ellipse([cx + 2 * s, cy - r - 10 * s, cx + 22 * s, cy - r + 6 * s], fill=(70, 160, 60))
+
+
+def _small_star(d: ImageDraw.ImageDraw, cx: int, cy: int) -> None:
+    import math
+
+    s = SS
+    outer, inner = 30 * s, 13 * s
+    pts: list[tuple[float, float]] = []
+    for i in range(10):
+        a = -math.pi / 2 + i * math.pi / 5
+        rr = outer if i % 2 == 0 else inner
+        pts.append((cx + math.cos(a) * rr, cy + math.sin(a) * rr))
+    d.polygon(pts, fill=(245, 195, 30))
+
+
+def _small_fish(d: ImageDraw.ImageDraw, cx: int, cy: int) -> None:
+    s = SS
+    rx, ry = 32 * s, 20 * s
+    d.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=(60, 140, 220))
+    d.polygon([(cx + rx - 4 * s, cy), (cx + rx + 22 * s, cy - 18 * s), (cx + rx + 22 * s, cy + 18 * s)], fill=(40, 110, 190))
+    d.ellipse([cx - rx + 10 * s, cy - 8 * s, cx - rx + 24 * s, cy + 6 * s], fill=(255, 255, 255))
+    d.ellipse([cx - rx + 15 * s, cy - 3 * s, cx - rx + 23 * s, cy + 5 * s], fill=(20, 20, 20))
+
+
+def _count_scene(draw_one: Any, n: int) -> Any:
+    """Return a drawer that lays out ``n`` copies of ``draw_one`` on a 3-col grid."""
+
+    def drawer(path: Path) -> None:
+        img, d = _canvas()
+        s = SS
+        cols = 3
+        cell = SIZE * s // cols
+        for i in range(n):
+            row, col = divmod(i, cols)
+            cx = col * cell + cell // 2
+            cy = row * cell + cell // 2 + 24 * s
+            draw_one(d, cx, cy)
+        _save(img, path)
+
+    return drawer
+
+
 IMAGE_DRAWERS = {
     "apple.png": draw_apple,
     "sun.png": draw_sun,
     "tree.png": draw_tree,
     "fish.png": draw_fish,
+    "count-apples.png": _count_scene(_small_apple, 4),
+    "count-stars.png": _count_scene(_small_star, 5),
+    "count-fish.png": _count_scene(_small_fish, 3),
 }
 
 
@@ -762,6 +817,127 @@ BUNDLES: list[dict[str, Any]] = [
             },
         ],
     },
+    # --- M4 types: counting / ordering / match_pairs ---
+    {
+        "schema_version": 1,
+        "id": "metra-ta",
+        "version": 1,
+        "title": "Μέτρα τα",
+        "subject": "math",
+        "age_min": 4,
+        "age_max": 7,
+        "stars": 3,
+        "difficulty": 1,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "counting",
+                "prompt": "Πόσα μήλα βλέπεις;",
+                "image": "count-apples.png",
+                "answer": 4,
+                "max_count": 6,
+                "hint": "Μέτρα ένα-ένα.",
+            },
+            {
+                "id": "ex-02",
+                "type": "counting",
+                "prompt": "Πόσα αστέρια βλέπεις;",
+                "image": "count-stars.png",
+                "answer": 5,
+                "max_count": 6,
+            },
+            {
+                "id": "ex-03",
+                "type": "counting",
+                "prompt": "Πόσα ψάρια βλέπεις;",
+                "image": "count-fish.png",
+                "answer": 3,
+                "max_count": 6,
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "vale-se-seira",
+        "version": 1,
+        "title": "Βάλε σε σειρά",
+        "subject": "logic",
+        "age_min": 5,
+        "age_max": 8,
+        "stars": 4,
+        "difficulty": 2,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "ordering",
+                "prompt": "Βάλε τους αριθμούς από το μικρότερο στο μεγαλύτερο.",
+                "items": [
+                    {"id": "n1", "text": "1"},
+                    {"id": "n2", "text": "2"},
+                    {"id": "n3", "text": "3"},
+                    {"id": "n4", "text": "4"},
+                ],
+                "answer": ["n1", "n2", "n3", "n4"],
+                "hint": "Ξεκίνα από το 1.",
+            },
+            {
+                "id": "ex-02",
+                "type": "ordering",
+                "prompt": "Βάλε τα μεγέθη από το μικρό στο μεγάλο.",
+                "items": [
+                    {"id": "mikro", "text": "μικρό"},
+                    {"id": "mesaio", "text": "μεσαίο"},
+                    {"id": "megalo", "text": "μεγάλο"},
+                ],
+                "answer": ["mikro", "mesaio", "megalo"],
+            },
+            {
+                "id": "ex-03",
+                "type": "ordering",
+                "prompt": "Βάλε σε σειρά τη μέρα.",
+                "items": [
+                    {"id": "proi", "text": "πρωί"},
+                    {"id": "mesimeri", "text": "μεσημέρι"},
+                    {"id": "vrady", "text": "βράδυ"},
+                ],
+                "answer": ["proi", "mesimeri", "vrady"],
+                "hint": "Ξεκινάμε όταν ξυπνάμε.",
+            },
+        ],
+    },
+    {
+        "schema_version": 1,
+        "id": "taireiakse",
+        "version": 1,
+        "title": "Ταίριαξε",
+        "subject": "language",
+        "age_min": 4,
+        "age_max": 7,
+        "stars": 4,
+        "difficulty": 2,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "match_pairs",
+                "prompt": "Ταίριαξε την εικόνα με τη λέξη.",
+                "pairs": [
+                    {"left": {"id": "l1", "image": "apple.png"}, "right": {"id": "r1", "text": "μήλο"}},
+                    {"left": {"id": "l2", "image": "sun.png"}, "right": {"id": "r2", "text": "ήλιος"}},
+                    {"left": {"id": "l3", "image": "fish.png"}, "right": {"id": "r3", "text": "ψάρι"}},
+                ],
+                "hint": "Σκέψου τι δείχνει κάθε εικόνα.",
+            },
+            {
+                "id": "ex-02",
+                "type": "match_pairs",
+                "prompt": "Ταίριαξε την εικόνα με τη λέξη.",
+                "pairs": [
+                    {"left": {"id": "l1", "image": "tree.png"}, "right": {"id": "r1", "text": "δέντρο"}},
+                    {"left": {"id": "l2", "image": "apple.png"}, "right": {"id": "r2", "text": "μήλο"}},
+                ],
+            },
+        ],
+    },
 ]
 
 
@@ -771,6 +947,15 @@ def _images_needed(manifest: dict[str, Any]) -> set[str]:
         for opt in ex.get("options", []):
             if opt.get("image"):
                 refs.add(opt["image"])
+        for item in ex.get("items", []):
+            if item.get("image"):
+                refs.add(item["image"])
+        for pair in ex.get("pairs", []):
+            for side in ("left", "right"):
+                if pair[side].get("image"):
+                    refs.add(pair[side]["image"])
+        if ex.get("image"):  # counting scene
+            refs.add(ex["image"])
     return refs
 
 

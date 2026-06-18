@@ -1,0 +1,75 @@
+// Annotated reference manifest covering ALL FIVE exercise types.
+// Copy the shapes you need into a real manifest.json (strict JSON — no comments,
+// no trailing commas; `extra="forbid"` means an unknown field is a hard error).
+// Validate with:  cd backend && python -m app.schemas.exercises <bundle-dir>
+{
+  "schema_version": 1,                 // must equal the validator's SCHEMA_VERSION (1)
+  "id": "2026-06-letter-a",            // stable across versions; [a-z0-9-] recommended
+  "version": 1,                        // bump to supersede; (id, version) is the identity
+  "title": "Το γράμμα Α",              // single-language, mono-script (invariant #5)
+  "subject": "language",               // language | math | geography | history | logic | nature
+  "age_min": 4,                        // a kid sees the bundle when age_min <= age <= age_max
+  "age_max": 6,
+  "stars": 3,                          // awarded once on full completion (lenient MVP policy)
+  "difficulty": 1,                     // 1..5 — kid list sorts easy→hard, admin shows a column
+  "exercises": [
+
+    // 1) MULTIPLE CHOICE — tap one of 2–4 options (text and/or image).
+    {
+      "id": "ex-mc",
+      "type": "multiple_choice",
+      "prompt": "Ποια εικόνα αρχίζει από Α;",
+      "prompt_tts": null,              // optional spoken override; null falls back to `prompt`
+      "options": [                     // 2–4 options; image-only is fine for pre-readers
+        { "id": "a", "image": "apple.png", "text": "αρκούδα" },
+        { "id": "b", "image": "ball.png" }
+      ],
+      "answer": "a",                   // the correct option id (stripped from the kid view)
+      "hint": "Α όπως... αρκούδα!",
+      "hint_tts": null
+    },
+
+    // 2) NUMERIC ENTRY — type an integer on the number pad; exact compare.
+    {
+      "id": "ex-num",
+      "type": "numeric_entry",
+      "prompt": "2 × 3 = ?",           // digits/operators are script-neutral...
+      "prompt_tts": "δύο επί τρία",    // ...so add a spoken reading for the Greek voice
+      "answer": 6                      // integer only — no decimals/fractions/negatives in v1
+    },
+
+    // 3) COUNTING — "how many X?"; kid taps 0..max_count on a number grid.
+    {
+      "id": "ex-count",
+      "type": "counting",
+      "prompt": "Πόσα μήλα βλέπεις;",
+      "image": "count-apples.png",     // the scene to count (required)
+      "answer": 4,                     // 0 <= answer <= max_count
+      "max_count": 6                   // 1..99 inclusive; upper bound of the number grid
+    },
+
+    // 4) ORDERING — arrange 3–5 items into a sequence by tapping (no drag).
+    {
+      "id": "ex-order",
+      "type": "ordering",
+      "prompt": "Βάλε τους αριθμούς από το μικρότερο στο μεγαλύτερο.",
+      "items": [                       // 3–5 items, image and/or text
+        { "id": "n1", "text": "1" },
+        { "id": "n2", "text": "2" },
+        { "id": "n3", "text": "3" }
+      ],
+      "answer": ["n1", "n2", "n3"]     // must list EXACTLY the item ids, in correct order
+    },
+
+    // 5) MATCH PAIRS — link two columns by tapping; right column is shuffled.
+    {
+      "id": "ex-match",
+      "type": "match_pairs",
+      "prompt": "Ταίριαξε την εικόνα με τη λέξη.",
+      "pairs": [                       // 2–6 pairs; answer is implicit (left ↔ its own right)
+        { "left": { "id": "l1", "image": "apple.png" }, "right": { "id": "r1", "text": "μήλο" } },
+        { "left": { "id": "l2", "image": "sun.png" },   "right": { "id": "r2", "text": "ήλιος" } }
+      ]
+    }
+  ]
+}

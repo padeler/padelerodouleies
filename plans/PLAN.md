@@ -1,9 +1,11 @@
 # PLAN.md — Exercises Extension
 
-**Status: IN PROGRESS.** The MVP — **M1–M3 — is implemented** on the
-`feat/exercises-mvp` branch (validator + bundle format, discovery/persistence/kid
-API, and the kid "Ασκήσεις" tab with the `multiple_choice` + `numeric_entry`
-players), not yet merged to `main`. M4–M7 are still to do. The normative bundle
+**Status: IN PROGRESS.** **M1–M5 are implemented** on the `feat/exercises-mvp`
+branch: validator + bundle format, discovery/persistence/kid API, the kid
+"Ασκήσεις" tab with **all five exercise types playable** (M4), and the admin
+rescan + kid-Stats surfacing (M5). M6's dev-machine generation skill is scaffolded
+(`tools/exercise-gen/`); its acceptance test (one bundle from real school
+material) and M7 rollout remain. Not yet merged to `main`. The normative bundle
 format now lives in [docs/EXERCISE_FORMAT.md](../docs/EXERCISE_FORMAT.md) (the
 Pydantic models in `backend/app/schemas/exercises.py` are its source of truth).
 
@@ -373,3 +375,16 @@ end-to-end). M4/M5 next. M6 can start in parallel after M1 freezes the spec.
     (text and/or audio, optional in the manifest) after the first wrong attempt.
 - **Q2 — Kids' birthdates:** needed for the M2 seed and production setup — provide
   them when we get there.
+
+### Decided (2026-06-18)
+- **Per-kid bundle visibility override: deferred — not in v1.** Age-range matching
+  against an admin-set `User.birthdate` is the sole visibility driver; no manual
+  per-kid show/hide table or "ignore age" toggle is built in M5. Revisit only if
+  real usage shows age ranges are too coarse. (Resolves the M4/M5 "Q2 visibility
+  override" question — distinct from the still-open Q2 birthdates item above.)
+- **Exercise stats in the kid Stats tab: yes.** M5 surfaces per-kid solved/earned
+  exercise counts in the kid-facing Stats tab (not admin-only), reusing the admin
+  kid-stats rollup. Promoted from a stretch goal to a firm M5 task.
+- **Ordering / match_pairs interaction: tap-to-place, no HTML5 drag-and-drop** —
+  unreliable touch DnD on the Samsung Tab 4 (Android 4.4); consistent with the
+  existing tap-based players and the old-tablet rules (§6).

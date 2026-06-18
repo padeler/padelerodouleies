@@ -28,6 +28,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   'stats.best_week': { el: 'Καλύτερη εβδομάδα', en: 'Best week' },
   'stats.earned': { el: 'Κερδισμένα', en: 'Earned' },
   'stats.spent': { el: 'Ξοδεμένα', en: 'Spent' },
+  'stats.exercises': { el: 'Ασκήσεις', en: 'Exercises' },
   'stats.empty': { el: 'Κανένα στατιστικό', en: 'No stats yet' },
   'stats.none_yet': { el: '—', en: '—' },
   'stats.chores_count': { el: '{count} δουλειές', en: '{count} chores' },
@@ -75,6 +76,7 @@ const SAMPLE: StatsResponse = {
       best_day: { date: '2026-06-03', stars: 12 },
       best_week: { week_start: '2026-06-01', stars: 30 },
       game_scores: { 'memory.easy': 7, simon: 5, catcher: 23 },
+      exercises_completed: 4, exercises_stars: 14,
     },
     {
       id: 2, name: 'Nikos', avatar_kind: 'icon', avatar_value: 'star', current_stars: 5,
@@ -82,6 +84,7 @@ const SAMPLE: StatsResponse = {
       best_day: null,
       best_week: null,
       game_scores: {},
+      exercises_completed: 0, exercises_stars: 0,
     },
   ],
   game_players: [
@@ -126,6 +129,8 @@ describe('Stats', () => {
     expect(screen.getAllByText('Maria').length).toBeGreaterThanOrEqual(2);
     // per-kid earned/spent for Nikos
     expect(screen.getByText('+30 ⭐')).toBeInTheDocument();
+    // per-kid exercises row for Maria: 4 completed · 14 ⭐
+    expect(screen.getByText('4 · 14 ⭐')).toBeInTheDocument();
   });
 
   it('switches between week and all-time windows', async () => {

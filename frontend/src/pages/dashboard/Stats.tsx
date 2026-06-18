@@ -266,6 +266,14 @@ function KidStatCard({ kid }: { kid: StatsPerKid }) {
             {kid.best_week ? `${formatDateShort(kid.best_week.week_start, locale)} · ${kid.best_week.stars} ⭐` : t('stats.none_yet')}
           </span>
         </div>
+        <div className="kid-stat-row">
+          <span className="ksr-label">📚 {t('stats.exercises')}</span>
+          <span className="ksr-value">
+            {kid.exercises_completed > 0
+              ? `${kid.exercises_completed} · ${kid.exercises_stars} ⭐`
+              : t('stats.none_yet')}
+          </span>
+        </div>
       </div>
     </div>
   );

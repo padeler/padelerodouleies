@@ -1,12 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
-import { getAdminExerciseStats } from '../../api/client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { RefreshCw } from 'lucide-react';
+import { getAdminExerciseStats, rescanExercises } from '../../api/client';
 import { useT } from '../../i18n/store';
 import { Avatar } from '../../components/Avatar';
 import './AdminPage.css';
 
 export function AdminExercisesPage() {
   const t = useT();
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ['admin-exercise-stats'], queryFn: getAdminExerciseStats });
+  const rescan = useMutation({
+    mutationFn: rescanExercises,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-exercise-stats'] }),
+  });
 
   if (isLoading || !data) {
     return <div className="exercises-hub" />;
@@ -18,6 +24,18 @@ export function AdminExercisesPage() {
   return (
     <div className="exercises-hub">
       <h2>📚 {t('exercises.admin.title')}</h2>
+
+      <div style={{ marginBottom: 16 }}>
+        <button
+          type="button"
+          className="admin-btn admin-btn-primary"
+          disabled={rescan.isPending}
+          onClick={() => rescan.mutate()}
+        >
+          <RefreshCw size={16} aria-hidden="true" style={{ marginRight: 6 }} />
+          {t('exercises.admin.rescan')}
+        </button>
+      </div>
 
       <h3 className="admin-page-title">{t('exercises.admin.bundles_heading')}</h3>
       {bundles.length === 0 ? (

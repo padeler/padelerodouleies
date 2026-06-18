@@ -557,6 +557,13 @@ export async function getAdminExerciseStats() {
   return request<import('../lib/types').AdminExerciseStats>('/admin/exercises/stats');
 }
 
+/** Force a fresh discovery scan (bypasses the mtime cache). Returns the counts. */
+export async function rescanExercises() {
+  return request<{ valid: number; invalid: number }>('/admin/exercises/rescan', {
+    method: 'POST',
+  });
+}
+
 export async function getGameScores() {
   return request<Record<string, number>>('/games/scores');
 }

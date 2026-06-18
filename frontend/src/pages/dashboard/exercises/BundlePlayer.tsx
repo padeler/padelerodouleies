@@ -8,6 +8,9 @@ import { playReward, playSuccess, playWrong } from '../../../lib/sound';
 import { useExerciseBundle, useSubmitAnswer } from './useExercises';
 import { MultipleChoicePlayer } from './MultipleChoicePlayer';
 import { NumericEntryPlayer } from './NumericEntryPlayer';
+import { CountingPlayer } from './CountingPlayer';
+import { OrderingPlayer } from './OrderingPlayer';
+import { MatchPairsPlayer } from './MatchPairsPlayer';
 import '../flip-card.css'; // .speak-btn styles
 import './Exercises.css';
 
@@ -125,6 +128,29 @@ export function BundlePlayer() {
           bundleId={bundleId}
           exercise={exercise}
           disabled={submit.isPending || feedback === 'correct'}
+          onAnswer={handleAnswer}
+        />
+      ) : exercise.type === 'counting' ? (
+        <CountingPlayer
+          bundleId={bundleId}
+          exercise={exercise}
+          disabled={submit.isPending || feedback === 'correct'}
+          onAnswer={handleAnswer}
+        />
+      ) : exercise.type === 'ordering' ? (
+        <OrderingPlayer
+          bundleId={bundleId}
+          exercise={exercise}
+          disabled={submit.isPending || feedback === 'correct'}
+          resetSignal={resetSignal}
+          onAnswer={handleAnswer}
+        />
+      ) : exercise.type === 'match_pairs' ? (
+        <MatchPairsPlayer
+          bundleId={bundleId}
+          exercise={exercise}
+          disabled={submit.isPending || feedback === 'correct'}
+          resetSignal={resetSignal}
           onAnswer={handleAnswer}
         />
       ) : (

@@ -66,6 +66,28 @@ def test_compute_stats_aggregates_earned_and_spent():
         db.close()
 
 
+def test_compute_stats_includes_exercise_counts():
+    from app.db.models import ExerciseCompletion
+
+    db = LocalSession()
+    try:
+        kid = User(name="ExStatsKid", role="user", avatar_value="fox", pin_hash=hash_pin("1234"), current_stars=8)
+        db.add(kid)
+        db.commit()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        db.add_all([
+            ExerciseCompletion(user_id=kid.id, bundle_id="b1", bundle_version=1, stars_awarded=3, created_at=now),
+            ExerciseCompletion(user_id=kid.id, bundle_id="b2", bundle_version=1, stars_awarded=5, created_at=now),
+        ])
+        db.commit()
+
+        per_kid = {k["name"]: k for k in compute_stats(db, _now())["per_kid"]}
+        assert per_kid["ExStatsKid"]["exercises_completed"] == 2
+        assert per_kid["ExStatsKid"]["exercises_stars"] == 8
+    finally:
+        db.close()
+
+
 def test_compute_stats_week_window_excludes_old_rows():
     db = LocalSession()
     try:

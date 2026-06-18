@@ -269,6 +269,9 @@ export interface StatsPerKid extends StatKid {
   best_week: { week_start: string; stars: number } | null;
   // Best score per Games-tab game key (e.g. "memory.easy", "simon", "catcher").
   game_scores: Record<string, number>;
+  // Age-targeted exercise bundles completed + stars earned from them.
+  exercises_completed: number;
+  exercises_stars: number;
 }
 
 // Whole-family game scoreboard (kids + parents who have played).

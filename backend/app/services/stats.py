@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
-from app.db.models import HistoryLedger, RewardLedger, User
+from app.db.models import ExerciseCompletion, HistoryLedger, RewardLedger, User
 from app.services.chores import TZ
 from app.services.games import scores_by_user
 
@@ -108,10 +108,30 @@ def _cumulative(
     }
 
 
+def _exercise_stats_by_user(db: Session, user_ids: list[int]) -> dict[int, tuple[int, int]]:
+    """Per-kid (completed bundle count, total stars earned) from completions.
+
+    Same rollup the admin exercises view uses, surfaced for the kid Stats tab.
+    """
+    result: dict[int, tuple[int, int]] = {}
+    if not user_ids:
+        return result
+    rows = (
+        db.query(ExerciseCompletion.user_id, ExerciseCompletion.stars_awarded)
+        .filter(ExerciseCompletion.user_id.in_(user_ids))
+        .all()
+    )
+    for uid, stars in rows:
+        count, total = result.get(uid, (0, 0))
+        result[uid] = (count + 1, total + stars)
+    return result
+
+
 def _per_kid(
     history: list[HistoryLedger],
     kids: list[User],
     game_scores: dict[int, dict[str, int]],
+    exercise_stats: dict[int, tuple[int, int]],
 ) -> list[dict[str, Any]]:
     """Per-kid all-time totals plus best day / best week."""
     earned: dict[int, int] = defaultdict(int)
@@ -145,6 +165,7 @@ def _per_kid(
             week_start = date.fromisocalendar(year, week, 1)
             best_week = {"week_start": week_start.isoformat(), "stars": stars}
 
+        ex_count, ex_stars = exercise_stats.get(kid.id, (0, 0))
         result.append({
             **_kid_brief(kid),
             "current_stars": kid.current_stars,
@@ -153,6 +174,8 @@ def _per_kid(
             "best_day": best_day,
             "best_week": best_week,
             "game_scores": game_scores.get(kid.id, {}),
+            "exercises_completed": ex_count,
+            "exercises_stars": ex_stars,
         })
 
     result.sort(key=lambda x: x["total_earned"], reverse=True)
@@ -180,6 +203,11 @@ def compute_stats(db: Session, now: datetime) -> dict[str, Any]:
     return {
         "window_week": _cumulative(week_history, week_rewards, kid_map),
         "window_all": _cumulative(history, rewards, kid_map),
-        "per_kid": _per_kid(history, kids, scores_by_user(db, kid_ids)),
+        "per_kid": _per_kid(
+            history,
+            kids,
+            scores_by_user(db, kid_ids),
+            _exercise_stats_by_user(db, kid_ids),
+        ),
         "game_players": _game_players(db),
     }

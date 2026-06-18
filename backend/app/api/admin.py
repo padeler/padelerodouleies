@@ -644,6 +644,8 @@ def list_history(
                 entry["item_icon"] = reward.icon_name
         entries.append(entry)
 
+    return {"total": total, "entries": entries}
+
 
 # ---------------------------------------------------------------------
 # Exercise statistics (admin view)
@@ -700,4 +702,24 @@ def get_exercise_stats(
 
     return {"bundles": bundles_out, "invalid": invalid_out, "kid_stats": kid_stats}
 
-    return {"total": total, "entries": entries}
+
+@router.post("/exercises/rescan")
+def rescan_exercises(
+    _admin: User = Depends(require_admin),
+) -> dict[str, int]:
+    """Force a fresh discovery scan, bypassing the mtime cache.
+
+    Discovery is already scan-on-request + mtime-cached (invariant #2); this just
+    lets an admin refresh immediately after dropping a bundle on the NAS without
+    waiting for the directory mtime to settle. Logs what was re-scanned, incl. any
+    invalid dirs (fail-explicit).
+    """
+    from app.services.exercise_bundles import clear_cache, discover
+
+    clear_cache()
+    discovery = discover()
+    valid, invalid = len(discovery.valid), len(discovery.invalid)
+    logger.info("admin rescan: %d valid / %d invalid bundle(s)", valid, invalid)
+    for b in discovery.invalid:
+        logger.warning("admin rescan invalid bundle %s: %s", b.dir.name, b.error)
+    return {"valid": valid, "invalid": invalid}

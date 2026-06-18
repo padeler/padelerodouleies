@@ -275,6 +275,37 @@ def test_grade_multiple_choice_and_numeric(exercises_dir) -> None:
     assert grade(ne, 11) is False
 
 
+def test_grade_counting_ordering_match_pairs() -> None:
+    """Correct + wrong round-trip for the three M4 types (PLAN.md M4)."""
+    base = _load_json("letters-A-v1")
+    base["exercises"] = [
+        {"id": "c1", "type": "counting", "prompt": "Πόσα;", "image": "apple.png", "answer": 3, "max_count": 5},
+        {
+            "id": "o1", "type": "ordering", "prompt": "Σειρά",
+            "items": [{"id": "i1", "text": "ένα"}, {"id": "i2", "text": "δύο"}, {"id": "i3", "text": "τρία"}],
+            "answer": ["i1", "i2", "i3"],
+        },
+        {
+            "id": "m1", "type": "match_pairs", "prompt": "Ταίριαξε",
+            "pairs": [
+                {"left": {"id": "l1", "text": "ένα"}, "right": {"id": "r1", "text": "πρώτο"}},
+                {"left": {"id": "l2", "text": "δύο"}, "right": {"id": "r2", "text": "δεύτερο"}},
+            ],
+        },
+    ]
+    counting, ordering, match = BundleManifest.model_validate(base).exercises
+
+    assert grade(counting, 3) is True
+    assert grade(counting, "3") is True
+    assert grade(counting, 4) is False
+
+    assert grade(ordering, ["i1", "i2", "i3"]) is True
+    assert grade(ordering, ["i2", "i1", "i3"]) is False
+
+    assert grade(match, {"l1": "r1", "l2": "r2"}) is True
+    assert grade(match, {"l1": "r2", "l2": "r1"}) is False
+
+
 def test_grade_rejects_malformed_response(exercises_dir) -> None:
     ne = exercise_bundles.get_bundle("math-times").manifest.exercises[0]
     with pytest.raises(exercises.ResponseError):
@@ -354,10 +385,43 @@ async def _login_kid(birthdate):
     return client, uid
 
 
+async def _login_admin():
+    db = LocalSession()
+    admin = User(name=f"ApiAdmin{datetime.now(timezone.utc).timestamp()}", role="admin",
+                 pin_hash=hash_pin("4321"))
+    db.add(admin)
+    db.commit()
+    uid = admin.id
+    db.close()
+    transport = ASGITransport(app=app)
+    client = AsyncClient(transport=transport, base_url="http://testserver", cookies=Cookies())
+    resp = await client.post("/api/auth/login", json={"user_id": uid, "pin": "4321"})
+    assert resp.status_code == 200
+    return client, uid
+
+
 async def test_api_requires_auth() -> None:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as c:
         assert (await c.get("/api/exercises/bundles")).status_code == 401
+
+
+async def test_admin_rescan_requires_admin(exercises_dir) -> None:
+    # A kid is forbidden; an admin gets fresh counts.
+    kid_client, _ = await _login_kid(date(2021, 1, 1))
+    try:
+        assert (await kid_client.post("/api/admin/exercises/rescan")).status_code == 403
+    finally:
+        await kid_client.aclose()
+
+    admin_client, _ = await _login_admin()
+    try:
+        resp = await admin_client.post("/api/admin/exercises/rescan")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["valid"] == 2 and body["invalid"] == 1
+    finally:
+        await admin_client.aclose()
 
 
 async def test_api_list_and_manifest_no_answers(exercises_dir) -> None:

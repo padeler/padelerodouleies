@@ -257,6 +257,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "stats.per_kid_title": {"el": "Ανά παιδί", "en": "Per kid"},
     "stats.best_day": {"el": "Καλύτερη μέρα", "en": "Best day"},
     "stats.best_week": {"el": "Καλύτερη εβδομάδα", "en": "Best week"},
+    "stats.exercises": {"el": "Ασκήσεις", "en": "Exercises"},
     "stats.earned": {"el": "Κερδισμένα", "en": "Earned"},
     "stats.spent": {"el": "Ξοδεμένα", "en": "Spent"},
     "stats.empty": {"el": "Δεν υπάρχουν στατιστικά ακόμα — μάζεψε μερικά αστέρια!", "en": "No stats yet — go earn some stars!"},
@@ -320,6 +321,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "exercises.wrong": {"el": "Προσπάθησε ξανά!", "en": "Try again!"},
     "exercises.hint": {"el": "Βοήθεια", "en": "Hint"},
     "exercises.check": {"el": "Έλεγχος", "en": "Check"},
+    "exercises.tap_to_order": {"el": "Πάτησε με τη σειρά", "en": "Tap in order"},
     "exercises.next": {"el": "Επόμενο", "en": "Next"},
     "exercises.finish": {"el": "Τέλος", "en": "Finish"},
     "exercises.well_done": {"el": "Τέλεια! Τα κατάφερες!", "en": "Great! You did it!"},
@@ -334,6 +336,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "exercises.unsupported_type": {"el": "Αυτός ο τύπος άσκησης δεν είναι διαθέσιμος ακόμα.", "en": "This exercise type is not available yet."},
     # Admin exercises stats
     "exercises.admin.title": {"el": "Ασκήσεις — Στατιστικά", "en": "Exercises — Statistics"},
+    "exercises.admin.rescan": {"el": "Επανασάρωση", "en": "Rescan"},
     "exercises.admin.bundles_heading": {"el": "Διαθέσιμα πακέτα", "en": "Available bundles"},
     "exercises.admin.no_bundles": {"el": "Δεν βρέθηκαν πακέτα ασκήσεων.", "en": "No exercise bundles found."},
     "exercises.admin.invalid_heading": {"el": "Μη έγκυρα πακέτα", "en": "Invalid bundles"},
