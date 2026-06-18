@@ -73,6 +73,7 @@ export function UsersPage() {
               <th>{t('user.table.name')}</th>
               <th>{t('user.table.role')}</th>
               <th>{t('user.table.stars')}</th>
+              <th>{t('user.table.birthdate')}</th>
               <th>{t('common.actions')}</th>
             </tr>
           </thead>
@@ -87,6 +88,7 @@ export function UsersPage() {
                   </span>
                 </td>
                 <td>{user.role === 'admin' ? 'N/A' : `${user.current_stars} ⭐`}</td>
+                <td>{user.birthdate ?? 'N/A'}</td>
                 <td className="actions">
                   <div className="row-actions">
                     <button className="admin-btn" onClick={() => setEditing(user)} title={t('btn.edit')}>
@@ -112,7 +114,7 @@ export function UsersPage() {
               </tr>
             ))}
             {data?.length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('user.table.empty')}</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted, #888)' }}>{t('user.table.empty')}</td></tr>
             )}
           </tbody>
         </table>

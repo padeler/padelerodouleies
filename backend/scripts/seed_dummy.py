@@ -23,7 +23,7 @@ Run `alembic upgrade head` manually first if migrations are behind.
 
 import random
 import sys
-from datetime import datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 sys.path.insert(0, "..")
 
@@ -53,6 +53,7 @@ def clear_all(db):
 
 def seed_users(db):
     now = datetime.now()
+    today = date.today()
     users = [
         User(
             name="Γονέας",
@@ -74,6 +75,7 @@ def seed_users(db):
             current_stars=45,
             preferred_locale="el",
             preferred_theme="light",
+            birthdate=date(today.year - 9, today.month, today.day),
             created_at=now,
         ),
         User(
@@ -85,6 +87,7 @@ def seed_users(db):
             current_stars=32,
             preferred_locale="el",
             preferred_theme="system",
+            birthdate=date(today.year - 4, today.month, today.day),
             created_at=now,
         ),
         User(
