@@ -20,6 +20,7 @@
       "type": "multiple_choice",
       "prompt": "Ποια εικόνα αρχίζει από Α;",
       "prompt_tts": null,              // optional spoken override; null falls back to `prompt`
+      "image": null,                   // optional exercise-level image (scene/instructional)
       "options": [                     // 2–4 options; image-only is fine for pre-readers
         { "id": "a", "image": "apple.png", "text": "αρκούδα" },
         { "id": "b", "image": "ball.png" }
@@ -35,6 +36,7 @@
       "type": "numeric_entry",
       "prompt": "2 × 3 = ?",           // digits/operators are script-neutral...
       "prompt_tts": "δύο επί τρία",    // ...so add a spoken reading for the Greek voice
+      "image": null,                   // optional exercise-level image
       "answer": 6                      // integer only — no decimals/fractions/negatives in v1
     },
 
@@ -53,6 +55,7 @@
       "id": "ex-order",
       "type": "ordering",
       "prompt": "Βάλε τους αριθμούς από το μικρότερο στο μεγαλύτερο.",
+      "image": null,                   // optional exercise-level image
       "items": [                       // 3–5 items, image and/or text
         { "id": "n1", "text": "1" },
         { "id": "n2", "text": "2" },
@@ -66,6 +69,7 @@
       "id": "ex-match",
       "type": "match_pairs",
       "prompt": "Ταίριαξε την εικόνα με τη λέξη.",
+      "image": null,                   // optional exercise-level image
       "pairs": [                       // 2–6 pairs; answer is implicit (left ↔ its own right)
         { "left": { "id": "l1", "image": "apple.png" }, "right": { "id": "r1", "text": "μήλο" } },
         { "left": { "id": "l2", "image": "sun.png" },   "right": { "id": "r2", "text": "ήλιος" } }

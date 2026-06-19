@@ -88,12 +88,17 @@ class _ExerciseBase(_Strict):
     prompt_tts: str | None = Field(default=None, max_length=400)
     hint: str | None = Field(default=None, max_length=400)
     hint_tts: str | None = Field(default=None, max_length=400)
+    # Optional exercise-level image (scene/instructional). CountingExercise
+    # overrides this with a required `image: str`.
+    image: str | None = Field(default=None, max_length=200)
 
     def model_post_init(self, _ctx: Any) -> None:
         for field in ("prompt", "prompt_tts", "hint", "hint_tts"):
             value = getattr(self, field)
             if value is not None:
                 _assert_mono_script(value, f"exercise {self.id!r} {field}")
+        if self.image is not None:
+            _assert_no_traversal(self.image, f"exercise {self.id!r} image")
 
 
 class MultipleChoiceExercise(_ExerciseBase):
@@ -210,10 +215,12 @@ def _exercise_view(exercise: Any) -> dict[str, Any]:
     }
     if exercise.hint is not None:
         view["hint"] = exercise.hint
+    # Exercise-level image (optional on most types; required on counting).
+    if exercise.image is not None:
+        view["image"] = exercise.image
     if isinstance(exercise, MultipleChoiceExercise):
         view["options"] = [_option_view(o) for o in exercise.options]
     elif isinstance(exercise, CountingExercise):
-        view["image"] = exercise.image
         view["max_count"] = exercise.max_count
     elif isinstance(exercise, OrderingExercise):
         view["items"] = [_option_view(o) for o in exercise.items]
@@ -244,10 +251,13 @@ def asset_refs(manifest: BundleManifest) -> list[str]:
     """Every image asset referenced by the bundle (for existence checks)."""
     refs: list[str] = []
     for ex in manifest.exercises:
+        # Exercise-level scene image (optional on most types; required on counting).
+        if ex.image is not None:
+            refs.append(ex.image)
         if isinstance(ex, MultipleChoiceExercise):
             refs += [o.image for o in ex.options if o.image]
         elif isinstance(ex, CountingExercise):
-            refs.append(ex.image)
+            pass  # already collected ex.image above
         elif isinstance(ex, OrderingExercise):
             refs += [o.image for o in ex.items if o.image]
         elif isinstance(ex, MatchPairsExercise):

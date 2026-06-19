@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useT } from '../../../i18n/store';
 import { SpeakButton } from '../../../components/SpeakButton';
-import { exerciseTtsUrl } from '../../../api/client';
+import { exerciseAssetUrl, exerciseTtsUrl } from '../../../api/client';
 import { notifyCelebration } from '../../../lib/notify';
 import { playReward, playSuccess, playWrong } from '../../../lib/sound';
 import { useExerciseBundle, useSubmitAnswer } from './useExercises';
@@ -111,6 +111,16 @@ export function BundlePlayer() {
           <span key={ex.id} className={`exercise-dot ${i < idx ? 'dot-done' : ''} ${i === idx ? 'dot-active' : ''}`} />
         ))}
       </div>
+
+      {exercise.image && (
+        <div className="exercise-scene">
+          <img
+            className="exercise-scene-img"
+            src={exerciseAssetUrl(bundleId, exercise.image)}
+            alt=""
+          />
+        </div>
+      )}
 
       <div className={`exercise-prompt feedback-${feedback}`}>
         <span className="exercise-prompt-text">{exercise.prompt}</span>

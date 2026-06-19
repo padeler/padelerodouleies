@@ -6,10 +6,11 @@ exercise types (``multiple_choice``, ``numeric_entry``, ``counting``,
 kid "Ασκήσεις" tab has real content to test against. ``samples/`` is git-ignored;
 this script is the tracked source of truth — regenerate locally as needed.
 
-Images (multiple-choice/match options and the ``counting`` scenes) are drawn with
-Pillow (simple shapes — no font/emoji dependency), so the asset-serving path is
-exercised too. Every bundle is validated with the M1 loader before being kept, so
-a generated bundle always loads clean.
+Images (multiple-choice/match options, ``counting`` scenes, and exercise-level
+illustrations) are drawn with Pillow (simple shapes — no font/emoji dependency),
+so the asset-serving path is exercised too. Several exercises across bundles set
+an exercise-level ``image`` to demonstrate that feature. Every bundle is validated
+with the M1 loader before being kept, so a generated bundle always loads clean.
 
 Run from the backend dir:  python -m scripts.make_sample_bundles
 """
@@ -85,6 +86,119 @@ def draw_fish(path: Path) -> None:
     _save(img, path)
 
 
+# -- exercise-level scene images -----------------------------------------------
+# These render as optional instructional illustrations above the interactive
+# controls. Counting exercises require an image; all other types may have one.
+
+
+def draw_math_background(path: Path) -> None:
+    """Simple math-themed background (grid lines and scattered symbols)."""
+    img, d = _canvas()
+    s = SS
+    # Light grid
+    for i in range(1, 8):
+        x = i * 32 * s
+        d.line([x, 0, x, SIZE * s], fill=(190, 210, 240))
+        y = i * 32 * s
+        d.line([0, y, SIZE * s, y], fill=(190, 210, 240))
+    # Large centered plus sign
+    d.rectangle([60 * s, 100 * s, 200 * s, 116 * s], fill=(100, 160, 220))
+    d.rectangle([124 * s, 40 * s, 140 * s, 180 * s], fill=(100, 160, 220))
+    _save(img, path)
+
+
+def draw_apple_scene(path: Path) -> None:
+    """Scene with several apples on a branch (for apple-related exercises)."""
+    img, d = _canvas()
+    s = SS
+    # Sky background
+    d.rectangle([0, 0, SIZE * s, SIZE * s], fill=(200, 230, 255))
+    # Ground
+    d.rectangle([0, 180 * s, SIZE * s, SIZE * s], fill=(120, 190, 100))
+    # Branch
+    d.line([(20 * s, 140 * s), (236 * s, 100 * s)], fill=(120, 75, 35), width=8 * s)
+    # Apples on branch
+    for cx_offset in [60, 130, 190]:
+        ax = cx_offset * s
+        ay = 120 * s
+        d.ellipse([ax - 15 * s, ay - 15 * s, ax + 15 * s, ay + 15 * s], fill=(220, 40, 40))
+        d.rectangle([ax - 2 * s, ay - 22 * s, ax + 2 * s, ay - 8 * s], fill=(120, 70, 30))
+    _save(img, path)
+
+
+def draw_fish_scene(path: Path) -> None:
+    """Underwater scene with fish and bubbles."""
+    img, d = _canvas()
+    s = SS
+    # Water
+    d.rectangle([0, 0, SIZE * s, SIZE * s], fill=(140, 200, 240))
+    # Seaweed at bottom
+    for x_off in [50, 130, 200]:
+        d.line([(x_off * s, SIZE * s), (x_off * s + 10 * s, 180 * s), (x_off * s, SIZE * s)],
+               fill=(60, 160, 70), width=4 * s)
+    # Bubbles
+    for bx, by in [(80, 60), (160, 90), (110, 40)]:
+        d.ellipse([bx * s - 6 * s, by * s - 6 * s, bx * s + 6 * s, by * s + 6 * s],
+                  outline=(200, 230, 255), width=2 * s)
+    # Two fish
+    d.ellipse([70 * s, 100 * s, 130 * s, 140 * s], fill=(60, 140, 220))
+    d.polygon([(130 * s, 120 * s), (155 * s, 100 * s), (155 * s, 140 * s)], fill=(40, 110, 190))
+    d.ellipse([180 * s, 150 * s, 230 * s, 180 * s], fill=(245, 195, 30))
+    _save(img, path)
+
+
+def draw_season_scene(path: Path) -> None:
+    """Four seasons illustration (sun, flower, leaf, snowflake)."""
+    img, d = _canvas()
+    s = SS
+    # Background
+    d.rectangle([0, 0, SIZE * s, SIZE * s], fill=(240, 245, 255))
+    # Sun (summer) top-left
+    d.ellipse([30 * s, 30 * s, 90 * s, 90 * s], fill=(250, 205, 40))
+    # Flower (spring) bottom-left
+    d.ellipse([40 * s, 170 * s, 70 * s, 200 * s], fill=(230, 80, 120))
+    d.rectangle([54 * s, 200 * s, 58 * s, SIZE * s], fill=(60, 160, 70))
+    # Leaf (autumn) bottom-right
+    d.ellipse([180 * s, 180 * s, 220 * s, 220 * s], fill=(210, 140, 30))
+    # Snowflake-like cross (winter) top-right
+    d.line([200 * s, 30 * s, 200 * s, 70 * s], fill=(180, 210, 240), width=4 * s)
+    d.line([180 * s, 50 * s, 220 * s, 50 * s], fill=(180, 210, 240), width=4 * s)
+    _save(img, path)
+
+
+def draw_greece_scene(path: Path) -> None:
+    """Greek-themed scene (columns and sea)."""
+    img, d = _canvas()
+    s = SS
+    # Sky
+    d.rectangle([0, 0, SIZE * s, SIZE * s], fill=(135, 200, 240))
+    # Sea
+    d.rectangle([0, 160 * s, SIZE * s, SIZE * s], fill=(60, 140, 200))
+    # Three columns (Parthenon-ish)
+    for cx_off in [70, 130, 190]:
+        d.rectangle([cx_off * s - 8 * s, 40 * s, cx_off * s + 8 * s, 160 * s], fill=(240, 235, 220))
+    # Lintel
+    d.rectangle([50 * s, 24 * s, 218 * s, 40 * s], fill=(240, 235, 220))
+    _save(img, path)
+
+
+def draw_number_scene(path: Path) -> None:
+    """Simple number line illustration for numeric ordering exercises."""
+    img, d = _canvas()
+    s = SS
+    # Background
+    d.rectangle([0, 0, SIZE * s, SIZE * s], fill=(255, 250, 240))
+    # Horizontal line
+    d.line([(30 * s, 128 * s), (226 * s, 128 * s)], fill=(100, 100, 100), width=4 * s)
+    # Arrow heads
+    d.polygon([(226 * s, 128 * s), (210 * s, 118 * s), (210 * s, 138 * s)], fill=(100, 100, 100))
+    # Tick marks with numbers
+    for i in range(6):
+        x = 50 * s + i * 35 * s
+        d.line([(x, 118 * s), (x, 138 * s)], fill=(100, 100, 100), width=3 * s)
+    _save(img, path)
+
+
 # -- counting scenes: N small shapes laid out on a grid -----------------------
 
 
@@ -137,13 +251,22 @@ def _count_scene(draw_one: Any, n: int) -> Any:
 
 
 IMAGE_DRAWERS = {
+    # Option / pair images (single objects)
     "apple.png": draw_apple,
     "sun.png": draw_sun,
     "tree.png": draw_tree,
     "fish.png": draw_fish,
+    # Counting scenes
     "count-apples.png": _count_scene(_small_apple, 4),
     "count-stars.png": _count_scene(_small_star, 5),
     "count-fish.png": _count_scene(_small_fish, 3),
+    # Exercise-level scene illustrations
+    "math-bg.png": draw_math_background,
+    "apple-scene.png": draw_apple_scene,
+    "fish-scene.png": draw_fish_scene,
+    "season-scene.png": draw_season_scene,
+    "greece-scene.png": draw_greece_scene,
+    "number-line.png": draw_number_scene,
 }
 
 
@@ -165,6 +288,7 @@ BUNDLES: list[dict[str, Any]] = [
                 "id": "ex-01",
                 "type": "multiple_choice",
                 "prompt": "Πού είναι το μήλο;",
+                "image": "apple-scene.png",
                 "options": [
                     {"id": "apple", "image": "apple.png", "text": "μήλο"},
                     {"id": "sun", "image": "sun.png", "text": "ήλιος"},
@@ -215,6 +339,7 @@ BUNDLES: list[dict[str, Any]] = [
                 "type": "numeric_entry",
                 "prompt": "2 + 3 = ?",
                 "prompt_tts": "δύο συν τρία",
+                "image": "math-bg.png",
                 "answer": 5,
                 "hint": "Μέτρα με τα δάχτυλά σου.",
             },
@@ -223,6 +348,7 @@ BUNDLES: list[dict[str, Any]] = [
                 "type": "numeric_entry",
                 "prompt": "10 - 4 = ?",
                 "prompt_tts": "δέκα μείον τέσσερα",
+                "image": "number-line.png",
                 "answer": 6,
             },
             {
@@ -308,6 +434,7 @@ BUNDLES: list[dict[str, Any]] = [
                 "id": "ex-01",
                 "type": "multiple_choice",
                 "prompt": "Ποιο ζώο κάνει νιάου;",
+                "image": "fish-scene.png",
                 "options": [
                     {"id": "a", "text": "γάτα"},
                     {"id": "b", "text": "σκύλος"},
@@ -466,6 +593,7 @@ BUNDLES: list[dict[str, Any]] = [
                 "id": "ex-01",
                 "type": "multiple_choice",
                 "prompt": "Πότε χιονίζει;",
+                "image": "season-scene.png",
                 "options": [
                     {"id": "a", "text": "Άνοιξη"},
                     {"id": "b", "text": "Καλοκαίρι"},
@@ -570,6 +698,7 @@ BUNDLES: list[dict[str, Any]] = [
                 "id": "ex-01",
                 "type": "multiple_choice",
                 "prompt": "Ποια είναι η πρωτεύουσα της Ελλάδας;",
+                "image": "greece-scene.png",
                 "options": [
                     {"id": "a", "text": "Θεσσαλονίκη"},
                     {"id": "b", "text": "Αθήνα"},
@@ -871,6 +1000,7 @@ BUNDLES: list[dict[str, Any]] = [
                 "id": "ex-01",
                 "type": "ordering",
                 "prompt": "Βάλε τους αριθμούς από το μικρότερο στο μεγαλύτερο.",
+                "image": "number-line.png",
                 "items": [
                     {"id": "n1", "text": "1"},
                     {"id": "n2", "text": "2"},
@@ -920,6 +1050,7 @@ BUNDLES: list[dict[str, Any]] = [
                 "id": "ex-01",
                 "type": "match_pairs",
                 "prompt": "Ταίριαξε την εικόνα με τη λέξη.",
+                "image": "apple-scene.png",
                 "pairs": [
                     {"left": {"id": "l1", "image": "apple.png"}, "right": {"id": "r1", "text": "μήλο"}},
                     {"left": {"id": "l2", "image": "sun.png"}, "right": {"id": "r2", "text": "ήλιος"}},

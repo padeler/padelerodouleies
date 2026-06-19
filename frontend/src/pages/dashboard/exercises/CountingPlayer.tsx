@@ -1,4 +1,3 @@
-import { exerciseAssetUrl } from '../../../api/client';
 import type { ExerciseView } from '../../../lib/types';
 
 interface Props {
@@ -9,25 +8,18 @@ interface Props {
 }
 
 /**
- * "How many X?" — show the scene image, then a grid of numbers `0..max_count`
- * (inclusive). Tapping a number posts that integer; the server compares exactly.
- * Big tap targets, no free-text field (invariant #1 ethos, tablet-first).
+ * "How many X?" — a grid of numbers `0..max_count` (inclusive). Tapping a
+ * number posts that integer; the server compares exactly. The exercise-level
+ * scene image is rendered by BundlePlayer above this component. Big tap targets,
+ * no free-text field (invariant #1 ethos, tablet-first).
  */
-export function CountingPlayer({ bundleId, exercise, disabled, onAnswer }: Props) {
+export function CountingPlayer({ bundleId: _bundleId, exercise, disabled, onAnswer }: Props) {
   const max = exercise.max_count ?? 10;
   const numbers = Array.from({ length: max + 1 }, (_, n) => n);
 
   return (
     <div className="counting">
-      {exercise.image && (
-        <div className="counting-scene">
-          <img
-            className="counting-img"
-            src={exerciseAssetUrl(bundleId, exercise.image)}
-            alt=""
-          />
-        </div>
-      )}
+      {/* scene image is rendered by BundlePlayer */}
       <div className="count-pad">
         {numbers.map((n) => (
           <button

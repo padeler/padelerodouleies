@@ -66,6 +66,11 @@
 .exercise-bundle-card-wrap {
   position: relative;
   display: flex;
+  transition: transform 0.15s ease;
+}
+
+.exercise-bundle-card-wrap:hover {
+  transform: translateY(-4px);
 }
 
 .exercise-bundle-card-wrap .exercise-bundle-card {
@@ -84,12 +89,6 @@
   border: 2px solid var(--accent-border);
   border-radius: 16px;
   text-decoration: none;
-  transition: transform 0.15s ease;
-}
-
-.exercise-group-card:hover,
-.exercise-bundle-card:hover {
-  transform: translateY(-4px);
 }
 
 .exercise-group-emoji {
@@ -368,7 +367,7 @@
 
 /* -- Counting -- */
 
-.counting-scene {
+.exercise-scene {
   position: relative;
   width: 100%;
   max-width: 360px;
@@ -380,7 +379,7 @@
   overflow: hidden;
 }
 
-.counting-img {
+.exercise-scene-img {
   position: absolute;
   top: 0;
   left: 0;
