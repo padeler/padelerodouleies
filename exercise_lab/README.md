@@ -128,17 +128,17 @@ conventions, and every bundle-generating subagent must be given them.
 
     ```
     python exercise_lab/tools/pdf_crop.py \
-      "exercise_lab/books/<grade>/<BOOK>.pdf" <page> \
+      "exercise_lab/books/<grade>/<BOOK>.pdf" <pdf-page> \
       exercise_lab/bundles/<grade>/<course>/<id>-v<version>/assets/scene.png \
       --frac 0 0.12 1 0.62 --max-width 520
     ```
 
+    `<pdf-page>` is the PDF page index recorded in the chapter notes (see step 1).
     Use `--frac x0 y0 x1 y1` (page fractions) or `--rect` (PDF points) to crop a
     region; omit both for the full page. Check the result — no white margins, no cut
     text. **Do not crop text as an image** — put any needed text directly in the
-    question. Note PDF page ≠ printed book page (front matter offsets it); verify the
-    page you get is the one you want. Reference it as `"image": "scene.png"` (a bare
-    filename, relative to `assets/`).
+    question. Reference it as `"image": "scene.png"` (a bare filename, relative to
+    `assets/`).
   - **Generate an image** → the `"image"` field. Draw or illustrate a scene (a number
     line, shapes to count, labelled objects) when the book has nothing suitable.
   - **SVG Icon library** → the `"icon"` field. The app ships with **359 Lucide SVG
@@ -164,6 +164,12 @@ Producing exercise bundles is a multi-step process. For each course:
    material, in markdown, to `notes/<grade>/<course>/chapter_<id>.md`. Always
    keep references back into the PDF (page, paragraph, or image) for later use.
 
+   **Always record page references as the PDF page index** (1-based position in the
+   file) — the same number the `Read` tool uses to open the page and that
+   `pdf_crop.py` takes, so no conversion is ever needed later. The number *printed*
+   on the page usually differs (front matter offsets it); ignore the printed folio
+   and record the PDF page you actually read.
+
    A course often has several PDFs, and a PDF often has several chapters. Reading
    PDF pages is token-heavy (the `Read` tool takes up to 20 pages per call), so
    **fan the per-chapter reading out to subagents** — this keeps the orchestrator's
@@ -181,7 +187,9 @@ Producing exercise bundles is a multi-step process. For each course:
      - the source PDF (absolute path) and the chapter's page range;
      - the exact output path (`notes/<grade>/<course>/chapter_<id>.md`) and the
        note format;
-     - the rule to keep page/paragraph/image references back into the PDF.
+     - the rule to keep page/paragraph/image references back into the PDF,
+       **always citing the PDF page index** (1-based file position — the page the
+       `Read` tool opened), never the printed book folio.
    - Once every chapter of a PDF is done, verifies the notes are consistent (all
      chapters covered, refs resolve), then marks the PDF done in `progress.md`.
 
@@ -231,9 +239,9 @@ Producing exercise bundles is a multi-step process. For each course:
      spell out everything it needs:
      - the exercise idea(s) from `ideas.md` this bundle covers, and the
        user-supplied **difficulty + star count**;
-     - the source PDF (absolute path) and the page/image refs (from the chapter
-       notes) it should crop page art from, plus the `tools/pdf_crop.py` invocation
-       (and that PDF page ≠ printed book page — verify the crop);
+     - the source PDF (absolute path) and the page/image refs (PDF page indices,
+       from the chapter notes) it should crop page art from, plus the
+       `tools/pdf_crop.py` invocation;
      - the resolved `subject` and `age_min`/`age_max` (per the **Bundle field
        conventions** tables), the mono-script-per-string rule, the
        `<id>-v<version>/` dir-naming rule, and the

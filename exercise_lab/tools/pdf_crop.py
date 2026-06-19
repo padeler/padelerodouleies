@@ -8,6 +8,10 @@ PyMuPDF (``fitz``) — a single pure dependency, no system binaries.
 
     pip install pymupdf
 
+``page`` is the **PDF page index** (1-based position in the file) — the same
+number the chapter notes record and the ``Read`` tool uses, so no printed-page
+conversion is ever needed.
+
 Coordinates can be given two ways (pick one):
 
 - ``--frac x0 y0 x1 y1`` — fractions of the page (0..1 from the top-left). Easiest
@@ -20,10 +24,10 @@ pixels (default 640) so assets stay light on the old LAN tablets; ``--dpi`` sets
 the render resolution before that cap (default 150).
 
 Examples:
-    # Whole page 11 of Teuchos B, capped at 640px wide
+    # Whole PDF page 11 of Teuchos B, capped at 640px wide
     python pdf_crop.py BOOK.pdf 11 ../bundles/.../assets/scene.png
 
-    # Top half of page 15 (the Skyros photo) as a 480px-wide crop
+    # Top half of PDF page 15 (the Skyros photo) as a 480px-wide crop
     python pdf_crop.py BOOK.pdf 15 out.png --frac 0 0 1 0.5 --max-width 480
 """
 
@@ -86,7 +90,7 @@ def crop(
 def main() -> None:
     p = argparse.ArgumentParser(description="Crop a PDF page region into a PNG asset.")
     p.add_argument("pdf", type=Path, help="source PDF (e.g. a books/… textbook)")
-    p.add_argument("page", type=int, help="page number, 1-based")
+    p.add_argument("page", type=int, help="PDF page index, 1-based")
     p.add_argument("out", type=Path, help="output PNG path (usually a bundle's assets/…)")
     g = p.add_mutually_exclusive_group()
     g.add_argument("--frac", type=float, nargs=4, metavar=("X0", "Y0", "X1", "Y1"),
