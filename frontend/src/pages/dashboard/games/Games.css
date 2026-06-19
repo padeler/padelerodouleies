@@ -62,12 +62,22 @@
 
 /* Single-game page chrome */
 .game-page-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 16px;
 }
 
 .game-back {
-  display: inline-block;
-  margin-bottom: 8px;
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
   color: var(--accent);
   font-weight: 600;
   text-decoration: none;
@@ -75,7 +85,7 @@
 }
 
 .game-back:hover {
-  text-decoration: underline;
+  background: var(--accent-border);
 }
 
 /* Shared HUD row (score / lives / best) */

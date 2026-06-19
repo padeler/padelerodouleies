@@ -100,6 +100,7 @@ export function BundlePlayer() {
         <Link to=".." relative="path" className="exercise-back">
           ← {t('exercises.back')}
         </Link>
+        <span className="exercise-bundle-name">{manifest.title}</span>
         <span className="exercise-progress-text">
           {t('exercises.progress', { current: String(idx + 1), total: String(exercises.length) })}
         </span>

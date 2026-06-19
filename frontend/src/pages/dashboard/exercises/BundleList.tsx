@@ -1,8 +1,11 @@
 import { Link, useParams } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
 import { useT } from '../../../i18n/store';
+import { SpeakButton } from '../../../components/SpeakButton';
+import { exerciseBundleTitleTtsUrl } from '../../../api/client';
 import { useExerciseBundles } from './useExercises';
 import type { ExerciseSubject } from '../../../lib/types';
+import '../flip-card.css'; // .speak-btn styles
 import './Exercises.css';
 
 function DifficultyDots({ value }: { value: number }) {
@@ -40,19 +43,27 @@ export function BundleList() {
       ) : (
         <div className="exercises-grid">
           {inGroup.map((b) => (
-            <Link key={b.id} to={b.id} className={`exercise-bundle-card ${b.completed ? 'done' : ''}`}>
-              {b.completed && (
-                <span className="exercise-done-badge">
-                  <CheckCircle2 size={16} aria-hidden="true" /> {t('exercises.completed')}
+            <div key={b.id} className="exercise-bundle-card-wrap">
+              {/* SpeakButton is a sibling of the Link (not nested in the anchor)
+                  so tapping it never navigates into the bundle. */}
+              <SpeakButton src={exerciseBundleTitleTtsUrl(b.id)} />
+              <Link to={b.id} className={`exercise-bundle-card ${b.completed ? 'done' : ''}`}>
+                <span className="exercise-bundle-title">{b.title}</span>
+                <span className="exercise-bundle-meta">
+                  {t('exercises.exercise_count', { count: String(b.exercise_count) })}
                 </span>
-              )}
-              <span className="exercise-bundle-title">{b.title}</span>
-              <span className="exercise-bundle-meta">
-                {t('exercises.exercise_count', { count: String(b.exercise_count) })}
-              </span>
-              <DifficultyDots value={b.difficulty} />
-              <span className="exercise-bundle-stars">⭐ {b.stars}</span>
-            </Link>
+                {/* Difficulty + stars + completed status pinned to the card bottom. */}
+                <div className="exercise-bundle-foot">
+                  <DifficultyDots value={b.difficulty} />
+                  <span className="exercise-bundle-stars">⭐ {b.stars}</span>
+                  {b.completed && (
+                    <span className="exercise-done-badge">
+                      <CheckCircle2 size={16} aria-hidden="true" /> {t('exercises.completed')}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       )}

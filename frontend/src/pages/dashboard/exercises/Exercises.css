@@ -3,6 +3,14 @@
    flex gap (grid-gap / margins), no `inset`, no animated filters —
    transform/opacity transitions only. */
 
+/* Tabs supply their own horizontal padding (the kid content area has none —
+   unlike the admin shell), so pad the hub + player to keep cards off the edge. */
+.exercises-hub,
+.exercise-player {
+  padding: 24px;
+  box-sizing: border-box;
+}
+
 .exercises-hub h2,
 .exercise-player h2 {
   color: var(--text-h);
@@ -10,12 +18,22 @@
 }
 
 .exercises-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   margin-bottom: 16px;
 }
 
 .exercise-back {
-  display: inline-block;
-  margin-bottom: 8px;
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
   color: var(--accent);
   font-weight: 600;
   text-decoration: none;
@@ -23,7 +41,7 @@
 }
 
 .exercise-back:hover {
-  text-decoration: underline;
+  background: var(--accent-border);
 }
 
 .exercises-empty {
@@ -40,6 +58,19 @@
 }
 
 /* -- Group + bundle cards -- */
+
+/* The bundle card's Link + its speaker button share a positioned wrapper (the
+   speak button is absolutely positioned and must sit outside the anchor so a
+   tap never navigates into the bundle). The wrap is the grid cell; the card
+   stretches to fill it so every card in a row is the same height. */
+.exercise-bundle-card-wrap {
+  position: relative;
+  display: flex;
+}
+
+.exercise-bundle-card-wrap .exercise-bundle-card {
+  width: 100%;
+}
 
 .exercise-group-card,
 .exercise-bundle-card {
@@ -81,6 +112,16 @@
   color: var(--text);
 }
 
+/* Footer pinned to the bottom of the (equal-height) card: difficulty, stars,
+   and the completed badge, so they line up across every card in a row. */
+.exercise-bundle-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
 .exercise-bundle-stars {
   margin-top: 12px;
   padding: 4px 16px;
@@ -118,7 +159,7 @@
 .exercise-done-badge {
   display: inline-flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-top: 12px; /* sits at the bottom of the card, below stars */
   padding: 3px 10px;
   border-radius: 999px;
   background: #6bcb77;
@@ -136,6 +177,13 @@
 .exercise-player {
   max-width: 560px;
   margin: 0 auto;
+}
+
+.exercise-bundle-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-h);
+  margin-bottom: 4px;
 }
 
 .exercise-progress-text {
@@ -400,6 +448,19 @@
   margin-bottom: 18px;
 }
 
+/* Tray item + its speaker button share a positioned wrapper (the speak button
+   is absolutely positioned and can't live inside the item's <button>). */
+.order-item-wrap {
+  position: relative;
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  margin: 6px;
+}
+
+.order-item-wrap .order-item {
+  margin: 0;
+}
+
 .order-item {
   position: relative;
   display: flex;
@@ -409,6 +470,8 @@
   width: 80px;
   margin: 6px;
   padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
   background: var(--bg);
   border: 3px solid var(--accent-border);
   border-radius: 14px;
@@ -460,9 +523,14 @@
 }
 
 .order-item-text {
+  max-width: 100%;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-h);
+  overflow-wrap: break-word;
+  word-break: break-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 .order-check,

@@ -13,6 +13,11 @@ interface Props {
   onAnswer: (response: Record<string, string>) => void;
 }
 
+// Distinct per-pair colours so a kid can see at a glance which left links to
+// which right. Old-tablet safe (plain hex). Cycles if there are >6 pairs.
+const PAIR_COLORS = ['#ff6b6b', '#4d96ff', '#6bcb77', '#ffb703', '#b56bff', '#ff8fab'];
+const pairColor = (connection: number) => PAIR_COLORS[(connection - 1) % PAIR_COLORS.length];
+
 function Face({ bundleId, opt }: { bundleId: string; opt: ExerciseOption }) {
   return (
     <>
@@ -83,9 +88,21 @@ export function MatchPairsPlayer({ bundleId, exercise, disabled, resetSignal, on
           {lefts.map((opt) => {
             const linked = links[opt.id] !== undefined;
             const cls = `match-item${selected === opt.id ? ' match-selected' : ''}${linked ? ' match-linked' : ''}`;
+            const color = linked ? pairColor(leftIndex(opt.id)) : undefined;
             return (
-              <button key={opt.id} type="button" className={cls} disabled={disabled} onClick={() => tapLeft(opt.id)}>
-                {linked && <span className="match-badge">{leftIndex(opt.id)}</span>}
+              <button
+                key={opt.id}
+                type="button"
+                className={cls}
+                style={color ? { borderColor: color } : undefined}
+                disabled={disabled}
+                onClick={() => tapLeft(opt.id)}
+              >
+                {linked && (
+                  <span className="match-badge" style={{ background: color }}>
+                    {leftIndex(opt.id)}
+                  </span>
+                )}
                 <Face bundleId={bundleId} opt={opt} />
               </button>
             );
@@ -95,9 +112,21 @@ export function MatchPairsPlayer({ bundleId, exercise, disabled, resetSignal, on
           {rights.map((opt) => {
             const ownerLeft = rightToLeft(opt.id);
             const cls = `match-item${ownerLeft ? ' match-linked' : ''}`;
+            const color = ownerLeft ? pairColor(leftIndex(ownerLeft)) : undefined;
             return (
-              <button key={opt.id} type="button" className={cls} disabled={disabled} onClick={() => tapRight(opt.id)}>
-                {ownerLeft && <span className="match-badge">{leftIndex(ownerLeft)}</span>}
+              <button
+                key={opt.id}
+                type="button"
+                className={cls}
+                style={color ? { borderColor: color } : undefined}
+                disabled={disabled}
+                onClick={() => tapRight(opt.id)}
+              >
+                {ownerLeft && (
+                  <span className="match-badge" style={{ background: color }}>
+                    {leftIndex(ownerLeft)}
+                  </span>
+                )}
                 <Face bundleId={bundleId} opt={opt} />
               </button>
             );

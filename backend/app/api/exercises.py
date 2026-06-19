@@ -112,6 +112,24 @@ def get_asset(
     return FileResponse(target, headers={"Cache-Control": "private, max-age=3600"})
 
 
+@router.get("/tts/{bundle_id}/title.mp3")
+def get_bundle_title_tts(
+    bundle_id: str,
+    current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken bundle title (for the bundle-list speaker button)."""
+    bundle = _get_visible_bundle(bundle_id, current_user)
+    try:
+        path = tts.get_or_synthesize(bundle.manifest.title)
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for bundle title %s: %s", bundle_id, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
 @router.get("/tts/{bundle_id}/{exercise_id}/{kind}.mp3")
 def get_exercise_tts(
     bundle_id: str,
@@ -147,6 +165,20 @@ def get_exercise_tts(
     )
 
 
+def _iter_exercise_options(exercise: Any) -> list[Any]:
+    """Every selectable/orderable option across an exercise's type-specific shape.
+
+    Covers ``multiple_choice`` options, ``ordering`` items and both sides of
+    ``match_pairs`` pairs — so per-item TTS works for any type that has text
+    labels, not just multiple choice.
+    """
+    options = getattr(exercise, "options", None) or []
+    items = getattr(exercise, "items", None) or []
+    pairs = getattr(exercise, "pairs", None) or []
+    pair_sides = [side for p in pairs for side in (p.left, p.right)]
+    return [*options, *items, *pair_sides]
+
+
 @router.get("/tts/{bundle_id}/{exercise_id}/option/{option_id}.mp3")
 def get_option_tts(
     bundle_id: str,
@@ -154,16 +186,13 @@ def get_option_tts(
     option_id: str,
     current_user: User = Depends(get_current_user),
 ) -> FileResponse:
-    """Spoken text for one multiple-choice option, synthesized + cached server-side."""
+    """Spoken text for one option/item (multiple-choice, ordering, match-pairs)."""
     bundle = _get_visible_bundle(bundle_id, current_user)
     exercise = next((e for e in bundle.manifest.exercises if e.id == exercise_id), None)
     if exercise is None:
         raise HTTPException(404, f"Exercise not found: {exercise_id}")
 
-    options = getattr(exercise, "options", None)
-    if not options:
-        raise HTTPException(404, f"Exercise {exercise_id} has no options")
-    option = next((o for o in options if o.id == option_id), None)
+    option = next((o for o in _iter_exercise_options(exercise) if o.id == option_id), None)
     if option is None or not option.text:
         raise HTTPException(404, f"Option {option_id} not found or has no text")
 

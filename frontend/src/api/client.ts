@@ -544,6 +544,11 @@ export function exerciseTtsUrl(
   return `/api/exercises/tts/${encodeURIComponent(bundleId)}/${encodeURIComponent(exerciseId)}/${kind}.mp3`;
 }
 
+/** URL of the spoken bundle title (for the bundle-list SpeakButton). */
+export function exerciseBundleTitleTtsUrl(bundleId: string): string {
+  return `/api/exercises/tts/${encodeURIComponent(bundleId)}/title.mp3`;
+}
+
 /** URL of the spoken text for a multiple-choice option (for SpeakButton). */
 export function exerciseOptionTtsUrl(
   bundleId: string,

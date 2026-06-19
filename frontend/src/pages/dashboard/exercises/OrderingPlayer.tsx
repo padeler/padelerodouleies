@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { exerciseAssetUrl } from '../../../api/client';
+import { exerciseAssetUrl, exerciseOptionTtsUrl } from '../../../api/client';
+import { SpeakButton } from '../../../components/SpeakButton';
 import { useT } from '../../../i18n/store';
 import { shuffle } from '../../../lib/shuffle';
 import type { ExerciseOption, ExerciseView } from '../../../lib/types';
@@ -79,15 +80,19 @@ export function OrderingPlayer({ bundleId, exercise, disabled, resetSignal, onAn
 
       <div className="order-tray">
         {remaining.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className="order-item"
-            disabled={disabled}
-            onClick={() => place(item.id)}
-          >
-            <ItemFace bundleId={bundleId} item={item} />
-          </button>
+          <div key={item.id} className="order-item-wrap">
+            <button
+              type="button"
+              className="order-item"
+              disabled={disabled}
+              onClick={() => place(item.id)}
+            >
+              <ItemFace bundleId={bundleId} item={item} />
+            </button>
+            {item.text && (
+              <SpeakButton src={exerciseOptionTtsUrl(bundleId, exercise.id, item.id)} />
+            )}
+          </div>
         ))}
       </div>
 
