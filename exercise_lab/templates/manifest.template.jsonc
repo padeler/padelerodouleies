@@ -20,8 +20,8 @@
       "type": "multiple_choice",
       "prompt": "Ποια εικόνα αρχίζει από Α;",
       "prompt_tts": null,              // optional spoken override; null falls back to `prompt`
-      "image": null,                   // scene/content image — rendered ABOVE the prompt at full size
-      "icon": null,                    // decorative icon — rendered INLINE alongside the prompt text
+      "image": null,                   // full-size scene above the prompt — a file in assets/ (crop book art with tools/pdf_crop.py)
+      "icon": "/api/icons/svg/apple",  // inline accent — a shipped icon by URL (no copy into assets/; see templates/icon-catalog-reference.md)
       "options": [                     // 2–4 options; image-only is fine for pre-readers
         { "id": "a", "image": "apple.png", "text": "αρκούδα" },
         { "id": "b", "image": "ball.png" }

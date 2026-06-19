@@ -142,6 +142,52 @@ def test_invalid_json_rejected(tmp_path: Path) -> None:
     assert "invalid JSON" in exc.value.msg
 
 
+# -- built-in icon URL references -------------------------------------------
+
+def _minimal_manifest_with_icon(icon: str) -> dict:
+    """A self-contained one-exercise bundle whose only asset ref is ``icon``."""
+    return {
+        "schema_version": 1,
+        "id": "icon-probe",
+        "version": 1,
+        "title": "Δοκιμή εικονιδίου",
+        "subject": "language",
+        "age_min": 8,
+        "age_max": 10,
+        "stars": 0,
+        "difficulty": 1,
+        "exercises": [
+            {"id": "e1", "type": "numeric_entry", "prompt": "1 + 1 = ;",
+             "prompt_tts": "ένα συν ένα", "answer": 2, "icon": icon},
+        ],
+    }
+
+
+def test_builtin_icon_url_accepted_without_assets(tmp_path: Path) -> None:
+    # A shipped icon is referenced by URL and needs no assets/ dir at all.
+    data = _minimal_manifest_with_icon("/api/icons/svg/snowflake")
+    (tmp_path / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
+    bundle = load_bundle(tmp_path)
+    assert bundle.exercises[0].icon == "/api/icons/svg/snowflake"
+
+
+def test_builtin_icon_unknown_name_rejected(tmp_path: Path) -> None:
+    data = _minimal_manifest_with_icon("/api/icons/svg/totally-not-a-real-icon")
+    (tmp_path / "manifest.json").write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(BundleValidationError) as exc:
+        load_bundle(tmp_path)
+    assert "built-in icon not found" in exc.value.msg
+
+
+def test_builtin_icon_malformed_ref_rejected() -> None:
+    # A traversal segment after the prefix must be rejected at schema validation.
+    from pydantic import ValidationError
+
+    data = _minimal_manifest_with_icon("/api/icons/svg/../secret")
+    with pytest.raises(ValidationError, match="malformed"):
+        BundleManifest.model_validate(data)
+
+
 def test_all_exercise_type_shapes_validate() -> None:
     """The other three types (M4) have finalized shapes that validate."""
     base = _load_json("letters-A-v1")

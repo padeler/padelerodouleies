@@ -85,12 +85,15 @@ Every exercise type supports two optional visual fields:
 | Field | Renders | Use when |
 |---|---|---|
 | `image` | **Full-size scene above the prompt** (16:9 box, before the interactive controls) | The image is *about* the question — book art, a generated illustration, the objects to count. Rendering order: progress dots → scene image → prompt + speaker → player. |
-| `icon` | **Small, inline alongside the prompt text** (44 px, semi-transparent) | A decorative Lucide SVG icon used as a visual accent when no real scene image is available. |
+| `icon` | **Small, inline alongside the prompt text** (44 px, semi-transparent) | A decorative Lucide SVG icon used as a visual accent — pairs well with a scene `image`. |
 
-Both fields point to an asset path inside `assets/`. **Counting exercises require
-`image`** (the scene the kid counts items in); for all other types both fields are
-optional and default to `null`. Using both `image` and `icon` on the same exercise
-is valid but unusual.
+Each field is **either** a path inside `assets/` (a cropped/generated bundle image)
+**or** a built-in icon URL `"/api/icons/svg/<name>"`. A built-in icon ships with the
+app and is *not* copied into the bundle — the validator verifies the name against the
+shipped catalog (fail-explicit on a typo). **Counting exercises require `image`** (the
+scene the kid counts items in); for all other types both fields are optional and
+default to `null`. Using both `image` and `icon` on one exercise is encouraged (a book
+scene plus a topical inline icon).
 
 | Type | Shape | Answer | Milestone |
 |---|---|---|---|
@@ -114,7 +117,8 @@ Input reuses the PIN-style number pad (no free-text field, invariant #1 ethos).
 - At least one of `image` / `text` is required.
 - `image` is a path **relative to `assets/`**; path traversal (`..`, absolute,
   leading `/`) is rejected and the file must exist. The same rules apply to the
-  exercise-level `image` and `icon` fields.
+  exercise-level `image` and `icon` fields. The one allowed non-`assets/` form is a
+  built-in icon URL `"/api/icons/svg/<name>"` (name restricted to `[a-z0-9-]+`).
 
 ## Audio
 

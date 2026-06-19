@@ -20,12 +20,16 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from app.schemas.exercises import BundleManifest, asset_refs
+from app.schemas.exercises import BundleManifest, asset_refs, builtin_icon_name
 
 logger = logging.getLogger(__name__)
 
 MANIFEST_NAME = "manifest.json"
 ASSETS_DIRNAME = "assets"
+
+# Shipped icon catalog (served at /api/icons/svg/<name>). A bundle may reference
+# a built-in icon by that URL instead of copying the SVG into its assets/ dir.
+ICON_SVG_DIR = Path(__file__).parents[1] / "icons" / "svg"
 
 # Where bundles live. Container default is the RAID bind mount; the dev default
 # sits under the backend root, mirroring the TTS_DIR env pattern in tts.py.
@@ -75,6 +79,13 @@ def load_bundle(bundle_dir: Path) -> BundleManifest:
 
     assets_dir = bundle_dir / ASSETS_DIRNAME
     for ref in asset_refs(manifest):
+        # A built-in icon URL points at the shipped catalog, not the bundle's
+        # assets/ — verify the icon exists there (fail-explicit on a bad name).
+        icon_name = builtin_icon_name(ref)
+        if icon_name is not None:
+            if not (ICON_SVG_DIR / f"{icon_name}.svg").is_file():
+                raise BundleValidationError(bundle_dir, ref, f"built-in icon not found: {icon_name}")
+            continue
         # Resolve and confirm the asset stays inside assets/ and exists on disk.
         resolved = (assets_dir / ref).resolve()
         if assets_dir.resolve() not in resolved.parents and resolved != assets_dir.resolve():

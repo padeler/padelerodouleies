@@ -532,6 +532,9 @@ export async function postExerciseAnswer(
 
 /** URL of a bundle image asset (served auth-gated by the backend). */
 export function exerciseAssetUrl(bundleId: string, path: string): string {
+  // Built-in app icons are referenced by their served URL (/api/icons/svg/<name>)
+  // and need no bundle prefix — use them as-is.
+  if (path.startsWith('/api/icons/svg/')) return path;
   return `/api/exercises/assets/${encodeURIComponent(bundleId)}/${path}`;
 }
 

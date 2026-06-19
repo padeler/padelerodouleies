@@ -49,8 +49,31 @@ def _assert_mono_script(value: str, field: str) -> None:
         raise ValueError(f"{field} mixes Greek and Latin letters (must be mono-script)")
 
 
+# Built-in icons ship with the app and are served at /api/icons/svg/<name>.
+# A bundle references one by that exact URL — no copy into assets/ is needed
+# (the existence check in the loader points at the shipped catalog instead).
+BUILTIN_ICON_PREFIX = "/api/icons/svg/"
+_BUILTIN_ICON_RE = re.compile(r"^/api/icons/svg/[a-z0-9-]+$")
+
+
+def builtin_icon_name(ref: str) -> str | None:
+    """Return the icon name if ``ref`` targets the built-in icon catalog, else None."""
+    if ref.startswith(BUILTIN_ICON_PREFIX):
+        return ref[len(BUILTIN_ICON_PREFIX) :]
+    return None
+
+
 def _assert_no_traversal(ref: str, field: str) -> None:
-    """Reject an asset reference that could escape the bundle's assets/ dir."""
+    """Reject an asset reference that could escape the bundle's assets/ dir.
+
+    A built-in icon URL (``/api/icons/svg/<name>``) is allowed and points at the
+    shipped icon catalog rather than the bundle's ``assets/`` dir; its name is
+    restricted to ``[a-z0-9-]+`` so it can never carry a traversal segment.
+    """
+    if ref.startswith(BUILTIN_ICON_PREFIX):
+        if not _BUILTIN_ICON_RE.match(ref):
+            raise ValueError(f"{field} built-in icon reference is malformed: {ref!r}")
+        return
     if ref.startswith("/") or ref.startswith("\\") or ".." in ref.replace("\\", "/").split("/"):
         raise ValueError(f"{field} asset reference is not allowed: {ref!r}")
 

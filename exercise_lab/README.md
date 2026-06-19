@@ -35,6 +35,8 @@ The goal is to produce exercise bundles for each course with:
   five exercise types.
 - `templates/icon-catalog-reference.md` — browsable list of all 359 SVG icons
   available to exercises, with English/Greek keywords by category.
+- `tools/pdf_crop.py` — PyMuPDF helper that crops a page (or region) of a book PDF
+  into a web-optimized PNG asset (`pip install pymupdf`).
 
 ## Bundle field conventions
 
@@ -103,35 +105,56 @@ conventions, and every bundle-generating subagent must be given them.
   rote memorisation of the page. This does not apply for things the kid should 
   remember like grammar and spelling.
 
-- **Questions should have an icon or image.** Aim for *most* questions to have an
-  image or diagram at the question level.
-  Visuals make the tab usable for pre-readers and far more engaging.
-  There are **two manifest fields** for visuals — they render differently:
+- **Questions should have an image and/or an icon.** Aim for *most* questions to
+  carry a visual at the question level. Visuals make the tab usable for pre-readers
+  and far more engaging. The two manifest fields are **complementary, not
+  either/or** — render differently and can be used together on the same exercise:
 
   | Field | Renders | Best for |
   |---|---|---|
-  | `"image"` | **Full-size above the prompt** (16:9 scene box) | Book art, generated illustrations, counting scenes — images that are directly about the question |
-  | `"icon"` | **Small, inline alongside the prompt text** | Decorative Lucide SVG icons used as a visual accent when no real scene image is available |
+  | `"image"` | **Full-size above the prompt** (16:9 scene box) | Book art, generated illustrations, counting scenes — a picture that *is the content* of the question |
+  | `"icon"` | **Small, inline alongside the prompt text** | A decorative Lucide SVG accent — a quick visual cue for a text-led question |
 
-  Three valid sources:
-  - **Re-use art from the book** (preferred) → use the `"image"` field. Crop the real page
-    illustrations, diagrams, maps, or photos referenced in the chapter notes. This is the
-    preferred source because it ties the exercise to material the kid has seen. Do not crop
-    text as an image — put any needed text directly in the question. When cropping images
-    make sure they are cropped correctly (no unneeded white margins or cut text).
-  - **Generate an image** → use the `"image"` field. Draw or illustrate a scene (a number
+  A strong exercise often has **both**: a cropped book illustration in `"image"`
+  *and* a small topical `"icon"` next to the prompt. Reach for a real book image
+  first (it ties the exercise to material the kid has seen); add an icon as the
+  inline accent. The three sources:
+
+  - **Re-use art from the book** → the `"image"` field (the preferred scene source).
+    Crop the real page illustrations, diagrams, maps, or photos referenced in the
+    chapter notes with the **`tools/pdf_crop.py`** helper (PyMuPDF — `pip install
+    pymupdf`), which renders a page or a sub-region to a web-optimized PNG straight
+    into the bundle's `assets/`:
+
+    ```
+    python exercise_lab/tools/pdf_crop.py \
+      "exercise_lab/books/<grade>/<BOOK>.pdf" <page> \
+      exercise_lab/bundles/<grade>/<course>/<id>-v<version>/assets/scene.png \
+      --frac 0 0.12 1 0.62 --max-width 520
+    ```
+
+    Use `--frac x0 y0 x1 y1` (page fractions) or `--rect` (PDF points) to crop a
+    region; omit both for the full page. Check the result — no white margins, no cut
+    text. **Do not crop text as an image** — put any needed text directly in the
+    question. Note PDF page ≠ printed book page (front matter offsets it); verify the
+    page you get is the one you want. Reference it as `"image": "scene.png"` (a bare
+    filename, relative to `assets/`).
+  - **Generate an image** → the `"image"` field. Draw or illustrate a scene (a number
     line, shapes to count, labelled objects) when the book has nothing suitable.
-  - **SVG Icon library** → use the `"icon"` field. The app ships with **359 Lucide SVG
-    icons** (animals, food, school objects, nature, transport, faces, etc.) that work as
-    a visual accent when no real scene image is available. Consult
-    `templates/icon-catalog-reference.md` to browse available icons by category
-    with English/Greek keywords. Copy the desired SVG from
-    `backend/app/icons/svg/` into the bundle's `assets/` directory (e.g.
-    `assets/dog.svg`) and reference it in the manifest as `"icon": "assets/dog.svg"`.
-    The bundle validator requires every asset reference to exist inside the bundle,
-    so always copy — don't reference the icon source path directly.
+  - **SVG Icon library** → the `"icon"` field. The app ships with **359 Lucide SVG
+    icons** (animals, food, school objects, nature, transport, faces, etc.), already
+    served by the running app — **no copying**. Browse
+    `templates/icon-catalog-reference.md` (English/Greek keywords by category) to
+    find a name, then reference the icon by its **served URL** directly:
+    `"icon": "/api/icons/svg/dog"`. The validator accepts this form and checks the
+    name against the shipped catalog (fail-explicit on a typo), so the SVG never
+    needs to live in the bundle's `assets/`. The same URL works in dev and prod
+    (same-origin). You may also use an icon URL anywhere an image ref is accepted
+    (e.g. a `multiple_choice` option's `"image"`), but prefer `"icon"` for the
+    inline-accent role.
 
-  Keep assets small and web-optimized per the asset rules in step 3 below.
+  Keep cropped/generated assets small and web-optimized per the asset rules in
+  step 3 below (built-in icons are already optimized).
 
 ## Process
 
@@ -177,12 +200,17 @@ Producing exercise bundles is a multi-step process. For each course:
    rewarded.
    - Follow the **Bundle field conventions** above and copy the shapes you need
      from `templates/manifest.template.jsonc`.
-   - **Assets** (`<bundle>/assets/`): crop the real page art and/or generate
-     illustrations — both are first-class. Keep images small (a few hundred px on
-     the long edge, web-optimized PNG/JPG) so they render fast on the old LAN
-     tablets (Samsung Tab 4). The validator only checks that every referenced asset
-     exists and stays inside `assets/`; image *size* is a performance concern, not
-     a validation gate, so keep it lean yourself.
+   - **Assets** — two complementary kinds (see **Content guidelines** above):
+     - **Scene images** (`"image"`): crop real page art with `tools/pdf_crop.py`
+       and/or generate illustrations into `<bundle>/assets/`. Both are first-class.
+       Keep them small (a few hundred px on the long edge, web-optimized PNG/JPG)
+       so they render fast on the old LAN tablets (Samsung Tab 4). The validator
+       checks that every `assets/` reference exists and stays inside `assets/`;
+       image *size* is a performance concern, not a validation gate, so keep it lean.
+     - **Inline icons** (`"icon"`): reference a shipped icon by URL
+       (`"/api/icons/svg/<name>"`) — **no copy into `assets/`**. The validator
+       verifies the name against the catalog. Prefer pairing a book `"image"` with
+       a topical `"icon"`.
    - This step can run multiple times to add more bundles — watch `bundles/` to
      avoid duplicates (similar is fine).
 
@@ -204,14 +232,17 @@ Producing exercise bundles is a multi-step process. For each course:
      - the exercise idea(s) from `ideas.md` this bundle covers, and the
        user-supplied **difficulty + star count**;
      - the source PDF (absolute path) and the page/image refs (from the chapter
-       notes) it should crop page art from;
+       notes) it should crop page art from, plus the `tools/pdf_crop.py` invocation
+       (and that PDF page ≠ printed book page — verify the crop);
      - the resolved `subject` and `age_min`/`age_max` (per the **Bundle field
        conventions** tables), the mono-script-per-string rule, the
        `<id>-v<version>/` dir-naming rule, and the
        `templates/manifest.template.jsonc` path;
      - the **Content guidelines** above verbatim — self-contained questions (no
        recall-by-heart of book text; fold any needed context into the question)
-       and an asset on every question (crop book art or generate one);
+       and a visual on every question: prefer a cropped book `"image"` (or a
+       generated one), plus a topical `"icon"` referenced by URL
+       (`"/api/icons/svg/<name>"`, no copy) as the inline accent;
      - the exact output dir `bundles/<grade>/<course>/<id>-v<version>/`;
      - the mandate to **run the same validator the container uses on its own bundle
        and iterate until it exits 0 before returning** — so defects are fixed in the

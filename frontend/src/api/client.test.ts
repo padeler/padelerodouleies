@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import { login, logout, getMe, getUsers, updateLocale, changePin, getBootstrapStatus, bootstrapSetup, getChores, createChore, getRewards, createReward, getPendingClaims, approveClaim, declineClaim, getAdminUsers, adjustStars, getVisibleChores, claimChore, getKidHistory, getMarketplaceRewards, redeemReward, getLeaderboard, getIconCatalog } from './client';
+import { login, logout, getMe, getUsers, updateLocale, changePin, getBootstrapStatus, bootstrapSetup, getChores, createChore, getRewards, createReward, getPendingClaims, approveClaim, declineClaim, getAdminUsers, adjustStars, getVisibleChores, claimChore, getKidHistory, getMarketplaceRewards, redeemReward, getLeaderboard, getIconCatalog, exerciseAssetUrl } from './client';
 
 const server = setupServer();
 
@@ -362,5 +362,19 @@ describe('API client — icons', () => {
     const catalog = await getIconCatalog();
     expect(catalog[0].name).toBe('star');
     expect(catalog[0].keywords_en).toContain('star');
+  });
+});
+
+describe('API client — exerciseAssetUrl', () => {
+  it('prefixes a bundle-relative asset path', () => {
+    expect(exerciseAssetUrl('letters-A', 'apple.png')).toBe(
+      '/api/exercises/assets/letters-A/apple.png',
+    );
+  });
+
+  it('passes a built-in icon URL through unchanged (no bundle prefix)', () => {
+    expect(exerciseAssetUrl('letters-A', '/api/icons/svg/snowflake')).toBe(
+      '/api/icons/svg/snowflake',
+    );
   });
 });

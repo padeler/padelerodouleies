@@ -4,37 +4,44 @@
 
 ## How to Use in Exercises
 
-In a bundle manifest, reference an icon by its **name** (e.g. `apple`). Each icon is served at:
+These icons ship with the app and are already served by it — **you do not copy
+them into a bundle**. Reference an icon by its **served URL**:
 
 `/api/icons/svg/<name>`  e.g. `/api/icons/svg/apple`
 
-Source files: `backend/app/icons/svg/<name>.svg`
-Full catalog endpoint: `GET /api/icons/catalog`
+The bundle validator accepts a `/api/icons/svg/<name>` reference and verifies the
+name against the shipped catalog (a typo fails validation explicitly), so the SVG
+never needs to live in the bundle's `assets/`.
+
+Full catalog endpoint: `GET /api/icons/catalog` · source files (for reference only):
+`backend/app/icons/svg/<name>.svg`.
 
 ## Using in a Bundle
 
-The bundle validator requires every asset reference to exist inside the bundle's
-`assets/` directory. To use an icon:
-
 1. **Browse** this file to find the icon name you need.
-2. **Copy** the SVG from `backend/app/icons/svg/<name>.svg` into your bundle's
-   `assets/` directory.
-3. **Reference** it in the manifest as `"image": "assets/<name>.svg"`.
-
-For example, to use the apple icon:
+2. **Reference** it by URL — normally in the `"icon"` field, which renders small and
+   inline alongside the prompt text (its intended decorative-accent role):
 
 ```jsonc
 {
   "type": "multiple_choice",
-  "prompt": "Τι φρούτο αυτό;",
-  "image": "assets/apple.svg",     // ← copied from backend/app/icons/svg/apple.svg
-  "options": ["μήλο", "μπαλί", "πορτοκάλι"],
-  "answer": "μήλο"
+  "prompt": "Τι φρούτο είναι αυτό;",
+  "icon": "/api/icons/svg/apple",   // ← served by the app; no copy, no assets/ prefix
+  "options": [
+    { "id": "a", "text": "μήλο" },
+    { "id": "b", "text": "πορτοκάλι" }
+  ],
+  "answer": "a"
 }
 ```
 
-Do **not** reference the icon source path directly (e.g. `icons/svg/apple.svg`) —
-the validator will reject it as a missing asset. Always copy into the bundle.
+Notes:
+- Use `"icon"` (inline accent), **not** `"image"`, for an icon — `"image"` renders
+  full-size above the prompt and is meant for real scene art (crop book pages with
+  `tools/pdf_crop.py`). An icon URL is *also* accepted anywhere an image ref is, but
+  the inline role is what icons are for.
+- Do **not** use a bundle-relative path or an `assets/` prefix for a built-in icon
+  (e.g. `"assets/apple.svg"` resolves to `assets/assets/apple.svg` and fails).
 
 ---
 
