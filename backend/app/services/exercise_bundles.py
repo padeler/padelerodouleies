@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -117,18 +118,52 @@ class Discovery:
 _cache: dict[Path, tuple[Any, Discovery]] = {}
 
 
+def _is_bundle_dir(d: Path) -> bool:
+    """Whether ``d`` is a bundle directory rather than an intermediate container.
+
+    A bundle holds a ``manifest.json`` (and usually an ``assets/`` folder). The
+    ``assets/`` check lets a broken bundle that is *missing* its manifest still be
+    recognised here and surfaced as invalid, instead of being silently descended
+    into. Any other directory (e.g. ``<grade>/`` or ``<course>/``) is a container.
+    """
+    return (d / MANIFEST_NAME).is_file() or (d / ASSETS_DIRNAME).is_dir()
+
+
+def _bundle_dirs(root: Path) -> Iterator[Path]:
+    """Yield every bundle directory under ``root``, recursing through containers.
+
+    Bundles may sit arbitrarily deep — the dev workflow lays them out as
+    ``<grade>/<course>/<bundle>/`` to keep production tidy. A directory recognised
+    as a bundle is yielded and *not* descended into (its ``assets/`` is not a
+    bundle); every other directory is treated as a container and walked.
+    """
+    for child in sorted(root.iterdir()):
+        if not child.is_dir():
+            continue
+        if _is_bundle_dir(child):
+            yield child
+        else:
+            yield from _bundle_dirs(child)
+
+
 def _signature(root: Path) -> Any:
-    """A cheap fingerprint of the bundles root: its mtime + each child's."""
+    """A cheap fingerprint of the bundles tree: every bundle dir + its manifest mtime.
+
+    Recursion means a deep change never bumps a parent directory's mtime, so the
+    signature must enumerate the bundle dirs themselves (not just the root's direct
+    children) for the mtime cache to invalidate correctly.
+    """
     if not root.is_dir():
         return None
     entries: list[tuple[str, int]] = []
-    for child in sorted(root.iterdir()):
-        if child.is_dir():
-            try:
-                entries.append((child.name, child.stat().st_mtime_ns))
-            except OSError:
-                continue
-    return (root.stat().st_mtime_ns, tuple(entries))
+    for bundle_dir in _bundle_dirs(root):
+        manifest = bundle_dir / MANIFEST_NAME
+        try:
+            stat_target = manifest if manifest.is_file() else bundle_dir
+            entries.append((str(bundle_dir.relative_to(root)), stat_target.stat().st_mtime_ns))
+        except OSError:
+            continue
+    return tuple(entries)
 
 
 def _scan(root: Path) -> Discovery:
@@ -137,14 +172,12 @@ def _scan(root: Path) -> Discovery:
     if not root.is_dir():
         logger.info("exercises dir does not exist: %s", root)
         return Discovery(valid=(), invalid=())
-    for child in sorted(root.iterdir()):
-        if not child.is_dir():
-            continue
+    for child in _bundle_dirs(root):
         try:
             manifest = load_bundle(child)
             valid.append(DiscoveredBundle(dir=child, manifest=manifest))
         except BundleValidationError as exc:
-            logger.warning("invalid bundle %s: %s", child.name, exc)
+            logger.warning("invalid bundle %s: %s", child, exc)
             invalid.append(InvalidBundle(dir=child, error=str(exc)))
     return Discovery(valid=tuple(valid), invalid=tuple(invalid))
 
@@ -181,3 +214,16 @@ def get_bundle(bundle_id: str, root: Path | None = None) -> DiscoveredBundle | N
     if not matches:
         return None
     return max(matches, key=lambda b: b.manifest.version)
+
+
+def rel_path(bundle_dir: Path, root: Path | None = None) -> str:
+    """A bundle dir's path relative to the bundles root, for admin display.
+
+    Yields e.g. ``Γ_ΤΑΞΗ_ΔΗΜΟΤΙΚΟΥ/glossa/glossa-gramma-a-v1``. Falls back to the
+    absolute path if the dir somehow sits outside the root.
+    """
+    root = (root or EXERCISES_DIR).resolve()
+    try:
+        return str(bundle_dir.resolve().relative_to(root))
+    except ValueError:
+        return str(bundle_dir)

@@ -657,7 +657,7 @@ def get_exercise_stats(
     _admin: User = Depends(require_admin),
 ) -> dict[str, Any]:
     """All bundle metadata + per-kid completion counts for the admin exercises view."""
-    from app.services.exercise_bundles import discover
+    from app.services.exercise_bundles import discover, rel_path
 
     discovery = discover()
 
@@ -672,11 +672,12 @@ def get_exercise_stats(
             "stars": b.manifest.stars,
             "difficulty": b.manifest.difficulty,
             "exercise_count": len(b.manifest.exercises),
+            "path": rel_path(b.dir),
         }
         for b in discovery.valid
     ]
     invalid_out = [
-        {"dir": str(b.dir.name), "error": b.error}
+        {"dir": rel_path(b.dir), "error": b.error}
         for b in discovery.invalid
     ]
 
@@ -714,12 +715,12 @@ def rescan_exercises(
     waiting for the directory mtime to settle. Logs what was re-scanned, incl. any
     invalid dirs (fail-explicit).
     """
-    from app.services.exercise_bundles import clear_cache, discover
+    from app.services.exercise_bundles import clear_cache, discover, rel_path
 
     clear_cache()
     discovery = discover()
     valid, invalid = len(discovery.valid), len(discovery.invalid)
     logger.info("admin rescan: %d valid / %d invalid bundle(s)", valid, invalid)
     for b in discovery.invalid:
-        logger.warning("admin rescan invalid bundle %s: %s", b.dir.name, b.error)
+        logger.warning("admin rescan invalid bundle %s: %s", rel_path(b.dir), b.error)
     return {"valid": valid, "invalid": invalid}

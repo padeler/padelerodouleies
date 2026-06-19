@@ -26,9 +26,11 @@ The goal is to produce exercise bundles for each course with:
 ## Layout
 
 - `books/` — source textbook PDFs, by school year (git-ignored).
-- `notes/<course>/` — per-chapter notes plus an `ideas.md` checklist (working
-  artifacts, tracked in git).
-- `bundles/<course>/` — the generated bundle directories (the output).
+- `notes/<grade>/<course>/` — per-chapter notes plus an `ideas.md` checklist
+  (working artifacts, tracked in git). `<grade>` mirrors the `books/` folder
+  name (e.g. `Γ_ΤΑΞΗ_ΔΗΜΟΤΙΚΟΥ`), so the same course name (e.g. `glossa`) can
+  exist under multiple grades without collision.
+- `bundles/<grade>/<course>/` — the generated bundle directories (the output).
 - `templates/manifest.template.jsonc` — annotated reference manifest covering all
   five exercise types.
 
@@ -90,17 +92,39 @@ Some manifest fields can't be read straight off the page — set them as follows
 
 Producing exercise bundles is a multi-step process. For each course:
 
-1. **Scan the material.**
-   - For each chapter, write notes about the covered material, in markdown, to
-     `notes/<course>/chapter_<id>.md`.
-   - Keep references back into the PDF (page, paragraph, or image) for later use.
+1. **Scan the material.** For each chapter, write notes about the covered
+   material, in markdown, to `notes/<grade>/<course>/chapter_<id>.md`. Always
+   keep references back into the PDF (page, paragraph, or image) for later use.
 
-2. **Collect exercise ideas.** Build one `notes/<course>/ideas.md` checklist with
+   A course often has several PDFs, and a PDF often has several chapters. Reading
+   PDF pages is token-heavy (the `Read` tool takes up to 20 pages per call), so
+   **fan the per-chapter reading out to subagents** — this keeps the orchestrator's
+   context lean and lets chapters run in parallel. The orchestrator:
+
+   - Does a cheap structure pass first (table of contents / page headers) to
+     enumerate each PDF's chapters and their page ranges — you can't assign a
+     chapter to a subagent before you know its bounds.
+   - Writes `notes/<grade>/<course>/progress.md` listing every PDF and chapter as
+     pending / WIP / done, and keeps it updated as subagents return.
+   - Spawns one subagent per chapter, using the Sonnet model (pass
+     `model: "sonnet"` to the Agent tool — the per-spawn override is enough, no
+     custom agent definition needed). Each subagent starts cold, so its prompt
+     must spell out everything it needs:
+     - the source PDF (absolute path) and the chapter's page range;
+     - the exact output path (`notes/<grade>/<course>/chapter_<id>.md`) and the
+       note format;
+     - the rule to keep page/paragraph/image references back into the PDF.
+   - Once every chapter of a PDF is done, verifies the notes are consistent (all
+     chapters covered, refs resolve), then marks the PDF done in `progress.md`.
+
+   Stop and wait for user instructions before moving on to step 2.
+
+2. **Collect exercise ideas.** Build one `notes/<grade>/<course>/ideas.md` checklist with
    per-chapter entries.
    - Keep each entry simple, e.g. `chapter_<id> - basic addition exercises`.
    - Multiple exercises can come from a single hint.
 
-3. **Generate bundles** into `bundles/<course>/`, drawing on the notes + ideas and
+3. **Generate bundles** into `bundles/<grade>/<course>/`, drawing on the notes + ideas and
    pulling images from the PDFs where needed. This is a **guided** step — the user
    supplies extra information such as the difficulty level and the number of stars
    rewarded.
@@ -115,12 +139,37 @@ Producing exercise bundles is a multi-step process. For each course:
    - This step can run multiple times to add more bundles — watch `bundles/` to
      avoid duplicates (similar is fine).
 
-4. **Verify every bundle.** Run the same validator the container uses, and iterate
-   until it exits 0:
+   Like step 1, **fan the per-bundle generation out to subagents** — one bundle per
+   subagent keeps the orchestrator's context lean and lets bundles run in parallel
+   (each owns a distinct `<id>-v<version>/` dir, so parallel writes never collide).
+   Because this step is *guided*, the orchestrator must **gather the guidance up
+   front for the whole batch** (which ideas become bundles, and each one's
+   difficulty + star count) — you can't prompt the user mid-fan-out. Then:
 
-   ```
-   cd backend && python -m app.schemas.exercises ../exercise_lab/bundles/<course>/<bundle-dir>
-   ```
+   - Maintains `bundles/<grade>/<course>/progress.md` listing every planned bundle
+     (its `<id>-v<version>`, source idea, difficulty, stars) as pending / WIP /
+     done, updated as subagents return. This is also the dedup ledger — check it
+     before spawning so two subagents don't generate near-identical bundles.
+   - Spawns one subagent per bundle, using the Sonnet model (pass
+     `model: "sonnet"` to the Agent tool — the per-spawn override is enough, no
+     custom agent definition needed). Each subagent starts cold, so its prompt must
+     spell out everything it needs:
+     - the exercise idea(s) from `ideas.md` this bundle covers, and the
+       user-supplied **difficulty + star count**;
+     - the source PDF (absolute path) and the page/image refs (from the chapter
+       notes) it should crop page art from;
+     - the resolved `subject` and `age_min`/`age_max` (per the **Bundle field
+       conventions** tables), the mono-script-per-string rule, the
+       `<id>-v<version>/` dir-naming rule, and the
+       `templates/manifest.template.jsonc` path;
+     - the exact output dir `bundles/<grade>/<course>/<id>-v<version>/`;
+     - the mandate to **run the same validator the container uses on its own bundle
+       and iterate until it exits 0 before returning** — so defects are fixed in the
+       subagent, not surfaced later in the orchestrator:
+
+       ```
+       cd backend && python -m app.schemas.exercises ../exercise_lab/bundles/<grade>/<course>/<id>-v<version>
+       ```
 
    A bundle that generates clean must load clean. To play-test it, copy the dir
    into `EXERCISES_DIR` and set a kid's birthdate — see

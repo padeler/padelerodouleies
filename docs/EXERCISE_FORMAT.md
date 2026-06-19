@@ -10,15 +10,24 @@ bundle.
 ## Directory layout
 
 A bundle is a **directory** (not a zip), dropped under the data volume at
-`/app/data/exercises/<bundle-dir>/` (dev: `backend/data/exercises/`):
+`/app/data/exercises/` (dev: `backend/data/exercises/`). Discovery **recurses**,
+so a bundle may sit at the top level or nested inside container directories — the
+dev workflow nests them as `<grade>/<course>/<bundle>/` to keep production tidy. A
+directory holding a `manifest.json` (or an `assets/` folder) is treated as a
+bundle and not descended into; any other directory is a container that's walked.
 
 ```
 exercises/
-  2026-06-letters-A-v1/
+  2026-06-letters-A-v1/        # top-level bundle
     manifest.json
     assets/
       apple.png        # images only — audio is synthesized server-side from text
       ball.png
+  Γ_ΤΑΞΗ_ΔΗΜΟΤΙΚΟΥ/            # container (grade)
+    glossa/                    # container (course)
+      glossa-gramma-a-v1/      # nested bundle
+        manifest.json
+        assets/
 ```
 
 - The directory name is free-form (convention: `<id>-v<version>`).

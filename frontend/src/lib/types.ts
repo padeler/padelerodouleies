@@ -226,6 +226,7 @@ export interface AdminExerciseBundleSummary {
   stars: number;
   difficulty: number;
   exercise_count: number;
+  path: string;
 }
 
 export interface AdminExerciseKidStat {

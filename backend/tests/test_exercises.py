@@ -245,6 +245,29 @@ def test_get_bundle_picks_highest_version(exercises_dir) -> None:
     assert exercise_bundles.get_bundle("nope") is None
 
 
+def test_discover_recurses_nested_layout(tmp_path, monkeypatch) -> None:
+    """Bundles nested as <grade>/<course>/<bundle>/ are found; containers ignored."""
+    import shutil
+
+    # A top-level bundle plus one nested two dirs deep under containers.
+    shutil.copytree(FIXTURES / "letters-A-v1", tmp_path / "letters-A-v1")
+    nested = tmp_path / "Γ_ΤΑΞΗ" / "math" / "math-times-v1"
+    shutil.copytree(FIXTURES / "math-times-v1", nested)
+    # An invalid bundle nested under a container is still surfaced.
+    shutil.copytree(FIXTURES / "broken-mixed-script-v1", tmp_path / "Γ_ΤΑΞΗ" / "glossa" / "broken-v1")
+
+    monkeypatch.setattr(exercise_bundles, "EXERCISES_DIR", tmp_path)
+    exercise_bundles.clear_cache()
+    result = exercise_bundles.discover()
+
+    assert {b.manifest.id for b in result.valid} == {"letters-A", "math-times"}
+    assert len(result.invalid) == 1
+    # rel_path reflects the nested layout; intermediate dirs are not bundles.
+    nested_bundle = next(b for b in result.valid if b.manifest.id == "math-times")
+    assert exercise_bundles.rel_path(nested_bundle.dir) == "Γ_ΤΑΞΗ/math/math-times-v1"
+    assert exercise_bundles.rel_path(result.invalid[0].dir) == "Γ_ΤΑΞΗ/glossa/broken-v1"
+
+
 # -- age targeting ----------------------------------------------------------
 
 def test_age_for_boundaries() -> None:

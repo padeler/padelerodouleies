@@ -54,6 +54,7 @@ export function AdminExercisesPage() {
           <thead>
             <tr>
               <th>{t('exercises.title')}</th>
+              <th>{t('exercises.admin.col_path')}</th>
               <th>{t('exercises.admin.col_age')}</th>
               <th>{t('exercises.admin.col_difficulty')}</th>
               <th>{t('exercises.admin.col_stars')}</th>
@@ -67,6 +68,9 @@ export function AdminExercisesPage() {
                 <td>
                   <span style={{ marginRight: 6 }}>{t(`exercises.subject.${b.subject}`)}</span>
                   {b.title}
+                </td>
+                <td style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--text-muted, #718096)' }}>
+                  {b.path}
                 </td>
                 <td>{t('exercises.admin.age_range', { min: String(b.age_min), max: String(b.age_max) })}</td>
                 <td>{b.difficulty}/5</td>
