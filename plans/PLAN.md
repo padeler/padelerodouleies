@@ -3,9 +3,9 @@
 **Status: IN PROGRESS.** **M1–M5 are implemented** on the `feat/exercises-mvp`
 branch: validator + bundle format, discovery/persistence/kid API, the kid
 "Ασκήσεις" tab with **all five exercise types playable** (M4), and the admin
-rescan + kid-Stats surfacing (M5). M6's dev-machine generation skill is scaffolded
-(`exercise_lab/tools/exercise-gen/`); its acceptance test (one bundle from real school
-material) and M7 rollout remain. Not yet merged to `main`. The normative bundle
+rescan + kid-Stats surfacing (M5). M6's dev-machine generation workflow is
+scaffolded as a README-driven process (`exercise_lab/README.md`); its acceptance
+test (one bundle from real school material) and M7 rollout remain. Not yet merged to `main`. The normative bundle
 format now lives in [docs/EXERCISE_FORMAT.md](../docs/EXERCISE_FORMAT.md) (the
 Pydantic models in `backend/app/schemas/exercises.py` are its source of truth).
 
@@ -43,7 +43,7 @@ star awards through the existing append-only ledger.
 ## 2. Architecture overview
 
 ```
-school material ──► exercise-gen agent (dev machine, M6)
+school material ──► exercise_lab/ workflow (dev machine, M6)
                           │ produces + validates
                           ▼
             bundle dir: manifest.json + assets/
@@ -96,14 +96,16 @@ Key decisions (settled in discussion 2026-06-09 unless flagged ⚖️ — see §
   the Samsung Tab 4's Android-4.x browser, whereas `speechSynthesis` there is
   unreliable and its Greek voice depends on an installed engine — rejected), always
   user-gesture-driven (old-Android autoplay policy). Verified on the Tab 4 in M7.
-- **TTS text is mono-script per bundle.** Piper phonemizes via espeak-ng with **one
+- **TTS text is mono-script per string.** Piper phonemizes via espeak-ng with **one
   fixed language per voice** (Greek model → Greek G2P) and has no per-word language
   switching, so mixing scripts in one string mispronounces the minority script — and
   `tts.py`'s `detect_language` (any Greek codepoint → Greek voice) makes that failure
-  loud. The rule, which also fits invariant #5: a Greek bundle's text is Greek-only,
-  an **English bundle's text is English-only** (e.g. the 9-year-old's English-learning
-  exercises, read by the English voice), never blended. The generator enforces this;
-  if a concept genuinely needs a foreign term, respell it in the bundle's own script.
+  loud. The rule, which also fits invariant #5: **no single string mixes Greek and
+  Latin letters**. It is per string, **not** per bundle — a bundle may freely hold
+  both Greek and English strings (e.g. the 9-year-old's English-learning exercises:
+  a Greek prompt with English options, or Greek↔English `match_pairs`). The generator
+  enforces this; if one string genuinely needs a foreign term, respell it in that
+  string's own script or split it across separate strings.
 - **Optional spoken-text override.** espeak-ng's Greek G2P leans on the written τόνος
   for stress, and rare words can still mispronounce. So every exercise may carry an
   optional `prompt_tts` / `hint_tts` field: the card *displays* `prompt`/`hint` but the
@@ -285,22 +287,25 @@ errors) pass, and gets a semver tag on merge to `main` (per workflow memory).
 - Kid exercise activity surfaced in the existing Activity table via `action_label`.
 - Optional: exercises in the Stats tab (per-kid solved counts) — stretch, can slip.
 
-### M6 — Generation agent (dev-machine tooling, not shipped in the container)
+### M6 — Generation workflow (dev-machine tooling, not shipped in the container)
 - `exercise_lab/`: the dev-machine lab for all agentic exercise generation — the
-  Claude Code project skill + prompt templates under `exercise_lab/tools/exercise-gen/`,
-  plus the source textbook PDFs under `exercise_lab/books/` (git-ignored). Takes
-  school material (photos/PDFs) + target kid/age and emits a bundle directory.
-- The skill's contract: read `EXERCISE_FORMAT.md`, generate `manifest.json` + assets,
-  then **run the M1 validator** (`python -m app.schemas.exercises <dir>` entry point)
-  and iterate until clean.
+  README-driven workflow (`exercise_lab/README.md`) + `templates/`, the per-course
+  working `notes/` and output `bundles/`, plus the source textbook PDFs under
+  `exercise_lab/books/` (git-ignored, organized by school year). Per course: scan
+  the PDFs into chapter notes, build an exercise-idea checklist, then a guided
+  generation step (user supplies difficulty + star count) emits bundle directories.
+- The workflow's contract: read `EXERCISE_FORMAT.md`, generate `manifest.json` +
+  assets (using `templates/manifest.template.jsonc`), then **run the M1 validator**
+  (`python -m app.schemas.exercises <dir>` entry point) and iterate until clean.
 - Images: cropped photos of the actual school material **and/or** generated
   illustrations, per exercise — both first-class; the validator enforces max
   dimensions/byte size either way.
 - Audio: nothing to generate — prompts/hints are spoken at runtime by the container's
   Piper TTS from the manifest text, so the agent only writes good prompt text:
-  **mono-script per bundle** (no English mixed into Greek, or vice versa), correct
-  τόνος on Greek, and a `prompt_tts`/`hint_tts` spoken override wherever a word reads
-  wrong (validator rejects a bundle whose text mixes scripts).
+  **mono-script per string** (no single string mixes Greek and Latin letters; a
+  bundle may still hold both languages across separate strings), correct τόνος on
+  Greek, and a `prompt_tts`/`hint_tts` spoken override wherever a word reads wrong
+  (validator rejects any one string that mixes scripts).
 - Deliverable: generate one real bundle from actual school material end-to-end as the
   acceptance test.
 
@@ -345,9 +350,10 @@ end-to-end). M4/M5 next. M6 can start in parallel after M1 freezes the spec.
   Samsung Tab 4 (old Android browser) compatibility and consistent Greek voice
   quality. Gesture-driven playback only. *(Superseded the original "pre-generated MP3s
   in the bundle" decision once Piper TTS landed in production, 2026-06.)*
-- **TTS-text language:** mono-script per bundle (Greek bundles Greek-only, English
-  bundles English-only — e.g. the 9-year-old's English-learning exercises). Piper has
-  no per-word language switching, so scripts are never mixed in one string. Each
+- **TTS-text language:** mono-script per string (no single string mixes Greek and
+  Latin letters; a bundle may hold both languages across separate strings — e.g. the
+  9-year-old's English-learning exercises). Piper has no per-word language switching,
+  so scripts are never mixed in one string. Each
   exercise may carry an optional `prompt_tts`/`hint_tts` spoken override (respelled or
   re-accented text) when the auto-reading is wrong, falling back to the displayed text.
 - **Assets:** photos of the school material and/or generated illustrations, both

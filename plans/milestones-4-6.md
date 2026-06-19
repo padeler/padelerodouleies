@@ -3,10 +3,10 @@
 > **Status: M4 + M5 done; M6 scaffolded (acceptance pending).** M1–M3 (the MVP)
 > are complete on `feat/exercises-mvp` (see [milestones-1-3.md](./milestones-1-3.md)).
 > M4 (all five exercise types playable) and M5 (admin rescan + Stats surfacing)
-> are implemented and green. M6's generation skill lives under
-> `exercise_lab/tools/exercise-gen/` (all agentic-generation tooling and the
-> source textbook PDFs live under `exercise_lab/`); its acceptance test — one
-> bundle from real school
+> are implemented and green. M6's generation workflow is a README-driven process
+> under `exercise_lab/` (`exercise_lab/README.md`; all agentic-generation tooling,
+> working `notes/`/`bundles/`, and the source textbook PDFs live under
+> `exercise_lab/`); its acceptance test — one bundle from real school
 > material — and M7 rollout remain. This file is the execution checklist for these
 > milestones. Strategy and decisions live in
 > [PLAN.md](./PLAN.md); the normative bundle format lives in
@@ -43,7 +43,7 @@ landed during the MVP push and only need their remaining halves:
 So the real remaining work is: **M4** = three frontend players + CSS + sample
 bundles + tests; **M5** = the Rescan control and the (decision-gated) visibility
 override, plus optional Stats-tab surfacing; **M6** = the dev-machine generation
-skill and one real bundle.
+workflow and one real bundle.
 
 ---
 
@@ -180,22 +180,34 @@ Goal: a repeatable dev-machine workflow that turns school material (photos/PDFs)
 a target age into a valid bundle directory, validated by the **same M1 validator**
 the container uses. The production image never calls an LLM (PLAN.md §1).
 
-### The skill
-- [x] `exercise_lab/tools/exercise-gen/`: a Claude Code project skill (`SKILL.md`
-      + prompt templates) whose contract is:
-  1. Read `docs/EXERCISE_FORMAT.md` (the normative spec).
-  2. Take inputs: source material (image/PDF paths) + target kid age + subject.
-  3. Emit a bundle dir: `manifest.json` + `assets/` (cropped photos of the real
-     material **and/or** generated illustrations — both first-class).
-  4. **Run the validator** `python -m app.schemas.exercises <dir>` and iterate
-     until it exits 0. A bundle that generates clean must load clean.
-- [x] Cover **all five** exercise types in the templates (so do M4 first, or at
-      least freeze the M4 sample shapes — they are the generation reference).
+### The workflow
+- [x] `exercise_lab/README.md`: a README-driven, multi-step dev-machine process
+      (no Claude Code skill) whose contract is, **per course**:
+  1. **Scan** the course PDFs under `exercise_lab/books/<school-year>/` and write
+     per-chapter notes to `notes/<course>/chapter_<id>.md`, keeping references
+     back into the PDF (page, paragraph, or image) for later use.
+  2. **Ideate**: build an exercise-idea checklist in `notes/<course>/ideas.md`
+     (one simple hint per entry, e.g. `chapter_<id> - basic addition exercises`;
+     multiple exercises can come from one hint).
+  3. **Generate** (guided — the user supplies difficulty level + star count) into
+     `bundles/<course>/`, using the notes + ideas and pulling PDF images where
+     needed. Greek by default unless the user says otherwise; re-runnable, watch
+     `bundles/` for duplicates. Read `docs/EXERCISE_FORMAT.md` (the normative spec)
+     and use `templates/manifest.template.jsonc`. Each bundle is a dir
+     (`manifest.json` + `assets/` — cropped real-material photos **and/or**
+     generated illustrations, both first-class).
+  4. **Verify** each bundle with `python -m app.schemas.exercises <dir>` and
+     iterate until it exits 0. A bundle that generates clean must load clean.
+- [x] `templates/manifest.template.jsonc` covers **all five** exercise types (so do
+      M4 first, or at least freeze the M4 sample shapes — they are the generation
+      reference).
 
-### Content rules the skill must enforce (PLAN.md §2, §7)
-- [x] **Mono-script per bundle**: Greek bundles Greek-only, English bundles
-      English-only — never blended (the validator rejects mixed scripts, but the
-      prompts should be written right, not just pass).
+### Content rules the workflow must enforce (PLAN.md §2, §7)
+- [x] **Mono-script per string**: no single `prompt`/`hint`/`text` mixes Greek and
+      Latin letters (the validator rejects that). A bundle *may* hold both languages
+      across separate strings — e.g. English-learning bundles with a Greek prompt +
+      English options, or Greek↔English `match_pairs`. Write prompts right, not just
+      to pass.
 - [x] Correct **τόνος** on Greek; add a `prompt_tts`/`hint_tts` spoken override
       wherever Piper's auto-reading is wrong (respelled/re-accented/transliterated).
 - [x] Images pre-sized to the validator's max dimension/byte limits (so they
@@ -206,12 +218,12 @@ the container uses. The production image never calls an LLM (PLAN.md §1).
 - [ ] Generate **one real bundle from actual school material** end-to-end, validate
       it, drop it into the dev `EXERCISES_DIR`, set a kid's birthdate, and play it
       through every exercise type it contains. This is the M6 acceptance test.
-      *(The skill/templates/docs are in place; run it against the textbook PDFs
+      *(The workflow/templates/docs are in place; run it against the textbook PDFs
       under `exercise_lab/books/` (git-ignored) when ready.)*
-- [x] Document the workflow in `exercise_lab/tools/exercise-gen/README.md` (inputs, how to run,
-      where bundles land) and cross-link from `samples/exercises/README.md`.
+- [x] Document the workflow in `exercise_lab/README.md` (the process steps, inputs,
+      and where notes/bundles land) and cross-link from `samples/exercises/README.md`.
 
-**Done when:** the skill produces a validator-clean bundle from real material that
+**Done when:** the workflow produces a validator-clean bundle from real material that
 plays correctly in the tab; the workflow is documented.
 
 ---

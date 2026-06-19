@@ -106,8 +106,11 @@ Piper has **one fixed language per voice** (no per-word switching), so a string
 that mixes Greek and Latin **letters** mispronounces the minority script. The
 validator therefore **rejects** any TTS-bound string (`prompt`, `hint`, their
 `*_tts` overrides, and option `text`) that contains both Greek and Latin
-letters. Digits, operators and punctuation are script-neutral and allowed. A
-Greek bundle's text is Greek-only; an English bundle's text is English-only.
+letters. Digits, operators and punctuation are script-neutral and allowed. The
+rule is **per string, not per bundle** — a single bundle may freely contain both
+Greek and English strings (e.g. an English-learning bundle with Greek↔English
+`match_pairs`, or a Greek prompt with English options); only mixing both scripts
+*inside one string* is rejected.
 
 ### Spoken-text overrides (`prompt_tts` / `hint_tts`)
 
