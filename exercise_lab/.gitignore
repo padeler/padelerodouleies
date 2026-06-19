@@ -1,1 +1,5 @@
+# Only tooling (templates/) and docs (README.md) are tracked.
+# Source PDFs, working notes, and generated bundles stay local.
 books
+notes
+bundles
