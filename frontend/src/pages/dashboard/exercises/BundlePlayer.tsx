@@ -123,6 +123,13 @@ export function BundlePlayer() {
       )}
 
       <div className={`exercise-prompt feedback-${feedback}`}>
+        {exercise.icon && (
+          <img
+            className="exercise-prompt-icon"
+            src={exerciseAssetUrl(bundleId, exercise.icon)}
+            alt=""
+          />
+        )}
         <span className="exercise-prompt-text">{exercise.prompt}</span>
         <SpeakButton src={exerciseTtsUrl(bundleId, exercise.id, 'prompt')} />
       </div>

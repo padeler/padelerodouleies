@@ -91,6 +91,10 @@ class _ExerciseBase(_Strict):
     # Optional exercise-level image (scene/instructional). CountingExercise
     # overrides this with a required `image: str`.
     image: str | None = Field(default=None, max_length=200)
+    # Optional decorative icon (SVG from the Lucide asset library). Rendered
+    # inline alongside the prompt text, NOT as a full-size scene above it.
+    # Use this when no real scene image is available but a visual accent helps.
+    icon: str | None = Field(default=None, max_length=200)
 
     def model_post_init(self, _ctx: Any) -> None:
         for field in ("prompt", "prompt_tts", "hint", "hint_tts"):
@@ -99,6 +103,8 @@ class _ExerciseBase(_Strict):
                 _assert_mono_script(value, f"exercise {self.id!r} {field}")
         if self.image is not None:
             _assert_no_traversal(self.image, f"exercise {self.id!r} image")
+        if self.icon is not None:
+            _assert_no_traversal(self.icon, f"exercise {self.id!r} icon")
 
 
 class MultipleChoiceExercise(_ExerciseBase):
@@ -215,9 +221,12 @@ def _exercise_view(exercise: Any) -> dict[str, Any]:
     }
     if exercise.hint is not None:
         view["hint"] = exercise.hint
-    # Exercise-level image (optional on most types; required on counting).
+    # Exercise-level scene image (optional on most types; required on counting).
     if exercise.image is not None:
         view["image"] = exercise.image
+    # Decorative icon rendered inline alongside the prompt (optional).
+    if exercise.icon is not None:
+        view["icon"] = exercise.icon
     if isinstance(exercise, MultipleChoiceExercise):
         view["options"] = [_option_view(o) for o in exercise.options]
     elif isinstance(exercise, CountingExercise):
@@ -254,6 +263,9 @@ def asset_refs(manifest: BundleManifest) -> list[str]:
         # Exercise-level scene image (optional on most types; required on counting).
         if ex.image is not None:
             refs.append(ex.image)
+        # Decorative icon (inline alongside the prompt).
+        if ex.icon is not None:
+            refs.append(ex.icon)
         if isinstance(ex, MultipleChoiceExercise):
             refs += [o.image for o in ex.options if o.image]
         elif isinstance(ex, CountingExercise):

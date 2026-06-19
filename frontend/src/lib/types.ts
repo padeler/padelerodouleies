@@ -192,7 +192,10 @@ export interface ExerciseView {
   hint?: string;
   options?: ExerciseOption[];
   items?: ExerciseOption[];
+  /** Scene/content image — rendered above the prompt at full size. */
   image?: string;
+  /** Decorative icon — rendered inline alongside the prompt text. */
+  icon?: string;
   max_count?: number;
   pairs?: Array<{ left: ExerciseOption; right: ExerciseOption }>;
 }

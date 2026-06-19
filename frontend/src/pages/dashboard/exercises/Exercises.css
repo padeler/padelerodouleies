@@ -244,6 +244,16 @@
   margin-right: 10px;
 }
 
+/* Decorative icon shown inline alongside the prompt text (not a scene image). */
+.exercise-prompt-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  margin-right: 14px;
+  object-fit: contain;
+  opacity: 0.55;
+}
+
 /* -- Multiple choice -- */
 
 .mc-options {

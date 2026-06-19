@@ -33,6 +33,8 @@ The goal is to produce exercise bundles for each course with:
 - `bundles/<grade>/<course>/` — the generated bundle directories (the output).
 - `templates/manifest.template.jsonc` — annotated reference manifest covering all
   five exercise types.
+- `templates/icon-catalog-reference.md` — browsable list of all 359 SVG icons
+  available to exercises, with English/Greek keywords by category.
 
 ## Bundle field conventions
 
@@ -88,6 +90,49 @@ Some manifest fields can't be read straight off the page — set them as follows
   directory after `<id>-v<version>` (e.g. `glossa-gramma-a-v1/` for
   `id: glossa-gramma-a`, `version: 1`) so reruns don't collide.
 
+## Content guidelines
+
+These shape *what* a good exercise asks — they are as load-bearing as the field
+conventions, and every bundle-generating subagent must be given them.
+
+- **Self-contained questions only.** Never ask anything that requires recalling
+  text from the book by heart. A kid is not expected to remember a specific
+  passage, a date buried in a paragraph, or "what the story said". If answering
+  needs context, **put that context into the question** — quote the short snippet,
+  show the picture — so the exercise tests understanding, not
+  rote memorisation of the page. This does not apply for things the kid should 
+  remember like grammar and spelling.
+
+- **Questions should have an icon or image.** Aim for *most* questions to have an
+  image or diagram at the question level.
+  Visuals make the tab usable for pre-readers and far more engaging.
+  There are **two manifest fields** for visuals — they render differently:
+
+  | Field | Renders | Best for |
+  |---|---|---|
+  | `"image"` | **Full-size above the prompt** (16:9 scene box) | Book art, generated illustrations, counting scenes — images that are directly about the question |
+  | `"icon"` | **Small, inline alongside the prompt text** | Decorative Lucide SVG icons used as a visual accent when no real scene image is available |
+
+  Three valid sources:
+  - **Re-use art from the book** (preferred) → use the `"image"` field. Crop the real page
+    illustrations, diagrams, maps, or photos referenced in the chapter notes. This is the
+    preferred source because it ties the exercise to material the kid has seen. Do not crop
+    text as an image — put any needed text directly in the question. When cropping images
+    make sure they are cropped correctly (no unneeded white margins or cut text).
+  - **Generate an image** → use the `"image"` field. Draw or illustrate a scene (a number
+    line, shapes to count, labelled objects) when the book has nothing suitable.
+  - **SVG Icon library** → use the `"icon"` field. The app ships with **359 Lucide SVG
+    icons** (animals, food, school objects, nature, transport, faces, etc.) that work as
+    a visual accent when no real scene image is available. Consult
+    `templates/icon-catalog-reference.md` to browse available icons by category
+    with English/Greek keywords. Copy the desired SVG from
+    `backend/app/icons/svg/` into the bundle's `assets/` directory (e.g.
+    `assets/dog.svg`) and reference it in the manifest as `"icon": "assets/dog.svg"`.
+    The bundle validator requires every asset reference to exist inside the bundle,
+    so always copy — don't reference the icon source path directly.
+
+  Keep assets small and web-optimized per the asset rules in step 3 below.
+
 ## Process
 
 Producing exercise bundles is a multi-step process. For each course:
@@ -124,8 +169,10 @@ Producing exercise bundles is a multi-step process. For each course:
    - Keep each entry simple, e.g. `chapter_<id> - basic addition exercises`.
    - Multiple exercises can come from a single hint.
 
-3. **Generate bundles** into `bundles/<grade>/<course>/`, drawing on the notes + ideas and
-   pulling images from the PDFs where needed. This is a **guided** step — the user
+3. **Generate bundles** into `bundles/<grade>/<course>/`, drawing on the notes + ideas. 
+   Read all markdown files in the `notes/<grade>/<course>/` and especially `ideas.md`. 
+   You can find the references to the book pdfs in the `progress.md` and corresponding chapter notes.
+   You can pull images from the book PDFs where needed. This is a **guided** step — the user
    supplies extra information such as the difficulty level and the number of stars
    rewarded.
    - Follow the **Bundle field conventions** above and copy the shapes you need
@@ -162,6 +209,9 @@ Producing exercise bundles is a multi-step process. For each course:
        conventions** tables), the mono-script-per-string rule, the
        `<id>-v<version>/` dir-naming rule, and the
        `templates/manifest.template.jsonc` path;
+     - the **Content guidelines** above verbatim — self-contained questions (no
+       recall-by-heart of book text; fold any needed context into the question)
+       and an asset on every question (crop book art or generate one);
      - the exact output dir `bundles/<grade>/<course>/<id>-v<version>/`;
      - the mandate to **run the same validator the container uses on its own bundle
        and iterate until it exits 0 before returning** — so defects are fixed in the

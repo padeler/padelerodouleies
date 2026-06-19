@@ -78,22 +78,27 @@ Every exercise has: `id`, `type`, `prompt`, optional `prompt_tts`, optional
 `answer` never reaches the client (`kid_view` strips it along with the `*_tts`
 fields).
 
-### Exercise-level image
+### Exercise-level visuals
 
-Every exercise type supports an optional `image` field pointing to an asset in
-`assets/`. This renders as a scene/instructional illustration **above the prompt**
-and interactive controls, giving context before the kid reads the question. The
-rendering order is: progress dots → scene image → prompt text + speaker button →
-interactive player. **Counting exercises require this field** (the scene the kid
-counts items in); for all other types it is optional and defaults to `null`.
+Every exercise type supports two optional visual fields:
+
+| Field | Renders | Use when |
+|---|---|---|
+| `image` | **Full-size scene above the prompt** (16:9 box, before the interactive controls) | The image is *about* the question — book art, a generated illustration, the objects to count. Rendering order: progress dots → scene image → prompt + speaker → player. |
+| `icon` | **Small, inline alongside the prompt text** (44 px, semi-transparent) | A decorative Lucide SVG icon used as a visual accent when no real scene image is available. |
+
+Both fields point to an asset path inside `assets/`. **Counting exercises require
+`image`** (the scene the kid counts items in); for all other types both fields are
+optional and default to `null`. Using both `image` and `icon` on the same exercise
+is valid but unusual.
 
 | Type | Shape | Answer | Milestone |
 |---|---|---|---|
-| `multiple_choice` | `image?` (asset), `options`: 2–4 `{id, image?, text?}` (≥1 of image/text) | option `id` (str) | M3 |
-| `numeric_entry` | `image?` (asset) | `int` (exact, integers only) | M3 |
-| `counting` | `image` **(required)** (asset), `max_count` (1–99, default 10) | `int` ≤ `max_count` | M4 |
-| `ordering` | `image?` (asset), `items`: 3–5 `{id, image?, text?}` | ordered list of item `id`s | M4 |
-| `match_pairs` | `image?` (asset), `pairs`: 2–6 `{left, right}` options | implicit (each `left`↔its `right`) | M4 |
+| `multiple_choice` | `image?`, `icon?`, `options`: 2–4 `{id, image?, text?}` (≥1 of image/text) | option `id` (str) | M3 |
+| `numeric_entry` | `image?`, `icon?` | `int` (exact, integers only) | M3 |
+| `counting` | `image` **(required)**, `max_count` (1–99, default 10) | `int` ≤ `max_count` | M4 |
+| `ordering` | `image?`, `icon?`, `items`: 3–5 `{id, image?, text?}` | ordered list of item `id`s | M4 |
+| `match_pairs` | `image?`, `icon?`, `pairs`: 2–6 `{left, right}` options | implicit (each `left`↔its `right`) | M4 |
 
 `numeric_entry` is **integers only, exact match** — no decimals, fractions,
 negatives, or tolerance in v1 (a future `schema_version` bump if ever needed).
@@ -109,7 +114,7 @@ Input reuses the PIN-style number pad (no free-text field, invariant #1 ethos).
 - At least one of `image` / `text` is required.
 - `image` is a path **relative to `assets/`**; path traversal (`..`, absolute,
   leading `/`) is rejected and the file must exist. The same rules apply to the
-  exercise-level `image` field.
+  exercise-level `image` and `icon` fields.
 
 ## Audio
 
