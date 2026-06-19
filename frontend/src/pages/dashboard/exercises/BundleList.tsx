@@ -52,15 +52,15 @@ export function BundleList() {
                 <span className="exercise-bundle-meta">
                   {t('exercises.exercise_count', { count: String(b.exercise_count) })}
                 </span>
-                {/* Difficulty + stars + completed status pinned to the card bottom. */}
+                {/* Completed status + difficulty + stars pinned to the card bottom. */}
                 <div className="exercise-bundle-foot">
-                  <DifficultyDots value={b.difficulty} />
-                  <span className="exercise-bundle-stars">⭐ {b.stars}</span>
                   {b.completed && (
                     <span className="exercise-done-badge">
                       <CheckCircle2 size={16} aria-hidden="true" /> {t('exercises.completed')}
                     </span>
                   )}
+                  <DifficultyDots value={b.difficulty} />
+                  <span className="exercise-bundle-stars">⭐ {b.stars}</span>
                 </div>
               </Link>
             </div>

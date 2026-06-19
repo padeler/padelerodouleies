@@ -136,6 +136,7 @@ export function BundlePlayer() {
 
       {exercise.type === 'numeric_entry' ? (
         <NumericEntryPlayer
+          key={exercise.id}
           exercise={exercise}
           disabled={submit.isPending || feedback === 'correct'}
           resetSignal={resetSignal}
@@ -143,6 +144,7 @@ export function BundlePlayer() {
         />
       ) : exercise.type === 'multiple_choice' ? (
         <MultipleChoicePlayer
+          key={exercise.id}
           bundleId={bundleId}
           exercise={exercise}
           disabled={submit.isPending || feedback === 'correct'}
@@ -150,6 +152,7 @@ export function BundlePlayer() {
         />
       ) : exercise.type === 'counting' ? (
         <CountingPlayer
+          key={exercise.id}
           bundleId={bundleId}
           exercise={exercise}
           disabled={submit.isPending || feedback === 'correct'}
@@ -157,6 +160,7 @@ export function BundlePlayer() {
         />
       ) : exercise.type === 'ordering' ? (
         <OrderingPlayer
+          key={exercise.id}
           bundleId={bundleId}
           exercise={exercise}
           disabled={submit.isPending || feedback === 'correct'}
@@ -165,6 +169,7 @@ export function BundlePlayer() {
         />
       ) : exercise.type === 'match_pairs' ? (
         <MatchPairsPlayer
+          key={exercise.id}
           bundleId={bundleId}
           exercise={exercise}
           disabled={submit.isPending || feedback === 'correct'}

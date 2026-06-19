@@ -135,6 +135,19 @@ const ORDER_MANIFEST = {
   }],
 };
 
+// Two consecutive ordering exercises with DISTINCT item ids — exercises the
+// stale-state regression where the second ordering kept the first's placed ids.
+const ORDER_TWICE_MANIFEST = {
+  schema_version: 1, id: 'order-2x', version: 1, title: 'Ordering twice', subject: 'logic',
+  age_min: 5, age_max: 8, stars: 4,
+  exercises: [
+    { id: 'ex-01', type: 'ordering', prompt: 'Order first',
+      items: [{ id: 'a1', text: 'a' }, { id: 'a2', text: 'b' }, { id: 'a3', text: 'c' }] },
+    { id: 'ex-02', type: 'ordering', prompt: 'Order second',
+      items: [{ id: 'b1', text: 'x' }, { id: 'b2', text: 'y' }, { id: 'b3', text: 'z' }] },
+  ],
+};
+
 const MATCH_MANIFEST = {
   schema_version: 1, id: 'match-1', version: 1, title: 'Match', subject: 'language',
   age_min: 4, age_max: 7, stars: 4,
@@ -197,6 +210,44 @@ describe('BundlePlayer — ordering', () => {
     await waitFor(() => expect(screen.getByText('Great!')).toBeInTheDocument(), { timeout: 2000 });
     expect(screen.getByText('You earned 4 ⭐!')).toBeInTheDocument();
     expect(notifyCelebration).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('BundlePlayer — consecutive ordering', () => {
+  beforeEach(() => {
+    server.use(
+      http.get('/api/exercises/bundles/order-2x', () => HttpResponse.json(ORDER_TWICE_MANIFEST)),
+      http.post('/api/exercises/bundles/order-2x/answers', async ({ request }) => {
+        const body = (await request.json()) as { exercise_id: string; response: unknown };
+        const want = body.exercise_id === 'ex-01' ? ['a1', 'a2', 'a3'] : ['b1', 'b2', 'b3'];
+        const correct = JSON.stringify(body.response) === JSON.stringify(want);
+        const completed = correct && body.exercise_id === 'ex-02';
+        return HttpResponse.json({ correct, completed, stars_awarded: completed ? 4 : 0, current_stars: completed ? 4 : 0 });
+      }),
+    );
+  });
+
+  // Regression: advancing from one ordering exercise to the next must not crash
+  // (the second player used to render with the first's stale placed ids).
+  it('plays a second ordering exercise without carrying over the first', async () => {
+    const user = userEvent.setup();
+    renderPlayer('order-2x');
+
+    await screen.findByText('Order first');
+    await user.click(screen.getByRole('button', { name: 'a' }));
+    await user.click(screen.getByRole('button', { name: 'b' }));
+    await user.click(screen.getByRole('button', { name: 'c' }));
+    await user.click(screen.getByRole('button', { name: 'Check' }));
+
+    // Second ordering renders cleanly with its own items.
+    await waitFor(() => expect(screen.getByText('Order second')).toBeInTheDocument(), { timeout: 2000 });
+    await user.click(screen.getByRole('button', { name: 'x' }));
+    await user.click(screen.getByRole('button', { name: 'y' }));
+    await user.click(screen.getByRole('button', { name: 'z' }));
+    await user.click(screen.getByRole('button', { name: 'Check' }));
+
+    await waitFor(() => expect(screen.getByText('Great!')).toBeInTheDocument(), { timeout: 2000 });
+    expect(screen.getByText('You earned 4 ⭐!')).toBeInTheDocument();
   });
 });
 

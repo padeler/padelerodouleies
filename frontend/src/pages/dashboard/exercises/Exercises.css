@@ -158,7 +158,7 @@
 .exercise-done-badge {
   display: inline-flex;
   align-items: center;
-  margin-top: 12px; /* sits at the bottom of the card, below stars */
+  margin-top: 12px; /* sits at the top of the card footer, above the difficulty */
   padding: 3px 10px;
   border-radius: 999px;
   background: #6bcb77;
