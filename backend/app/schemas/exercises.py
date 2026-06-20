@@ -46,7 +46,7 @@ def _assert_mono_script(value: str, field: str) -> None:
 
     Piper has no per-word language switching (one fixed G2P per voice), so a
     blended string mispronounces the minority script. Digits, operators and
-    punctuation are script-neutral and always allowed. See PLAN.md §2.
+    punctuation are script-neutral and always allowed. See docs/EXERCISE_FORMAT.md.
     """
     if _GREEK_RE.search(value) and _LATIN_RE.search(value):
         raise ValueError(f"{field} mixes Greek and Latin letters (must be mono-script)")

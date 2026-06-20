@@ -4,7 +4,7 @@ Grading is deterministic and server-side: the manifest's ``answer`` never
 reaches the client (see ``schemas.exercises.kid_view``); the client posts the
 kid's response and these pure functions decide right/wrong. Every submission is
 logged to ``EXERCISE_ATTEMPTS`` (append-only), so any future star policy is
-computable retroactively (PLAN.md Q1). Completing a bundle awards stars exactly
+computable retroactively. Completing a bundle awards stars exactly
 once per (kid, bundle, version), through the append-only ``HistoryLedger`` like
 every other star movement (invariant #4).
 """
@@ -189,7 +189,7 @@ def _exercise_by_id(manifest: BundleManifest, exercise_id: str) -> Any | None:
     return next((e for e in manifest.exercises if e.id == exercise_id), None)
 
 
-# -- star policy (single pure function — PLAN.md Q1) ------------------------
+# -- star policy (single pure function) ------------------------------------
 
 
 def compute_bundle_stars(manifest: BundleManifest, attempts: list[ExerciseAttempt]) -> int:

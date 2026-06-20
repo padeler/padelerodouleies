@@ -1,6 +1,6 @@
 """add exercises: users.birthdate + exercise_attempts + exercise_completions
 
-Supports the age-targeted exercises feature (PLAN.md). ``users.birthdate`` is an
+Supports the age-targeted exercises feature. ``users.birthdate`` is an
 admin-set nullable Date driving age targeting. ``exercise_attempts`` is an
 append-only log of every submitted answer; ``exercise_completions`` records the
 one-time star award per (user, bundle, version) and links it to its history

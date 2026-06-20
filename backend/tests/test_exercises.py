@@ -555,7 +555,7 @@ def test_grade_multiple_choice_and_numeric(exercises_dir) -> None:
 
 
 def test_grade_counting_ordering_match_pairs() -> None:
-    """Correct + wrong round-trip for the three M4 types (PLAN.md M4)."""
+    """Correct + wrong round-trip for the counting/ordering/match_pairs types."""
     base = _load_json("letters-A-v1")
     base["exercises"] = [
         {"id": "c1", "type": "counting", "prompt": "Πόσα;", "image": "apple.png", "answer": 3, "max_count": 5},

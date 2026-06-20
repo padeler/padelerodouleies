@@ -150,7 +150,7 @@ class ExerciseAttempt(Base):
 
     One row per submission (right or wrong). "Progress" is always derived from
     these rows — they are never mutated — so any future star policy is
-    computable retroactively (PLAN.md Q1). Timestamps are naive UTC, matching
+    computable retroactively. Timestamps are naive UTC, matching
     the ledger convention (see the _start_of history).
     """
 
