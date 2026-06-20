@@ -158,6 +158,7 @@ export interface LeaderboardEntry {
 
 export type ExerciseSubject =
   | 'language'
+  | 'foreign_language'
   | 'math'
   | 'geography'
   | 'history'

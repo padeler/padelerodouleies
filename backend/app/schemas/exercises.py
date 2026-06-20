@@ -33,7 +33,9 @@ SCHEMA_VERSION = 2
 _DECIMAL_RE = re.compile(r"^-?\d+([.,]\d+)?$")
 
 # Closed navigation enum — group labels go through translations.py (invariant #5).
-Subject = Literal["language", "math", "geography", "history", "logic", "nature"]
+Subject = Literal[
+    "language", "foreign_language", "math", "geography", "history", "logic", "nature"
+]
 
 # Greek (incl. extended) and Latin letter detectors, used for the mono-script
 # rule. Reuses the Greek-block idea from app/services/tts.py::_GREEK_RE.

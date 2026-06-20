@@ -47,7 +47,7 @@ Some manifest fields can't be read straight off the page — set them as follows
   | Course | `subject` |
   |---|---|
   | Glossa (Greek language) | `language` |
-  | Magic Book (English language) | `language` |
+  | Magic Book (English language) | `foreign_language` |
   | Mathimatika | `math` |
   | Istoria | `history` |
   | Meleti Perivalontos | `nature` |

@@ -13,6 +13,7 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   'exercises.title': { el: 'Ασκήσεις', en: 'Exercises' },
   'exercises.empty': { el: 'Καμία άσκηση', en: 'No exercises for you yet.' },
   'exercises.subject.language': { el: 'Γλώσσα', en: 'Language' },
+  'exercises.subject.foreign_language': { el: 'Ξένη Γλώσσα', en: 'Foreign Language' },
   'exercises.subject.math': { el: 'Μαθηματικά', en: 'Math' },
   'exercises.subject.geography': { el: 'Γεωγραφία', en: 'Geography' },
   'exercises.subject.history': { el: 'Ιστορία', en: 'History' },

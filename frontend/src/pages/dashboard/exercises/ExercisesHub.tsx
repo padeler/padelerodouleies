@@ -7,6 +7,7 @@ import './Exercises.css';
 // Fixed display order + emoji (all Unicode ≤6.1 for the old tablets).
 const SUBJECTS: { key: ExerciseSubject; emoji: string }[] = [
   { key: 'language', emoji: '🔤' },
+  { key: 'foreign_language', emoji: '🌐' },
   { key: 'math', emoji: '➕' },
   { key: 'geography', emoji: '🌍' },
   { key: 'history', emoji: '📜' },
