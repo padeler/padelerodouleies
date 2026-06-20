@@ -33,8 +33,6 @@ Thumbs.db
 .env
 .env.local
 
-# Claude
-.claude/
 venv
 # NOTE: backend/app/icons/svg is intentionally tracked. The SVGs are baked into
 # the image for reproducible, CDN-independent builds (LAN-only deploy). Keep
