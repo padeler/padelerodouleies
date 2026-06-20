@@ -1,10 +1,11 @@
 """Generate ready-to-deploy sample exercise bundles.
 
-Writes a set of valid bundles under ``samples/exercises/`` covering **all five**
+Writes a set of valid bundles under ``samples/exercises/`` covering **all seven**
 exercise types (``multiple_choice``, ``numeric_entry``, ``counting``,
-``ordering``, ``match_pairs``) across several subject groups and age bands, so the
-kid "Ασκήσεις" tab has real content to test against. ``samples/`` is git-ignored;
-this script is the tracked source of truth — regenerate locally as needed.
+``ordering``, ``match_pairs``, ``decimal_entry``, ``fraction_entry``) across
+several subject groups and age bands, so the kid "Ασκήσεις" tab has real content
+to test against. ``samples/`` is git-ignored; this script is the tracked source
+of truth — regenerate locally as needed.
 
 Images (multiple-choice/match options, ``counting`` scenes, and exercise-level
 illustrations) are drawn with Pillow (simple shapes — no font/emoji dependency),
@@ -250,6 +251,54 @@ def _count_scene(draw_one: Any, n: int) -> Any:
     return drawer
 
 
+def draw_euro_coins(path: Path) -> None:
+    """Simple euro coin stack illustration for decimal exercises."""
+    img, d = _canvas()
+    s = SS
+    d.rectangle([0, 0, SIZE * s, SIZE * s], fill=(255, 252, 230))
+    # Three overlapping coins
+    for i, (cx, cy, fill, outline) in enumerate([
+        (80 * s, 148 * s, (212, 175, 55), (180, 145, 30)),
+        (128 * s, 128 * s, (220, 185, 65), (180, 145, 30)),
+        (176 * s, 148 * s, (212, 175, 55), (180, 145, 30)),
+    ]):
+        r = 52 * s
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=fill, outline=outline, width=4 * s)
+    _save(img, path)
+
+
+def draw_circle_half(path: Path) -> None:
+    """Circle with half shaded — illustrates the fraction 1/2."""
+    img, d = _canvas()
+    s = SS
+    cx, cy, r = 128 * s, 128 * s, 90 * s
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(220, 220, 220), outline=(100, 100, 100), width=4 * s)
+    d.pieslice([cx - r, cy - r, cx + r, cy + r], start=270, end=90, fill=(80, 140, 200))
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=None, outline=(100, 100, 100), width=4 * s)
+    d.line([(cx, cy - r), (cx, cy + r)], fill=(100, 100, 100), width=4 * s)
+    _save(img, path)
+
+
+def draw_rect_three_quarters(path: Path) -> None:
+    """Rectangle divided into 4 parts, 3 shaded — illustrates the fraction 3/4."""
+    img, d = _canvas()
+    s = SS
+    left, top, right, bottom = 24 * s, 60 * s, 232 * s, 196 * s
+    mid_x = left + (right - left) // 2
+    mid_y = top + (bottom - top) // 2
+    # 4 cells; shade top-left, top-right, bottom-left
+    cells = [
+        (left, top, mid_x, mid_y, True),
+        (mid_x, top, right, mid_y, True),
+        (left, mid_y, mid_x, bottom, True),
+        (mid_x, mid_y, right, bottom, False),
+    ]
+    for x0, y0, x1, y1, shaded in cells:
+        fill = (80, 140, 200) if shaded else (220, 220, 220)
+        d.rectangle([x0, y0, x1, y1], fill=fill, outline=(100, 100, 100), width=4 * s)
+    _save(img, path)
+
+
 IMAGE_DRAWERS = {
     # Option / pair images (single objects)
     "apple.png": draw_apple,
@@ -267,10 +316,14 @@ IMAGE_DRAWERS = {
     "season-scene.png": draw_season_scene,
     "greece-scene.png": draw_greece_scene,
     "number-line.png": draw_number_scene,
+    # M8 — decimal/fraction illustrations
+    "euro-coins.png": draw_euro_coins,
+    "circle-half.png": draw_circle_half,
+    "rect-three-quarters.png": draw_rect_three_quarters,
 }
 
 
-# -- bundle manifests (MVP-playable types only) -----------------------------
+# -- bundle manifests (all seven exercise types) ----------------------------
 
 BUNDLES: list[dict[str, Any]] = [
     {
@@ -1066,6 +1119,86 @@ BUNDLES: list[dict[str, Any]] = [
                     {"left": {"id": "l1", "image": "tree.png"}, "right": {"id": "r1", "text": "δέντρο"}},
                     {"left": {"id": "l2", "image": "apple.png"}, "right": {"id": "r2", "text": "μήλο"}},
                 ],
+            },
+        ],
+    },
+    # M8 — decimal_entry sample (schema_version: 2)
+    {
+        "schema_version": 2,
+        "id": "dekadikoi-euro",
+        "version": 1,
+        "title": "Δεκαδικοί — Ευρώ",
+        "subject": "math",
+        "age_min": 8,
+        "age_max": 11,
+        "stars": 4,
+        "difficulty": 3,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "decimal_entry",
+                "prompt": "3,25 + 4,32 = ?",
+                "prompt_tts": "τρία κόμμα εικοσιπέντε συν τέσσερα κόμμα τριάντα δύο ισούται;",
+                "answer": "7,57",
+                "decimals": 2,
+                "hint": "Πρόσθεσε ευρώ με ευρώ και λεπτά με λεπτά.",
+                "image": "euro-coins.png",
+            },
+            {
+                "id": "ex-02",
+                "type": "decimal_entry",
+                "prompt": "10,00 - 3,45 = ?",
+                "prompt_tts": "δέκα κόμμα μηδέν μηδέν μείον τρία κόμμα σαράντα πέντε ισούται;",
+                "answer": "6,55",
+                "decimals": 2,
+                "hint": "Αφαίρεσε μονάδες με μονάδες και εκατοστά με εκατοστά.",
+            },
+            {
+                "id": "ex-03",
+                "type": "decimal_entry",
+                "prompt": "1,5 + 2,3 = ?",
+                "prompt_tts": "ένα κόμμα πέντε συν δύο κόμμα τρία ισούται;",
+                "answer": "3,8",
+                "decimals": 1,
+            },
+        ],
+    },
+    # M8 — fraction_entry sample (schema_version: 2)
+    {
+        "schema_version": 2,
+        "id": "klasmata-apla",
+        "version": 1,
+        "title": "Απλά κλάσματα",
+        "subject": "math",
+        "age_min": 8,
+        "age_max": 11,
+        "stars": 4,
+        "difficulty": 3,
+        "exercises": [
+            {
+                "id": "ex-01",
+                "type": "fraction_entry",
+                "prompt": "Τι κλάσμα του κύκλου είναι χρωματισμένο;",
+                "image": "circle-half.png",
+                "answer": {"numerator": 1, "denominator": 2},
+                "accept_equivalent": True,
+                "hint": "Μέτρα τα χρωματισμένα κομμάτια πάνω και τα συνολικά κάτω.",
+            },
+            {
+                "id": "ex-02",
+                "type": "fraction_entry",
+                "prompt": "Τι κλάσμα του ορθογωνίου είναι χρωματισμένο;",
+                "image": "rect-three-quarters.png",
+                "answer": {"numerator": 3, "denominator": 4},
+                "accept_equivalent": True,
+            },
+            {
+                "id": "ex-03",
+                "type": "fraction_entry",
+                "prompt": "2 από τα 5 μήλα είναι κόκκινα. Ποιο κλάσμα;",
+                "answer": {"numerator": 2, "denominator": 5},
+                "accept_equivalent": False,
+                "hint": "Κόκκινα μήλα πάνω, συνολικά μήλα κάτω.",
             },
         ],
     },

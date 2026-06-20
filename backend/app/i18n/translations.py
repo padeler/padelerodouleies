@@ -334,6 +334,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "exercises.subject.logic": {"el": "Λογική", "en": "Logic"},
     "exercises.subject.nature": {"el": "Φύση", "en": "Nature"},
     "exercises.unsupported_type": {"el": "Αυτός ο τύπος άσκησης δεν είναι διαθέσιμος ακόμα.", "en": "This exercise type is not available yet."},
+    "exercises.fraction_numerator": {"el": "Αριθμητής", "en": "Numerator"},
+    "exercises.fraction_denominator": {"el": "Παρονομαστής", "en": "Denominator"},
     # Admin exercises stats
     "exercises.admin.title": {"el": "Ασκήσεις — Στατιστικά", "en": "Exercises — Statistics"},
     "exercises.admin.rescan": {"el": "Επανασάρωση", "en": "Rescan"},

@@ -1,11 +1,14 @@
 # TODOs
 
 
-# Features
-- [x] Add per-kid exercise statistics on the kid's "Stats" tab (already shipped in M5: `📚 Ασκήσεις` row showing completed count + stars; backend `_exercise_stats_by_user` in `stats.py`, rendered in `Stats.tsx`)
-- [x] Add the title of the exercise bundle above the "Exercise X of N" header. (`exercise-bundle-name` line in `BundlePlayer` head)
-- [x] In the bundles page,
-    - [x] move the "Completed" status to the bottom of the card (badge is now the last item in a bottom-anchored footer)
-    - [x] anchor the title to the top so it does not move and is aligned with the rest of the cards. (title is the first child for every card; cards stretch to equal height so rows align)
-    - [x] anchor the stars and difficulty to the bottom of the card (`.exercise-bundle-foot` wraps difficulty + stars + completed badge with `margin-top: auto`)
-    - [x] Add a speaker button (reads the bundle title via new `GET /api/exercises/tts/{bundle_id}/title.mp3`; `SpeakButton` sits outside the `<Link>` so tapping it doesn't navigate)
+## M8 — Decimal & fraction exercise types ✅ done
+See [PLAN.md → M8](./PLAN.md#m8--decimal--fraction-exercise-types-post-mvp-increment). Adds first-class entry + deterministic grading for δεκαδικοί and κλάσματα (3rd-grade math) as a `schema_version: 2` bump; v1 bundles and strict-int `numeric_entry` unaffected. **No DB migration** (`EXERCISE_ATTEMPTS.response_json` is already free-form). Do the steps in order:
+
+- [x] **Schema** (`backend/app/schemas/exercises.py`): add `DecimalEntryExercise` (`type: "decimal_entry"`, `answer: str` matching `^-?\d+([.,]\d+)?$`, optional `decimals: int`) and `FractionEntryExercise` (`type: "fraction_entry"`, `answer: {numerator: int, denominator: int}` with `denominator >= 1`, `accept_equivalent: bool = true`) to the discriminated `Exercise` union; keep `numeric_entry` strict-int. Add a validator that rejects denominator 0 and malformed decimal strings.
+- [x] **kid_view** (`build_kid_view`/`kid_view` in the same module): strip `answer` (and `*_tts`) for both new types; add their fields to the served view. Update the `python -m app.schemas.exercises` CLI if it enumerates types.
+- [x] **Grading** (`backend/app/services/exercises.py`): decimal → parse response + answer via `decimal.Decimal`, accept `,` or `.`, normalize trailing zeros, exact compare; fraction → parse `{numerator, denominator}`, cross-multiply when `accept_equivalent` else exact, reject denominator 0. No float equality anywhere. Fail-explicit on unparseable response.
+- [x] **Frontend players** (`frontend/src/pages/dashboard/exercises/`): `DecimalEntryPlayer` (PIN keypad + one υποδιαστολή/comma key, posts typed string) and `FractionEntryPlayer` (numerator pad over fraction bar over denominator pad, posts `{numerator, denominator}`). Old-tablet CSS rules (no `aspect-ratio`/`inset`/flex-gap; transform/opacity only). No free-text input.
+- [x] **BundlePlayer**: add the two cases to the type switch; leave `exercises.unsupported_type` as the forward-compat fallback. Wire `useExercises.ts` response posting for both.
+- [x] **Format docs + tooling**: update `docs/EXERCISE_FORMAT.md` (two types + `schema_version: 2`), `exercise_lab/templates/manifest.template.jsonc`, and the `exercise_lab/README.md` field conventions (when to prefer `decimal_entry` over a decimals `multiple_choice`, `fraction_entry` over a fractions `match_pairs`). Extend `backend/scripts/make_sample_bundles.py` with one decimal and one fraction sample bundle.
+- [x] **Tests**: pytest — validator accept/reject (bad decimal string, denominator 0, bool-as-int guard), grading equivalence (`3/4`==`6/8`, `7,5`==`7,50`, comma-vs-dot, exact mismatch fails), `kid_view` strips both answers. Vitest + MSW — both new players render, accept input, submit, and show right/wrong feedback.
+- [ ] **Green + tag**: Vitest + pytest + `npm run build` + `mypy --strict` (no new errors); semver tag on merge to `main`.

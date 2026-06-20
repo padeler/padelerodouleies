@@ -245,6 +245,216 @@ def test_ordering_answer_must_cover_items() -> None:
 
 
 # ===========================================================================
+# M8 — decimal_entry and fraction_entry types
+# ===========================================================================
+
+def _v2_base() -> dict:
+    """Minimal v2 manifest for building M8 test exercises inline."""
+    return {
+        "schema_version": 2,
+        "id": "m8-test",
+        "version": 1,
+        "title": "Δεκαδικοί και κλάσματα",
+        "subject": "math",
+        "age_min": 8,
+        "age_max": 11,
+        "stars": 3,
+        "difficulty": 3,
+        "exercises": [],
+    }
+
+
+# -- schema validation -------------------------------------------------------
+
+def test_decimal_entry_valid() -> None:
+    data = _v2_base()
+    data["exercises"] = [{"id": "d1", "type": "decimal_entry", "prompt": "7,57", "answer": "7,57"}]
+    manifest = BundleManifest.model_validate(data)
+    assert manifest.exercises[0].type == "decimal_entry"
+    assert manifest.exercises[0].answer == "7,57"
+
+
+def test_decimal_entry_dot_separator_valid() -> None:
+    data = _v2_base()
+    data["exercises"] = [{"id": "d1", "type": "decimal_entry", "prompt": "7.57", "answer": "7.57"}]
+    BundleManifest.model_validate(data)
+
+
+def test_decimal_entry_integer_answer_valid() -> None:
+    data = _v2_base()
+    data["exercises"] = [{"id": "d1", "type": "decimal_entry", "prompt": "5 + 5", "answer": "10"}]
+    BundleManifest.model_validate(data)
+
+
+def test_decimal_entry_bad_string_rejected() -> None:
+    data = _v2_base()
+    data["exercises"] = [{"id": "d1", "type": "decimal_entry", "prompt": "?", "answer": "abc"}]
+    with pytest.raises(Exception, match="not a valid decimal"):
+        BundleManifest.model_validate(data)
+
+
+def test_decimal_entry_float_answer_rejected() -> None:
+    """answer must be a string, not a float (no precision drift)."""
+    data = _v2_base()
+    data["exercises"] = [{"id": "d1", "type": "decimal_entry", "prompt": "?", "answer": 7.57}]
+    with pytest.raises(Exception):
+        BundleManifest.model_validate(data)
+
+
+def test_fraction_entry_valid() -> None:
+    data = _v2_base()
+    data["exercises"] = [
+        {"id": "f1", "type": "fraction_entry", "prompt": "Πόσο;", "answer": {"numerator": 3, "denominator": 4}}
+    ]
+    manifest = BundleManifest.model_validate(data)
+    ex = manifest.exercises[0]
+    assert ex.type == "fraction_entry"
+    assert ex.answer.numerator == 3
+    assert ex.answer.denominator == 4
+    assert ex.accept_equivalent is True
+
+
+def test_fraction_entry_denominator_zero_rejected() -> None:
+    data = _v2_base()
+    data["exercises"] = [
+        {"id": "f1", "type": "fraction_entry", "prompt": "?", "answer": {"numerator": 1, "denominator": 0}}
+    ]
+    with pytest.raises(Exception):
+        BundleManifest.model_validate(data)
+
+
+def test_fraction_entry_bool_denominator_rejected() -> None:
+    """bool is an int subclass; strict=True on FractionAnswer rejects it."""
+    data = _v2_base()
+    data["exercises"] = [
+        {"id": "f1", "type": "fraction_entry", "prompt": "?", "answer": {"numerator": 1, "denominator": True}}
+    ]
+    with pytest.raises(Exception):
+        BundleManifest.model_validate(data)
+
+
+def test_schema_version_1_still_accepted() -> None:
+    """v1 bundles load unchanged after the schema_version: 2 bump."""
+    bundle = load_bundle(FIXTURES / "math-times-v1")
+    assert bundle.schema_version == 1
+
+
+def test_schema_version_3_rejected() -> None:
+    data = _load_json("math-times-v1")
+    data["schema_version"] = 3
+    with pytest.raises(Exception, match="unsupported"):
+        BundleManifest.model_validate(data)
+
+
+# -- kid_view strips new answers --------------------------------------------
+
+def test_kid_view_strips_decimal_answer() -> None:
+    data = _v2_base()
+    data["exercises"] = [
+        {"id": "d1", "type": "decimal_entry", "prompt": "?", "answer": "7,57", "decimals": 2},
+    ]
+    manifest = BundleManifest.model_validate(data)
+    view = kid_view(manifest)
+    blob = json.dumps(view)
+    assert "answer" not in blob
+    ex = view["exercises"][0]
+    assert ex["decimals"] == 2  # hint survives
+
+
+def test_kid_view_strips_fraction_answer() -> None:
+    data = _v2_base()
+    data["exercises"] = [
+        {"id": "f1", "type": "fraction_entry", "prompt": "?", "answer": {"numerator": 3, "denominator": 4}},
+    ]
+    manifest = BundleManifest.model_validate(data)
+    view = kid_view(manifest)
+    blob = json.dumps(view)
+    assert "answer" not in blob
+    assert "accept_equivalent" not in blob  # backend-only grading config
+
+
+# -- grading ----------------------------------------------------------------
+
+from app.schemas.exercises import DecimalEntryExercise, FractionAnswer, FractionEntryExercise
+
+
+def _decimal_ex(answer: str) -> DecimalEntryExercise:
+    return DecimalEntryExercise(id="d1", type="decimal_entry", prompt="?", answer=answer)
+
+
+def _fraction_ex(num: int, den: int, equiv: bool = True) -> FractionEntryExercise:
+    return FractionEntryExercise(
+        id="f1", type="fraction_entry", prompt="?",
+        answer=FractionAnswer(numerator=num, denominator=den),
+        accept_equivalent=equiv,
+    )
+
+
+def test_grade_decimal_comma_and_dot_both_accepted() -> None:
+    ex = _decimal_ex("7,57")
+    assert grade(ex, "7,57") is True
+    assert grade(ex, "7.57") is True  # dot normalised to comma at parse time
+
+
+def test_grade_decimal_trailing_zeros_normalized() -> None:
+    ex = _decimal_ex("7,5")
+    assert grade(ex, "7,50") is True
+    assert grade(ex, "7,500") is True
+
+
+def test_grade_decimal_exact_mismatch_fails() -> None:
+    ex = _decimal_ex("7,57")
+    assert grade(ex, "7,58") is False
+
+
+def test_grade_decimal_invalid_response_raises() -> None:
+    ex = _decimal_ex("7,57")
+    with pytest.raises(exercises.ResponseError, match="valid decimal"):
+        grade(ex, "abc")
+
+
+def test_grade_decimal_bool_response_raises() -> None:
+    ex = _decimal_ex("7,57")
+    with pytest.raises(exercises.ResponseError, match="boolean"):
+        grade(ex, True)
+
+
+def test_grade_fraction_exact_match() -> None:
+    ex = _fraction_ex(3, 4, equiv=False)
+    assert grade(ex, {"numerator": 3, "denominator": 4}) is True
+    assert grade(ex, {"numerator": 6, "denominator": 8}) is False  # equiv off
+
+
+def test_grade_fraction_equivalent_match() -> None:
+    ex = _fraction_ex(3, 4)  # accept_equivalent defaults to True
+    assert grade(ex, {"numerator": 6, "denominator": 8}) is True
+    assert grade(ex, {"numerator": 9, "denominator": 12}) is True
+
+
+def test_grade_fraction_wrong() -> None:
+    ex = _fraction_ex(3, 4)
+    assert grade(ex, {"numerator": 1, "denominator": 2}) is False
+
+
+def test_grade_fraction_denominator_zero_raises() -> None:
+    ex = _fraction_ex(3, 4)
+    with pytest.raises(exercises.ResponseError, match="not be zero"):
+        grade(ex, {"numerator": 3, "denominator": 0})
+
+
+def test_grade_fraction_bad_response_raises() -> None:
+    ex = _fraction_ex(3, 4)
+    with pytest.raises(exercises.ResponseError):
+        grade(ex, "3/4")  # string not a dict
+
+
+def test_grade_fraction_bool_in_response_raises() -> None:
+    ex = _fraction_ex(3, 4)
+    with pytest.raises(exercises.ResponseError):
+        grade(ex, {"numerator": True, "denominator": 4})
+
+
+# ===========================================================================
 # M2 — discovery, persistence, grading, kid API
 # ===========================================================================
 

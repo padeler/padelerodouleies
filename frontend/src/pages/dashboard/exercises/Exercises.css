@@ -375,6 +375,53 @@
   font-size: 16px;
 }
 
+/* -- Decimal entry -- */
+
+/* DecimalEntryPlayer uses the same .num-entry/.num-pad as NumericEntryPlayer.
+   The check button sits below the 3×3+3 pad, spanning full width. */
+
+.frac-entry {
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* -- Fraction entry -- */
+
+.frac-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.frac-field {
+  min-width: 80px;
+  min-height: 56px;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 2px solid var(--accent-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+
+.frac-field.frac-active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.frac-bar {
+  width: 80px;
+  height: 4px;
+  margin: 6px 0;
+  background: var(--text-h);
+  border-radius: 2px;
+}
+
 /* -- Counting -- */
 
 .exercise-scene {

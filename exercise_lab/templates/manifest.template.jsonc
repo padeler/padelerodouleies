@@ -1,9 +1,12 @@
-// Annotated reference manifest covering ALL FIVE exercise types.
+// Annotated reference manifest covering ALL SEVEN exercise types.
 // Copy the shapes you need into a real manifest.json (strict JSON — no comments,
 // no trailing commas; `extra="forbid"` means an unknown field is a hard error).
 // Validate with:  cd backend && python -m app.schemas.exercises <bundle-dir>
+//
+// schema_version: 1 — types 1–5 (multiple_choice, numeric_entry, counting, ordering, match_pairs)
+// schema_version: 2 — also types 6–7 (decimal_entry, fraction_entry); v1 bundles load unchanged.
 {
-  "schema_version": 1,                 // must equal the validator's SCHEMA_VERSION (1)
+  "schema_version": 1,                 // use 2 if the bundle has decimal_entry or fraction_entry
   "id": "2026-06-letter-a",            // stable across versions; [a-z0-9-] recommended
   "version": 1,                        // bump to supersede; (id, version) is the identity
   "title": "Το γράμμα Α",              // single-language, mono-script (invariant #5)
@@ -39,7 +42,7 @@
       "prompt_tts": "δύο επί τρία",    // ...so add a spoken reading for the Greek voice
       "image": null,                   // scene/content image — rendered ABOVE the prompt at full size
       "icon": null,                    // decorative icon — rendered INLINE alongside the prompt text
-      "answer": 6                      // integer only — no decimals/fractions/negatives in v1
+      "answer": 6                      // integer only; stays strict-int forever (decimal_entry is the right type for decimals)
     },
 
     // 3) COUNTING — "how many X?"; kid taps 0..max_count on a number grid.
@@ -74,10 +77,43 @@
       "prompt": "Ταίριαξε την εικόνα με τη λέξη.",
       "image": null,                   // scene/content image — rendered ABOVE the prompt at full size
       "icon": null,                    // decorative icon — rendered INLINE alongside the prompt text
-      "pairs": [                       // 2–6 pairs; answer is implicit (left ↔ its own right)
+      "pairs": [                       // 2–6 pairs; answer is implicit (left <-> its own right)
         { "left": { "id": "l1", "image": "apple.png" }, "right": { "id": "r1", "text": "μήλο" } },
         { "left": { "id": "l2", "image": "sun.png" },   "right": { "id": "r2", "text": "ήλιος" } }
       ]
+    },
+
+    // 6) DECIMAL ENTRY (schema_version: 2) — type a decimal on a keypad with a comma key.
+    //    answer is a STRING in canonical form ("7,57" or "7.57"); grader normalises comma/dot
+    //    and trailing zeros (7,50 == 7,5). Prefer over multiple_choice when free entry is wanted.
+    //    Set "schema_version": 2 in the manifest top-level when using this type.
+    {
+      "id": "ex-dec",
+      "type": "decimal_entry",
+      "prompt": "3,25 € + 4,32 € = ?",
+      "prompt_tts": "τρία κόμμα εικοσιπέντε ευρώ συν τέσσερα κόμμα τριάντα δύο ευρώ",
+      "image": null,
+      "icon": "/api/icons/svg/euro",
+      "answer": "7,57",               // string, not float — no precision drift
+      "decimals": 2,                  // optional UI hint: how many decimal places to expect
+      "hint": "Πρόσθεσε ευρώ με ευρώ και λεπτά με λεπτά.",
+      "hint_tts": null
+    },
+
+    // 7) FRACTION ENTRY (schema_version: 2) — enter numerator + denominator separately.
+    //    accept_equivalent (default true) grades 6/8 == 3/4 via cross-multiplication (no floats).
+    //    Prefer over match_pairs when the kid must produce the fraction, not just recognise it.
+    //    Set "schema_version": 2 in the manifest top-level when using this type.
+    {
+      "id": "ex-frac",
+      "type": "fraction_entry",
+      "prompt": "Τι κλάσμα είναι χρωματισμένο;",
+      "image": "shape-3-4.png",       // diagram of the shaded shape (crop from book with tools/pdf_crop.py)
+      "icon": null,
+      "answer": { "numerator": 3, "denominator": 4 },
+      "accept_equivalent": true,      // 6/8 also accepted; set false for exact-match only
+      "hint": "Μέτρα τα χρωματισμένα κομμάτια πάνω, τα συνολικά κάτω.",
+      "hint_tts": null
     }
   ]
 }

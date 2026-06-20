@@ -165,6 +165,8 @@ exercises/
 | `ordering` | arrange 3–5 items in sequence (numbers, story frames) | 5+ | M4 |
 | `counting` | "how many X?" — tap the right number | 4+ | M4 |
 | `numeric_entry` | type a number on an on-screen number pad (e.g. `2*3 + 4 = ?` → `10`) | math, older kids (7+) | M3 (MVP) |
+| `decimal_entry` | type a decimal on the number pad + a υποδιαστολή (comma) key (e.g. `4,32 € + 3,25 € = ?` → `7,57`) | math (decimals/money), 8+ | M8 |
+| `fraction_entry` | enter numerator + denominator on two stacked pads (e.g. shaded shape → `3/4`) | math (fractions), 8+ | M8 |
 
 All types are deterministic-graded on the backend (the manifest's `answer` never reaches
 the client — the client posts the kid's response, the server grades it). For
@@ -317,8 +319,63 @@ errors) pass, and gets a semver tag on merge to `main` (per workflow memory).
   real bundle; verify on the tablets — explicitly including audio playback and player
   performance on the Samsung Tab 4.
 
+### M8 — Decimal & fraction exercise types *(post-MVP increment)*
+
+**Why:** 3rd-grade math (Γ΄ Δημοτικού) introduces **δεκαδικοί** (money, measurements)
+and **κλάσματα**. The v1 types can only express these by reframing — decimals as
+`multiple_choice`/`ordering` options or as a unit-converted integer `numeric_entry`
+(`1,25 μ. = __ εκ.` → 125), and fractions as `multiple_choice`/`match_pairs` or an
+integer-numerator `numeric_entry`. That covers the syllabus but blocks *authentic
+free entry* of a decimal (`7,57`) or a fraction (`3/4`). M8 adds first-class entry +
+deterministic grading for both. This is the `schema_version: 2` bump the §7 "v1
+int-only" decision anticipated; **existing v1 bundles are unaffected** and
+`numeric_entry` stays strict-integer (no weakening).
+
+- **Schema** (`app/schemas/exercises.py`, discriminated union, `extra="forbid"`) — two
+  new types, isolating the new logic instead of overloading `numeric_entry`:
+  - `decimal_entry`: `answer: str` in canonical decimal form (regex `^-?\d+([.,]\d+)?$`)
+    — a **string, not a float**, so the JSON answer stays exact (no float precision
+    drift); optional `decimals: int` (keypad places hint).
+  - `fraction_entry`: `answer: {numerator: int, denominator: int}` (denominator ≥ 1);
+    `accept_equivalent: bool = true` so `6/8` grades equal to `3/4`.
+  - `kid_view` strips `answer` exactly as today.
+- **Grading** (`app/services/exercises.py`) — deterministic, fail-explicit, **no float
+  equality**:
+  - decimal: parse the posted response and the answer with `decimal.Decimal`, accept
+    either `,` or `.` as separator, normalize trailing zeros (`7,5` == `7,50`), exact
+    compare.
+  - fraction: parse `{numerator, denominator}`; if `accept_equivalent`, compare by
+    cross-multiplication (`a_num·b_den == b_num·a_den`); else exact. Reject denominator 0.
+  - `EXERCISE_ATTEMPTS.response_json` is already free-form JSON → **no DB migration**.
+- **Frontend players** (`pages/dashboard/exercises/`, old-tablet rules: no
+  `aspect-ratio`/`inset`/flex-gap, transform/opacity transitions only):
+  - `DecimalEntryPlayer`: the existing PIN-style keypad plus one υποδιαστολή (comma)
+    key; posts the typed string. No free-text field (invariant #1).
+  - `FractionEntryPlayer`: a numerator pad over a fraction bar over a denominator pad,
+    tap-only. Posts `{numerator, denominator}`.
+  - `BundlePlayer`'s type switch gains the two cases; `exercises.unsupported_type`
+    stays the forward-compat fallback for any *further* future type.
+- **TTS:** no engine change — spoken readings ride on the existing `prompt_tts`/
+  `hint_tts` overrides ("εφτά κόμμα πενήντα εφτά", "τρία τέταρτα"); the mono-script-per-
+  string rule is unchanged (digits/`,`/`/` are script-neutral).
+- **Format docs + generation tooling:** update [EXERCISE_FORMAT.md](../docs/EXERCISE_FORMAT.md)
+  (the two types + `schema_version: 2`), `exercise_lab/templates/manifest.template.jsonc`
+  and the README field conventions (when to prefer `decimal_entry` over a
+  `multiple_choice` of decimals, and `fraction_entry` over a `match_pairs` of fractions),
+  and extend `backend/scripts/make_sample_bundles.py` with one decimal and one fraction
+  sample bundle.
+- **Tests:** validator accept/reject (malformed decimal string, denominator 0, the
+  bool-is-int guard), grading equivalence (`3/4`==`6/8`, `7,5`==`7,50`, comma-vs-dot,
+  exact mismatch fails), `kid_view` strips both new answers, Vitest + MSW for both
+  players.
+- Ends green (Vitest + pytest + `npm run build` + `mypy --strict`, no new errors) and
+  gets a semver tag on merge to `main`, per the milestone convention above.
+
 **Suggested sequencing:** M1→M2→M3 ship together as the usable MVP (one type,
-end-to-end). M4/M5 next. M6 can start in parallel after M1 freezes the spec.
+end-to-end). M4/M5 next. M6 can start in parallel after M1 freezes the spec. M8 is an
+independent post-MVP increment — it only touches the exercises schema/grading/players
+and can land any time after M4 (which establishes the multi-player `BundlePlayer`
+switch it extends).
 
 ---
 
@@ -383,6 +440,17 @@ end-to-end). M4/M5 next. M6 can start in parallel after M1 freezes the spec.
     (text and/or audio, optional in the manifest) after the first wrong attempt.
 - **Q2 — Kids' birthdates:** needed for the M2 seed and production setup — provide
   them when we get there.
+
+### Decided (2026-06-20)
+- **Decimals & fractions: planned as M8, not retrofitted into v1.** The "v1 int-only"
+  decision below stands for `schema_version: 1`; first-class decimal/fraction *entry*
+  arrives as two new exercise types (`decimal_entry`, `fraction_entry`) under a
+  `schema_version: 2` bump — see [M8](#m8--decimal--fraction-exercise-types-post-mvp-increment).
+  Until M8 ships, generated bundles express decimals/fractions with the existing types:
+  decimals via `multiple_choice`/`ordering` or a unit-converted integer `numeric_entry`
+  (`1,25 μ. = __ εκ.`), fractions via `multiple_choice`/`match_pairs` or an
+  integer-numerator `numeric_entry`. `numeric_entry` remains strict-integer even after
+  M8 (the new types isolate the decimal/fraction logic rather than weakening it).
 
 ### Decided (2026-06-18)
 - **Per-kid bundle visibility override: deferred — not in v1.** Age-range matching

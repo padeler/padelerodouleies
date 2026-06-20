@@ -27,7 +27,10 @@ from typing import Annotated, Any, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
-SCHEMA_VERSION = 1
+# v2 adds decimal_entry and fraction_entry; v1 bundles load unchanged.
+SCHEMA_VERSION = 2
+
+_DECIMAL_RE = re.compile(r"^-?\d+([.,]\d+)?$")
 
 # Closed navigation enum — group labels go through translations.py (invariant #5).
 Subject = Literal["language", "math", "geography", "history", "logic", "nature"]
@@ -193,6 +196,48 @@ class MatchPairsExercise(_ExerciseBase):
             raise ValueError(f"exercise {self.id!r} has duplicate pair side ids")
 
 
+class DecimalEntryExercise(_ExerciseBase):
+    """Type a decimal number (δεκαδικός) on the on-screen keypad with a comma key.
+
+    ``answer`` is stored as a string in canonical form (e.g. ``"7,57"`` or
+    ``"7.57"``). Both ``,`` and ``.`` are accepted by the grader.
+    ``schema_version: 2`` required in the manifest for bundles using this type.
+    """
+
+    type: Literal["decimal_entry"]
+    # Stored as a string — no float precision drift. Both comma and dot are accepted.
+    answer: str
+    # Optional hint to the keypad about how many decimal places are expected.
+    decimals: int | None = Field(default=None, ge=0)
+
+    def model_post_init(self, _ctx: Any) -> None:
+        super().model_post_init(_ctx)
+        if not _DECIMAL_RE.match(self.answer):
+            raise ValueError(
+                f"exercise {self.id!r} answer {self.answer!r} is not a valid decimal "
+                "(expected pattern: -?digits[.,digits])"
+            )
+
+
+class FractionAnswer(_Strict):
+    """The correct fraction answer stored in a manifest."""
+
+    numerator: int = Field(strict=True)
+    denominator: int = Field(ge=1, strict=True)  # denominator >= 1; bool rejected by strict
+
+
+class FractionEntryExercise(_ExerciseBase):
+    """Enter a fraction (κλάσμα) by typing numerator and denominator separately.
+
+    ``accept_equivalent`` (default ``True``) makes ``6/8`` grade equal to ``3/4``
+    via cross-multiplication. ``schema_version: 2`` required in the manifest.
+    """
+
+    type: Literal["fraction_entry"]
+    answer: FractionAnswer
+    accept_equivalent: bool = True
+
+
 Exercise = Annotated[
     Union[
         MultipleChoiceExercise,
@@ -200,6 +245,8 @@ Exercise = Annotated[
         CountingExercise,
         OrderingExercise,
         MatchPairsExercise,
+        DecimalEntryExercise,
+        FractionEntryExercise,
     ],
     Field(discriminator="type"),
 ]
@@ -220,9 +267,10 @@ class BundleManifest(_Strict):
     exercises: list[Exercise] = Field(min_length=1)
 
     def model_post_init(self, _ctx: Any) -> None:
-        if self.schema_version != SCHEMA_VERSION:
+        if not (1 <= self.schema_version <= SCHEMA_VERSION):
             raise ValueError(
-                f"unsupported schema_version {self.schema_version} (expected {SCHEMA_VERSION})"
+                f"unsupported schema_version {self.schema_version} "
+                f"(supported: 1–{SCHEMA_VERSION})"
             )
         if self.age_min > self.age_max:
             raise ValueError(f"age_min ({self.age_min}) must be <= age_max ({self.age_max})")
@@ -260,7 +308,12 @@ def _exercise_view(exercise: Any) -> dict[str, Any]:
         view["pairs"] = [
             {"left": _option_view(p.left), "right": _option_view(p.right)} for p in exercise.pairs
         ]
-    # numeric_entry needs no extra structural fields.
+    elif isinstance(exercise, DecimalEntryExercise):
+        # decimals is a UI hint (keypad places); strip answer, keep the hint.
+        if exercise.decimals is not None:
+            view["decimals"] = exercise.decimals
+    # numeric_entry and fraction_entry need no extra structural fields in the kid view.
+    # (fraction_entry's accept_equivalent is backend-only grading config.)
     return view
 
 

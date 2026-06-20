@@ -25,6 +25,8 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   'exercises.tap_to_order': { el: 'Πάτησε με τη σειρά', en: 'Tap in order' },
   'exercises.well_done': { el: 'Τέλεια!', en: 'Great!' },
   'exercises.earned_stars': { el: 'Κέρδισες {stars} ⭐!', en: 'You earned {stars} ⭐!' },
+  'exercises.fraction_numerator': { el: 'Αριθμητής', en: 'Numerator' },
+  'exercises.fraction_denominator': { el: 'Παρονομαστής', en: 'Denominator' },
   'card.listen': { el: 'Άκουσέ το', en: 'Listen' },
   'common.error': { el: 'Σφάλμα', en: 'Error' },
 };
@@ -304,5 +306,100 @@ describe('BundlePlayer — numeric entry', () => {
     await waitFor(() => expect(screen.getByText('Great!')).toBeInTheDocument(), { timeout: 2000 });
     expect(screen.getByText('You earned 5 ⭐!')).toBeInTheDocument();
     expect(notifyCelebration).toHaveBeenCalledTimes(1);
+  });
+});
+
+const DECIMAL_MANIFEST = {
+  schema_version: 2, id: 'decimal-1', version: 1, title: 'Decimals', subject: 'math',
+  age_min: 8, age_max: 11, stars: 4,
+  exercises: [{ id: 'ex-01', type: 'decimal_entry', prompt: '3,25 + 4,32 = ?' }],
+};
+
+describe('BundlePlayer — decimal entry', () => {
+  beforeEach(() => {
+    server.use(
+      http.get('/api/exercises/bundles/decimal-1', () => HttpResponse.json(DECIMAL_MANIFEST)),
+      http.post('/api/exercises/bundles/decimal-1/answers', async ({ request }) => {
+        const body = (await request.json()) as { response: unknown };
+        const correct = body.response === '7,57';
+        return HttpResponse.json({ correct, completed: correct, stars_awarded: correct ? 4 : 0, current_stars: correct ? 4 : 0 });
+      }),
+    );
+  });
+
+  it('posts the typed decimal string (with comma) and completes when correct', async () => {
+    const user = userEvent.setup();
+    renderPlayer('decimal-1');
+
+    await screen.findByText('3,25 + 4,32 = ?');
+    await user.click(screen.getByRole('button', { name: '7' }));
+    await user.click(screen.getByRole('button', { name: ',' }));
+    await user.click(screen.getByRole('button', { name: '5' }));
+    await user.click(screen.getByRole('button', { name: '7' }));
+    await user.click(screen.getByRole('button', { name: 'Check' }));
+
+    await waitFor(() => expect(screen.getByText('Great!')).toBeInTheDocument(), { timeout: 2000 });
+    expect(screen.getByText('You earned 4 ⭐!')).toBeInTheDocument();
+    expect(notifyCelebration).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows Try again on a wrong decimal answer', async () => {
+    const user = userEvent.setup();
+    renderPlayer('decimal-1');
+
+    await screen.findByText('3,25 + 4,32 = ?');
+    await user.click(screen.getByRole('button', { name: '9' }));
+    await user.click(screen.getByRole('button', { name: 'Check' }));
+
+    await waitFor(() => expect(screen.getByText('Try again!')).toBeInTheDocument());
+  });
+});
+
+const FRACTION_MANIFEST = {
+  schema_version: 2, id: 'frac-1', version: 1, title: 'Fractions', subject: 'math',
+  age_min: 8, age_max: 11, stars: 4,
+  exercises: [{ id: 'ex-01', type: 'fraction_entry', prompt: 'Ποιο κλάσμα είναι 3/4;' }],
+};
+
+describe('BundlePlayer — fraction entry', () => {
+  beforeEach(() => {
+    server.use(
+      http.get('/api/exercises/bundles/frac-1', () => HttpResponse.json(FRACTION_MANIFEST)),
+      http.post('/api/exercises/bundles/frac-1/answers', async ({ request }) => {
+        const body = (await request.json()) as { response: { numerator: number; denominator: number } };
+        const correct = body.response.numerator === 3 && body.response.denominator === 4;
+        return HttpResponse.json({ correct, completed: correct, stars_awarded: correct ? 4 : 0, current_stars: correct ? 4 : 0 });
+      }),
+    );
+  });
+
+  it('posts {numerator, denominator} and completes when correct', async () => {
+    const user = userEvent.setup();
+    renderPlayer('frac-1');
+
+    await screen.findByText('Ποιο κλάσμα είναι 3/4;');
+    // Numerator field is active by default — type 3.
+    await user.click(screen.getByRole('button', { name: '3' }));
+    // Switch to denominator field.
+    await user.click(screen.getByRole('button', { name: 'Denominator' }));
+    await user.click(screen.getByRole('button', { name: '4' }));
+    await user.click(screen.getByRole('button', { name: 'Check' }));
+
+    await waitFor(() => expect(screen.getByText('Great!')).toBeInTheDocument(), { timeout: 2000 });
+    expect(screen.getByText('You earned 4 ⭐!')).toBeInTheDocument();
+    expect(notifyCelebration).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows Try again on a wrong fraction', async () => {
+    const user = userEvent.setup();
+    renderPlayer('frac-1');
+
+    await screen.findByText('Ποιο κλάσμα είναι 3/4;');
+    await user.click(screen.getByRole('button', { name: '1' }));
+    await user.click(screen.getByRole('button', { name: 'Denominator' }));
+    await user.click(screen.getByRole('button', { name: '2' }));
+    await user.click(screen.getByRole('button', { name: 'Check' }));
+
+    await waitFor(() => expect(screen.getByText('Try again!')).toBeInTheDocument());
   });
 });

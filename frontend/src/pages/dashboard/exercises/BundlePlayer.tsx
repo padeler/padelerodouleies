@@ -11,6 +11,8 @@ import { NumericEntryPlayer } from './NumericEntryPlayer';
 import { CountingPlayer } from './CountingPlayer';
 import { OrderingPlayer } from './OrderingPlayer';
 import { MatchPairsPlayer } from './MatchPairsPlayer';
+import { DecimalEntryPlayer } from './DecimalEntryPlayer';
+import { FractionEntryPlayer } from './FractionEntryPlayer';
 import '../flip-card.css'; // .speak-btn styles
 import './Exercises.css';
 
@@ -171,6 +173,22 @@ export function BundlePlayer() {
         <MatchPairsPlayer
           key={exercise.id}
           bundleId={bundleId}
+          exercise={exercise}
+          disabled={submit.isPending || feedback === 'correct'}
+          resetSignal={resetSignal}
+          onAnswer={handleAnswer}
+        />
+      ) : exercise.type === 'decimal_entry' ? (
+        <DecimalEntryPlayer
+          key={exercise.id}
+          exercise={exercise}
+          disabled={submit.isPending || feedback === 'correct'}
+          resetSignal={resetSignal}
+          onAnswer={handleAnswer}
+        />
+      ) : exercise.type === 'fraction_entry' ? (
+        <FractionEntryPlayer
+          key={exercise.id}
           exercise={exercise}
           disabled={submit.isPending || feedback === 'correct'}
           resetSignal={resetSignal}

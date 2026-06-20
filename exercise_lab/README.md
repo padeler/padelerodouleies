@@ -87,6 +87,38 @@ Some manifest fields can't be read straight off the page — set them as follows
   - Add `prompt_tts`/`hint_tts` spoken overrides wherever Piper would mis-read a
     token (digits, operators, respelled or re-accented words).
 
+- **`schema_version`**: use `1` for bundles that only need the five original
+  types (`multiple_choice`, `numeric_entry`, `counting`, `ordering`,
+  `match_pairs`). Set `schema_version: 2` when the bundle uses `decimal_entry`
+  or `fraction_entry` — the validator accepts either version and existing v1
+  bundles load unchanged.
+
+- **When to use `decimal_entry` vs alternatives:**
+  - Use `decimal_entry` (v2) when the kid must **type** the decimal result
+    freely — money arithmetic, measurement conversions, division results with a
+    remainder expressed as a decimal.
+  - Use `multiple_choice` / `ordering` of decimal strings when the goal is
+    *recognising* or *ordering* decimals, not producing them from scratch.
+  - Use a unit-converted `numeric_entry` (integer) only when the decimal can be
+    expressed exactly as an integer in another unit (e.g. `1,25 m = 125 cm`).
+  - `answer` is a **string** in canonical form (`"7,57"` or `"7.57"`); both
+    separators are accepted by the grader and trailing zeros are normalised.
+    Add a `prompt_tts` spoken override for any expression the Greek voice can't
+    read correctly (`"3,25 €"` → `"τρία κόμμα εικοσιπέντε ευρώ"`).
+
+- **When to use `fraction_entry` vs alternatives:**
+  - Use `fraction_entry` (v2) when the kid must **enter** the fraction — reading
+    a shaded diagram, expressing a part as a fraction, or simplifying a fraction
+    by entering its reduced form.
+  - Use `multiple_choice` or `match_pairs` when the kid *picks* from given
+    fractions rather than constructing one.
+  - `accept_equivalent: true` (default) grades `6/8` equal to `3/4` via
+    cross-multiplication — appropriate for most recognition exercises. Set `false`
+    only when the prompt explicitly asks for a *specific* form (e.g. "write in
+    simplest form").
+  - The `answer` denominator must be ≥ 1 (negative denominators are not
+    representable). For negative fractions put the sign in the numerator.
+
 - **`id` / `version`**: `id` is stable across versions and `(id, version)` is the
   bundle's identity; bump `version` to supersede a bundle. Name the bundle
   directory after `<id>-v<version>` (e.g. `glossa-gramma-a-v1/` for

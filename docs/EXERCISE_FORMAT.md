@@ -1,4 +1,4 @@
-# Exercise Bundle Format (`schema_version: 1`)
+# Exercise Bundle Format (`schema_version: 1` / `2`)
 
 Normative spec for exercise **bundles** — the self-contained, offline-generated
 units the kids' "Ασκήσεις" tab plays. The Pydantic models in
@@ -58,7 +58,7 @@ exercises/
 
 | Field | Type | Rules |
 |---|---|---|
-| `schema_version` | int | must equal `1` |
+| `schema_version` | int | `1` or `2`; use `2` for bundles with `decimal_entry` or `fraction_entry` exercises |
 | `id` | str | 1–80 chars; stable across versions |
 | `version` | int | ≥ 1; `(id, version)` is the bundle identity |
 | `title` | str | 1–200 chars; single-language |
@@ -95,17 +95,68 @@ scene the kid counts items in); for all other types both fields are optional and
 default to `null`. Using both `image` and `icon` on one exercise is encouraged (a book
 scene plus a topical inline icon).
 
-| Type | Shape | Answer | Milestone |
-|---|---|---|---|
-| `multiple_choice` | `image?`, `icon?`, `options`: 2–4 `{id, image?, text?}` (≥1 of image/text) | option `id` (str) | M3 |
-| `numeric_entry` | `image?`, `icon?` | `int` (exact, integers only) | M3 |
-| `counting` | `image` **(required)**, `max_count` (1–99, default 10) | `int` ≤ `max_count` | M4 |
-| `ordering` | `image?`, `icon?`, `items`: 3–5 `{id, image?, text?}` | ordered list of item `id`s | M4 |
-| `match_pairs` | `image?`, `icon?`, `pairs`: 2–6 `{left, right}` options | implicit (each `left`↔its `right`) | M4 |
+| Type | Shape | Answer | schema_version | Milestone |
+|---|---|---|---|---|
+| `multiple_choice` | `image?`, `icon?`, `options`: 2–4 `{id, image?, text?}` (≥1 of image/text) | option `id` (str) | 1 | M3 |
+| `numeric_entry` | `image?`, `icon?` | `int` (exact, integers only) | 1 | M3 |
+| `counting` | `image` **(required)**, `max_count` (1–99, default 10) | `int` ≤ `max_count` | 1 | M4 |
+| `ordering` | `image?`, `icon?`, `items`: 3–5 `{id, image?, text?}` | ordered list of item `id`s | 1 | M4 |
+| `match_pairs` | `image?`, `icon?`, `pairs`: 2–6 `{left, right}` options | implicit (each `left`↔its `right`) | 1 | M4 |
+| `decimal_entry` | `image?`, `icon?`, `decimals?` (int, UI hint for keypad places) | `str` matching `^-?\d+([.,]\d+)?$` | **2** | M8 |
+| `fraction_entry` | `image?`, `icon?`, `accept_equivalent` (bool, default `true`) | `{numerator: int, denominator: int}` (denominator ≥ 1) | **2** | M8 |
 
-`numeric_entry` is **integers only, exact match** — no decimals, fractions,
-negatives, or tolerance in v1 (a future `schema_version` bump if ever needed).
+`numeric_entry` is **integers only, exact match** — no decimals, fractions, or
+negatives in v1 (`numeric_entry` remains strict-integer even after M8; the new
+types isolate decimal/fraction logic without weakening it).
 Input reuses the PIN-style number pad (no free-text field, invariant #1 ethos).
+
+### `decimal_entry` (schema_version: 2)
+
+Type a decimal number (δεκαδικός) on a PIN-style keypad extended with a comma
+(υποδιαστολή) key. The `answer` is stored as a string in canonical form
+(e.g. `"7,57"`) to avoid float precision drift. Both `,` and `.` are accepted by
+the grader, and trailing zeros are normalized (`7,50` == `7,5`).
+
+The optional `decimals` field hints to the keypad UI how many decimal places to
+expect (cosmetic only — the grader doesn't enforce a fixed decimal count).
+
+Prefer `decimal_entry` over `multiple_choice` of decimal strings when the goal
+is **free entry** of the result (e.g. money arithmetic, length conversions).
+
+```jsonc
+{
+  "id": "d1",
+  "type": "decimal_entry",
+  "prompt": "3,25 € + 4,32 € = ?",
+  "prompt_tts": "τρία κόμμα εικοσιπέντε ευρώ συν τέσσερα κόμμα τριάντα δύο ευρώ",
+  "answer": "7,57",
+  "decimals": 2
+}
+```
+
+### `fraction_entry` (schema_version: 2)
+
+Enter a fraction (κλάσμα) by typing numerator and denominator on separate tap
+targets that share one on-screen number keypad. Posts `{numerator, denominator}`.
+
+`accept_equivalent` (default `true`) grades `6/8` as equal to `3/4` via
+cross-multiplication (no float arithmetic). Set to `false` to require an exact
+match.
+
+Prefer `fraction_entry` over `multiple_choice` of fraction strings or
+`match_pairs` of fractions when the goal is free entry of the fraction itself
+(e.g. reading a shaded diagram and expressing what fraction is shaded).
+
+```jsonc
+{
+  "id": "f1",
+  "type": "fraction_entry",
+  "prompt": "Τι κλάσμα είναι χρωματισμένο;",
+  "image": "shape-3-4.png",
+  "answer": {"numerator": 3, "denominator": 4},
+  "accept_equivalent": true
+}
+```
 
 ### Options
 

@@ -187,7 +187,7 @@ export interface ExerciseOption {
 /** A single exercise in the kid-view manifest — answers/TTS text are stripped. */
 export interface ExerciseView {
   id: string;
-  type: 'multiple_choice' | 'numeric_entry' | 'counting' | 'ordering' | 'match_pairs';
+  type: 'multiple_choice' | 'numeric_entry' | 'counting' | 'ordering' | 'match_pairs' | 'decimal_entry' | 'fraction_entry';
   prompt: string;
   hint?: string;
   options?: ExerciseOption[];
@@ -198,6 +198,8 @@ export interface ExerciseView {
   icon?: string;
   max_count?: number;
   pairs?: Array<{ left: ExerciseOption; right: ExerciseOption }>;
+  /** decimal_entry: hint to the keypad about expected decimal places. */
+  decimals?: number;
 }
 
 export interface ExerciseManifest {

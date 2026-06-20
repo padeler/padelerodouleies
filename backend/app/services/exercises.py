@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -22,6 +23,8 @@ from app.db.models import ExerciseAttempt, ExerciseCompletion, HistoryLedger, Us
 from app.schemas.exercises import (
     BundleManifest,
     CountingExercise,
+    DecimalEntryExercise,
+    FractionEntryExercise,
     MatchPairsExercise,
     MultipleChoiceExercise,
     NumericEntryExercise,
@@ -113,6 +116,18 @@ def grade(exercise: Any, response: Any) -> bool:
         expected = {p.left.id: p.right.id for p in exercise.pairs}
         return response == expected
 
+    if isinstance(exercise, DecimalEntryExercise):
+        return _as_decimal(response) == _as_decimal(exercise.answer)
+
+    if isinstance(exercise, FractionEntryExercise):
+        r_num, r_den = _parse_fraction_response(response)
+        a_num = exercise.answer.numerator
+        a_den = exercise.answer.denominator
+        if exercise.accept_equivalent:
+            # Cross-multiplication avoids float arithmetic.
+            return r_num * a_den == a_num * r_den
+        return r_num == a_num and r_den == a_den
+
     raise ResponseError(f"unknown exercise type: {getattr(exercise, 'type', '?')}")
 
 
@@ -132,6 +147,42 @@ def _as_int(response: Any) -> int:
         except ValueError as exc:
             raise ResponseError(f"numeric response is not an integer: {response!r}") from exc
     raise ResponseError(f"numeric response must be an integer, got {type(response).__name__}")
+
+
+def _as_decimal(value: Any) -> Decimal:
+    """Parse a decimal string (accepts ',' or '.' as separator). No float arithmetic."""
+    if isinstance(value, bool):
+        raise ResponseError("decimal response must be a string, not a boolean")
+    if not isinstance(value, str):
+        raise ResponseError(f"decimal_entry response must be a string, got {type(value).__name__}")
+    normalized = value.strip().replace(",", ".")
+    try:
+        return Decimal(normalized)
+    except InvalidOperation as exc:
+        raise ResponseError(f"decimal response is not a valid decimal: {value!r}") from exc
+
+
+def _parse_fraction_response(response: Any) -> tuple[int, int]:
+    """Extract (numerator, denominator) from a response dict. Rejects denominator 0."""
+    if isinstance(response, bool):
+        raise ResponseError("fraction_entry response must be a dict, not a boolean")
+    if not isinstance(response, dict):
+        raise ResponseError(
+            f"fraction_entry response must be a {{numerator, denominator}} dict, "
+            f"got {type(response).__name__}"
+        )
+    try:
+        num = response["numerator"]
+        den = response["denominator"]
+    except KeyError as exc:
+        raise ResponseError(f"fraction_entry response missing key: {exc}") from exc
+    if isinstance(num, bool) or not isinstance(num, int):
+        raise ResponseError("fraction numerator must be an integer")
+    if isinstance(den, bool) or not isinstance(den, int):
+        raise ResponseError("fraction denominator must be an integer")
+    if den == 0:
+        raise ResponseError("fraction denominator must not be zero")
+    return int(num), int(den)
 
 
 def _exercise_by_id(manifest: BundleManifest, exercise_id: str) -> Any | None:
