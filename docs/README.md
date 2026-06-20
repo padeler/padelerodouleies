@@ -21,6 +21,7 @@ root.
   - [History](#history)
   - [Leaderboard](#leaderboard)
   - [Stats](#stats)
+  - [Exercises](#exercises)
 - [For parents (admin)](#for-parents-admin)
   - [Approvals](#approvals)
   - [Managing chores](#managing-chores)
@@ -28,6 +29,7 @@ root.
   - [Managing users](#managing-users)
   - [Fulfillment](#fulfillment)
   - [Activity log](#activity-log)
+  - [Exercises (admin)](#exercises-admin)
 - [Personal settings (everyone)](#personal-settings-everyone)
 - [On phones & tablets](#on-phones--tablets)
 - [Architecture overview](#architecture-overview)
@@ -79,10 +81,10 @@ passwords to type — just **tap your face and enter a 4-digit PIN**.
 ## For kids
 
 After login, kids land on their colourful dashboard. The left sidebar (or the menu
-on a phone) has five tabs: **Δουλειές / Chores**, **Αγορά / Marketplace**,
-**Ιστορικό / History**, **Κατάταξη / Leaderboard**, and **Στατιστικά / Stats**. The
-header always shows the current star balance — and any **pending** stars waiting on
-a parent's approval (the small ☆ count).
+on a phone) has these tabs: **Δουλειές / Chores**, **Αγορά / Marketplace**,
+**Ιστορικό / History**, **Κατάταξη / Leaderboard**, **Στατιστικά / Stats**, and
+**Ασκήσεις / Exercises**. The header always shows the current star balance — and any
+**pending** stars waiting on a parent's approval (the small ☆ count).
 
 ### Dashboard & chores
 
@@ -160,6 +162,22 @@ Colourful charts built from the history and reward ledgers:
 - "Champion" cards: top earner, hardest worker, top buyer.
 - A per-kid breakdown — earned, spent, best day, best week.
 
+### Exercises
+
+The **Ασκήσεις / Exercises** tab is a set of age-targeted mini-quizzes grouped by
+subject (language, maths, history, nature…). A kid only sees exercises that fit
+their age — set from their **birthdate** in the admin user form — so a child with no
+birthdate sees none.
+
+Each subject lists **bundles** sorted easiest → hardest (difficulty shown as dots).
+Open a bundle and answer one question at a time: multiple-choice, type-a-number,
+count-the-objects, put-things-in-order, match-the-pairs, and (for older kids)
+decimal and fraction entry on a touch keypad. Many questions show an illustration,
+and the 🔊 speaker button reads the prompt aloud for pre-readers.
+
+Answers are graded instantly. Finish a bundle and you **earn its stars once** — the
+award shows up in your history and balance just like a chore.
+
 ---
 
 ## For parents (admin)
@@ -219,6 +237,8 @@ and a role. Note:
 - **Deletion is a soft delete** — a removed user is deactivated, never truly erased,
   so their history stays intact.
 - You **can't delete yourself**, and the **last remaining admin can't be deleted**.
+- **Birthdate** drives which [exercises](#exercises) a kid sees; leave it unset and
+  they see none.
 
 ### Fulfillment
 
@@ -235,6 +255,16 @@ archive.
 The complete, append-only ledger across the whole household — claims, approvals,
 declines, redemptions, manual star adjustments — including a **"By"** column showing
 which parent took each action. Paginated for long histories.
+
+### Exercises (admin)
+
+The admin **Ασκήσεις / Exercises** tab lists every exercise bundle found on disk,
+with its subject, age range, difficulty and path. Exercises are **generated offline**
+and dropped into the app's data folder — there's no in-app editor. After adding or
+changing bundle files, tap **Rescan** to pick them up immediately (the app otherwise
+re-reads them on demand). Invalid bundles are listed with their error so they can be
+fixed. The bundle file format is documented in
+[`EXERCISE_FORMAT.md`](EXERCISE_FORMAT.md).
 
 ---
 
