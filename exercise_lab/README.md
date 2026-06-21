@@ -219,7 +219,9 @@ Producing exercise bundles is a multi-step process. For each course:
    A course often has several PDFs, and a PDF often has several chapters. Reading
    PDF pages is token-heavy (the `Read` tool takes up to 20 pages per call), so
    **fan the per-chapter reading out to subagents** — this keeps the orchestrator's
-   context lean and lets chapters run in parallel. The orchestrator:
+   context lean. **Spawn the subagents sequentially — one at a time, waiting for
+   each to return before starting the next — unless the user explicitly asks you to
+   run them in parallel.** The orchestrator:
 
    - Does a cheap structure pass first (table of contents / page headers) to
      enumerate each PDF's chapters and their page ranges — you can't assign a
@@ -274,8 +276,10 @@ Producing exercise bundles is a multi-step process. For each course:
      avoid duplicates (similar is fine).
 
    Like step 1, **fan the per-bundle generation out to subagents** — one bundle per
-   subagent keeps the orchestrator's context lean and lets bundles run in parallel
-   (each owns a distinct `<id>-v<version>/` dir, so parallel writes never collide).
+   subagent keeps the orchestrator's context lean (each owns a distinct
+   `<id>-v<version>/` dir, so their writes never collide). **Spawn the subagents
+   sequentially — one at a time, waiting for each to return before starting the
+   next — unless the user explicitly asks you to run them in parallel.**
    Because this step is *guided*, the orchestrator must **gather the guidance up
    front for the whole batch** (which ideas become bundles, and each one's
    difficulty + star count) — you can't prompt the user mid-fan-out. Then:
