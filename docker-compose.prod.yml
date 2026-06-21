@@ -13,6 +13,7 @@ services:
       STATIC_DIR: /app/static
       # Required: signs the session cookie. Set in .env — no default on purpose.
       SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      EXERCISES_DIR: /app/data/exercises
     volumes:
       # Host path overridable via .env (DATA_DIR). Holds the SQLite DB,
       # uploaded avatars, and chore images — survives container rebuilds.
