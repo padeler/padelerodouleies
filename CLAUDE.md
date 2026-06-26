@@ -10,6 +10,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > `README.md` is the product spec; the exercises bundle format is normatively documented in [docs/EXERCISE_FORMAT.md](docs/EXERCISE_FORMAT.md). Both the original build plan and the exercises-feature plan have shipped and their `PLAN.md` files have been removed. Work from `README.md`, [docs/EXERCISE_FORMAT.md](docs/EXERCISE_FORMAT.md), and this file — and when any doc disagrees with code written later, the code wins, but flag the drift.
 
+## Implementation Notes
+
+The subsections below capture the current state of the build — deployment, schema, shipped features, performance constraints, tooling, versioning, and CI/CD.
+
 ### Deployment
 
 - Single container: Node build stage → Python runtime stage that bundles both. The runtime stage also carries `piper-tts` + `ffmpeg` + two Piper voice models (`el_GR`/`en_US`, ~60MB each, downloaded at build) for the card TTS feature.
@@ -66,11 +70,21 @@ The production frontend build (`tsc`) was broken before M5.2 — test files were
 - `backend/scripts/fetch_voices.sh` downloads the Piper voice models into `backend/voices/` (git-ignored), where `tts.py` looks by default — no env vars needed for local TTS. Audio in dev also needs `pip install piper-tts` + `ffmpeg`; without them the speaker button returns 503 and the rest of the app is unaffected.
 - `backend/scripts/make_sample_bundles.py` regenerates the sample exercise bundles under `samples/exercises/` (17 bundles covering **all seven** exercise types, including two M8 bundles: `dekadikoi-euro-v1` for `decimal_entry` and `klasmata-apla-v1` for `fraction_entry`), drawing the image assets with Pillow and validating each via the M1 loader. `samples/` is **git-ignored** — this script is the tracked source of truth; regenerate locally with `cd backend && python -m scripts.make_sample_bundles`. Copy `samples/exercises/*-v1` into `EXERCISES_DIR` (dev `backend/data/exercises`, prod `/mnt/raid/padelerodouleies/data/exercises`) and set a kid's birthdate to test the tab — see `samples/exercises/README.md`.
 
+### Versioning
+
+We tag releases with semantic-versioning git tags in `X.Y.Z` notation (the UI/`git describe` prefixes them with `v`, e.g. `v1.4.2`):
+
+- **Z (patch)** — bump for bug fixes.
+- **Y (minor)** — bump for small features.
+- **X (major)** — bump **only when the user explicitly requests it**. Never bump `X` on your own initiative.
+
+When merging a feature to `main`, create and push a new tag following these rules.
+
 ### CI/CD
 
 - `.github/workflows/build.yml` is build-only (no test gate): on push to `main` and `v*.*.*` tags it builds the `linux/amd64` image and pushes to `ghcr.io/padeler/padelerodouleies` (tags `latest`/`sha-`/semver) using `GITHUB_TOKEN`.
 - The GHCR package must be made Public once (manual, repo → Packages) so the LAN-only Synology NAS can pull without credentials.
-- Production deploy is manual: `docker-compose.prod.yml` pulls the GHCR image via `IMAGE_TAG` (default `latest`) instead of building; pull + restart from Synology Container Manager (see README "CI/CD" section).
+- Production deploy is manual: `docker-compose.prod.yml` pulls the GHCR image via `IMAGE_TAG` (default `latest`) instead of building; pull + restart from Synology Container Manager (see README "CI/CD" section). An **optional host-side auto-updater** (`auto-update.sh` + a Synology `/etc/crontab` entry — the DS220+ has no `crontab` util — documented in [AUTO_UPDATE.md](AUTO_UPDATE.md)) pulls `:latest` and recreates the container only when the image digest moves; no Watchtower / Docker socket in a container.
 - The login screen shows a build version: Vite injects `__APP_VERSION__` from the `APP_VERSION` env (CI sets it from `git describe --tags`, so it reflects the nearest git tag like `v0.1.0`; falls back to `package.json` version locally). `git describe` tags already start with `v`, so the UI does not add its own prefix; `vitest.config.ts` mirrors the `define` so tests don't hit a `ReferenceError`.
 
 ## Stack & Architecture

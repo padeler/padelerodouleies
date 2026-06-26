@@ -269,6 +269,14 @@ IMAGE_TAG=latest docker compose -f docker-compose.prod.yml up -d
 In Container Manager's GUI: open the project, **Settings → Pull** the image, then
 **Reset/Restart** the container.
 
+#### Automatic updates (optional)
+
+To pull + restart automatically when a new `:latest` image is pushed, a small
+host-side updater (`auto-update.sh`) driven by a cron entry is documented in
+[AUTO_UPDATE.md](AUTO_UPDATE.md). It recreates the container only when the image
+digest actually moves, and keeps the Docker socket out of any container (no
+Watchtower). Requires `IMAGE_TAG=latest`.
+
 #### Pinning & rollback
 
 `:latest` tracks `main`. For reproducible deploys or to roll back, pin a specific tag via
