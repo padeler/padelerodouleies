@@ -81,6 +81,14 @@
 .nav-icon {
   font-size: 16px;
   flex-shrink: 0;
+  /* Fixed-width, centered icon column so glyphs of differing widths (emoji vs a
+     plain text checkmark) line up and the labels all start at the same x. */
+  width: 20px;
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .nav-text {
@@ -90,7 +98,9 @@
   white-space: nowrap;
 }
 
-.admin-badge {
+/* Distinct from the global Landing `.admin-badge` (which is absolutely
+   positioned) — this is the inline pending-count pill on the Approvals row. */
+.admin-nav-badge {
   background: #e44;
   color: #fff;
   font-size: 11px;

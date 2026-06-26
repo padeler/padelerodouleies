@@ -11,13 +11,22 @@ interface Props {
   onAnswer: (response: string) => void;
 }
 
+/** A text answer this long reads poorly squeezed into a multi-column grid. */
+const LONG_ANSWER_CHARS = 18;
+
 /** Tap one of 2–4 options (image and/or text). Options shuffled per exercise. */
 export function MultipleChoicePlayer({ bundleId, exercise, disabled, onAnswer }: Props) {
   // Re-shuffles whenever the exercise changes (a fresh instance per exercise).
   const options = useMemo(() => shuffle(exercise.options ?? []), [exercise.id, exercise.options]);
 
+  // Long text-only answers stack into a single readable column.
+  const singleCol = useMemo(
+    () => options.every((o) => !o.image) && options.some((o) => (o.text?.length ?? 0) > LONG_ANSWER_CHARS),
+    [options],
+  );
+
   return (
-    <div className={`mc-options mc-count-${options.length}`}>
+    <div className={`mc-options mc-count-${options.length}${singleCol ? ' mc-single-col' : ''}`}>
       {options.map((opt) => (
         <div key={opt.id} className="mc-option-wrap">
           <button

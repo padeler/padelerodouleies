@@ -79,13 +79,16 @@
 
 .exercise-group-card,
 .exercise-bundle-card {
+  /* Theme-aware surface (white in light mode, dark in dark mode) — like the
+     game cards. The subtle accent gradient layers over the opaque var(--bg)
+     base; text uses the theme's --text/--text-h. */
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   padding: 24px 16px;
-  background: linear-gradient(135deg, #fff 0%, var(--accent-bg) 100%), #fff;
+  background: linear-gradient(135deg, var(--bg) 0%, var(--accent-bg) 100%), var(--bg);
   border: 2px solid var(--accent-border);
   border-radius: 16px;
   text-decoration: none;
@@ -270,6 +273,22 @@
   grid-template-columns: repeat(2, 1fr);
 }
 
+/* Long text answers are hard to read squeezed into a 2/3-column grid — stack
+   them in a single column and left-align so the sentence reads naturally. */
+.mc-options.mc-single-col {
+  grid-template-columns: 1fr;
+}
+
+.mc-options.mc-single-col .mc-option-text-only {
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.mc-options.mc-single-col .mc-option-text {
+  text-align: left;
+}
+
 .mc-option-wrap {
   position: relative;
   min-width: 0;
@@ -388,6 +407,37 @@
   color: #fff;
   border-color: transparent;
   font-size: 16px;
+}
+
+/* The "0" key spans the freed column when the submit button lives below the pad
+   (numeric/fraction entry), keeping the bottom row full. */
+.num-key-zero {
+  grid-column: span 2;
+}
+
+/* Submit button for keypad players: sits below the pad as a full-width button
+   with a clear gap so it never reads as just another keypad key. */
+.num-submit {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.12s ease;
+}
+
+.num-submit:active {
+  transform: scale(0.97);
+}
+
+.num-submit:disabled {
+  opacity: 0.4;
 }
 
 /* -- Decimal entry -- */
@@ -519,17 +569,34 @@
   margin-bottom: 18px;
 }
 
-/* Tray item + its speaker button share a positioned wrapper (the speak button
-   is absolutely positioned and can't live inside the item's <button>). */
+/* Tray item + its speaker button share a wrapper (the speaker can't live inside
+   the item's <button>). The items are small, so the speaker stacks BELOW the
+   item rather than overlapping its content as a corner badge would. */
 .order-item-wrap {
   position: relative;
   display: -webkit-inline-flex;
   display: inline-flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
   margin: 6px;
 }
 
 .order-item-wrap .order-item {
   margin: 0;
+}
+
+/* Small-item speaker (ordering tray, match columns): a compact button placed
+   below the item instead of the default top-right corner overlay, so it never
+   covers the (often short) item text and stays comfortably tappable. */
+.order-item-wrap .speak-btn,
+.match-item-wrap .speak-btn {
+  position: static;
+  margin-top: 6px;
+  width: 28px;
+  height: 28px;
+  opacity: 0.85;
 }
 
 .order-item {
@@ -650,6 +717,23 @@
   margin-right: 16px;
 }
 
+/* Item + its speaker stack vertically (speaker below), mirroring the ordering
+   tray; the speaker can't live inside the item's <button>. */
+.match-item-wrap {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.match-item-wrap .match-item {
+  width: 100%;
+  margin-bottom: 0;
+}
+
 .match-item {
   position: relative;
   display: flex;
@@ -758,6 +842,20 @@
 .exercise-hint-text {
   color: var(--text);
   margin-right: 8px;
+}
+
+/* The shared .speak-btn dark style (rgba(0,0,0,.35) + accent icon) is tuned for
+   the bright kid cards; on the player's dark surfaces it reads faint. Brighten
+   the speaker inside the (theme-adaptive) exercise player for clear contrast.
+   The bundle-list cards keep a bright surface, so they are intentionally left
+   on the default dark-on-light treatment. */
+html[data-theme="dark"] .exercise-prompt .speak-btn,
+html[data-theme="dark"] .mc-option-wrap .speak-btn,
+html[data-theme="dark"] .order-item-wrap .speak-btn,
+html[data-theme="dark"] .match-item-wrap .speak-btn,
+html[data-theme="dark"] .exercise-hint .speak-btn {
+  background: rgba(255, 255, 255, 0.16);
+  color: #f3e8ff;
 }
 
 /* -- Unsupported exercise type -- */

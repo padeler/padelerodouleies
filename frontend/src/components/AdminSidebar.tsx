@@ -44,8 +44,8 @@ export function AdminSidebar({ onClose }: { onClose?: () => void } = {}) {
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-text">{t(item.key)}</span>
-              {item.path === 'approvals' && (data?.count ?? 0) > 0 && (
-                <span className="admin-badge">{data?.count ?? 0}</span>
+              {item.path === '/admin/approvals' && (data?.count ?? 0) > 0 && (
+                <span className="admin-nav-badge">{data?.count ?? 0}</span>
               )}
             </NavLink>
           </li>

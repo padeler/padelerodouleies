@@ -20,8 +20,10 @@
 }
 
 .reward-card {
-  background: #fff;
-  border: 2px solid #e0d4f5;
+  /* Theme-aware surface (white in light mode, dark in dark mode) — like the
+     game cards. Opaque var(--bg) base keeps the flip back-face solid. */
+  background: linear-gradient(135deg, var(--bg) 0%, var(--accent-bg) 100%), var(--bg);
+  border: 2px solid var(--accent-border);
   border-radius: 14px;
   padding: 20px;
   text-align: center;
@@ -29,7 +31,7 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow);
 }
 
 .reward-icon-wrap {
@@ -38,7 +40,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fef3c7;
+  /* Translucent gold so the icon circle reads on both light and dark cards;
+     the (dark-line) catalog icon is inverted in dark mode — see index.css. */
+  background: rgba(240, 195, 109, 0.2);
   border-radius: 50%;
 }
 
@@ -149,14 +153,14 @@
 }
 
 .collab-card {
-  background: linear-gradient(135deg, #fff 0%, #faf5ff 100%);
-  border: 2px solid #c4b5fd;
+  background: linear-gradient(135deg, var(--bg) 0%, var(--accent-bg) 100%), var(--bg);
+  border: 2px solid var(--accent-border);
   border-radius: 14px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 2px 10px rgba(123, 47, 247, 0.1);
+  box-shadow: var(--shadow);
 }
 
 .collab-header {
@@ -185,7 +189,7 @@
 
 .collab-progress-bar {
   height: 24px;
-  background: #ede9fe;
+  background: var(--accent-bg);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -199,7 +203,7 @@
 .collab-total {
   font-size: 14px;
   font-weight: 700;
-  color: #7b2ff7;
+  color: var(--accent);
   text-align: right;
 }
 
@@ -240,7 +244,8 @@
 }
 
 .collab-modal {
-  background: #fff;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 28px;
   min-width: 320px;
@@ -280,8 +285,9 @@
 
 .btn-cancel {
   padding: 10px 18px;
-  border: 2px solid #ddd;
-  background: #fff;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;

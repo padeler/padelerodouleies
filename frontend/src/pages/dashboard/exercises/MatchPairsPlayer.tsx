@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { exerciseAssetUrl } from '../../../api/client';
+import { exerciseAssetUrl, exerciseOptionTtsUrl } from '../../../api/client';
+import { SpeakButton } from '../../../components/SpeakButton';
 import { useT } from '../../../i18n/store';
 import { shuffle } from '../../../lib/shuffle';
 import type { ExerciseOption, ExerciseView } from '../../../lib/types';
@@ -90,21 +91,23 @@ export function MatchPairsPlayer({ bundleId, exercise, disabled, resetSignal, on
             const cls = `match-item${selected === opt.id ? ' match-selected' : ''}${linked ? ' match-linked' : ''}`;
             const color = linked ? pairColor(leftIndex(opt.id)) : undefined;
             return (
-              <button
-                key={opt.id}
-                type="button"
-                className={cls}
-                style={color ? { borderColor: color } : undefined}
-                disabled={disabled}
-                onClick={() => tapLeft(opt.id)}
-              >
-                {linked && (
-                  <span className="match-badge" style={{ background: color }}>
-                    {leftIndex(opt.id)}
-                  </span>
-                )}
-                <Face bundleId={bundleId} opt={opt} />
-              </button>
+              <div key={opt.id} className="match-item-wrap">
+                <button
+                  type="button"
+                  className={cls}
+                  style={color ? { borderColor: color } : undefined}
+                  disabled={disabled}
+                  onClick={() => tapLeft(opt.id)}
+                >
+                  {linked && (
+                    <span className="match-badge" style={{ background: color }}>
+                      {leftIndex(opt.id)}
+                    </span>
+                  )}
+                  <Face bundleId={bundleId} opt={opt} />
+                </button>
+                {opt.text && <SpeakButton src={exerciseOptionTtsUrl(bundleId, exercise.id, opt.id)} />}
+              </div>
             );
           })}
         </div>
@@ -114,21 +117,23 @@ export function MatchPairsPlayer({ bundleId, exercise, disabled, resetSignal, on
             const cls = `match-item${ownerLeft ? ' match-linked' : ''}`;
             const color = ownerLeft ? pairColor(leftIndex(ownerLeft)) : undefined;
             return (
-              <button
-                key={opt.id}
-                type="button"
-                className={cls}
-                style={color ? { borderColor: color } : undefined}
-                disabled={disabled}
-                onClick={() => tapRight(opt.id)}
-              >
-                {ownerLeft && (
-                  <span className="match-badge" style={{ background: color }}>
-                    {leftIndex(ownerLeft)}
-                  </span>
-                )}
-                <Face bundleId={bundleId} opt={opt} />
-              </button>
+              <div key={opt.id} className="match-item-wrap">
+                <button
+                  type="button"
+                  className={cls}
+                  style={color ? { borderColor: color } : undefined}
+                  disabled={disabled}
+                  onClick={() => tapRight(opt.id)}
+                >
+                  {ownerLeft && (
+                    <span className="match-badge" style={{ background: color }}>
+                      {leftIndex(ownerLeft)}
+                    </span>
+                  )}
+                  <Face bundleId={bundleId} opt={opt} />
+                </button>
+                {opt.text && <SpeakButton src={exerciseOptionTtsUrl(bundleId, exercise.id, opt.id)} />}
+              </div>
             );
           })}
         </div>

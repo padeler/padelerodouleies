@@ -76,13 +76,17 @@ html[data-theme="light"] {
 
 /*
  * Catalog icons are monochrome line SVGs (black `currentColor` stroke) loaded
- * via <img>, so they cannot inherit theme colors. On the themed dark surfaces
- * (admin panel + settings modal) a black icon is nearly invisible, so we invert
- * it to a light tone. The kid dashboard keeps its bright hardcoded cards, where
- * the original dark icons already read well — those are intentionally excluded.
+ * via <img>, so they cannot inherit theme colors. On any dark surface a black
+ * icon is nearly invisible, so we invert it to a light tone. This covers the
+ * admin panel, the settings modal, and the kid chore/reward cards (now
+ * theme-aware and dark in dark mode). The `src*=` selector matches only catalog
+ * SVGs, so uploaded photo icons (a `/...` path) are left untouched.
  */
 html[data-theme="dark"] .admin-shell img[src*="/api/icons/svg/"],
-html[data-theme="dark"] .settings-modal img[src*="/api/icons/svg/"] {
+html[data-theme="dark"] .settings-modal img[src*="/api/icons/svg/"],
+html[data-theme="dark"] .chore-card img[src*="/api/icons/svg/"],
+html[data-theme="dark"] .reward-card img[src*="/api/icons/svg/"],
+html[data-theme="dark"] .collab-card img[src*="/api/icons/svg/"] {
   filter: invert(0.85);
 }
 

@@ -56,7 +56,7 @@ export function DecimalEntryPlayer({ exercise, disabled, resetSignal, onAnswer }
       </div>
       <button
         type="button"
-        className="order-check"
+        className="num-submit"
         disabled={disabled || value.length === 0}
         onClick={submit}
       >

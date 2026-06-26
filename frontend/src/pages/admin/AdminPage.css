@@ -334,19 +334,19 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  border: 2px solid #d1c4e9;
-  background: #fff;
+  border: 2px solid var(--accent-border);
+  background: var(--bg);
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
-  color: var(--text, #333);
+  color: var(--text);
   transition: background 0.15s, border-color 0.15s;
 }
 
 .day-toggle-active {
-  background: #7b2ff7;
+  background: var(--accent);
   color: #fff;
-  border-color: #7b2ff7;
+  border-color: var(--accent);
 }
 
 /* -- Toggle button groups (scope, repeating, repeat pattern, window) -- */

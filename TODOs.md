@@ -2,16 +2,20 @@
 
 
 ## Bugs:
-- [x] On exercises when the choice is numerical (or very short text) the buttons are too small and the speaker is rendered on the text or the text is wrapped making difficult to read
-- [x] Pagination for the bundles on the admin "Exercises" tab.
-- [x] On a phone screen the multiple choice buttons are sometimes to long causing horizontal sidescroll
-- [x] Dark mode theme contrast issues: Text is not visible on cards with light background. Icons with dark details not vidible on dark cards (i.e match game)
-  - Fixed so far: kid chore/reward/collab flip-cards (text pinned to dark on the always-light card) and Memory Match revealed tile (light face in dark mode).
 
-## Dark mode — remaining contrast problems (found via Playwright walkthrough, dark theme):
-- [x] **Kid History (Ιστορικό) timeline cards**: gave `.history-content` a dark surface (`#20222b`) in dark mode so the theme light text reads; adjusted the note/time/timeline-line/dot light-only bits and inverted catalog SVG chore icons (uploaded images untouched). Verified readable in dark mode.
-- [x] **Admin Approvals reason field**: added a reusable `.admin-textarea` themed style and applied it to the approvals "Αιτιολογία" textarea — now translucent-dark with light text, matching the chore/reward modal inputs.
-- [x] **Dark line-icon avatars on dark surfaces (kid areas)**: added an `invert(0.85)` rule for catalog SVG avatar icons in dark mode (`Avatar.css` `.avatar-icon`, `Landing.css` `.avatar-img:not(.avatar-img-photo)`); photos are never inverted. Verified on the login grid (shield/books/swords/smiley now legible).
+- [x] More issues on the dark mode (verify with playwright)
+  - [x] speaker icos have poor contrust — brightened the speaker in the exercise player (Exercises.css dark override)
+  - [x] in exercise cards the text is unreadable (white on white) — pinned the light text palette on the bundle/group cards
 
-## Verified OK in dark mode (no action needed):
-- Login grid, Chores dashboard + flipped backs, Marketplace (rewards + collaborative), Leaderboard layout, Stats (summary, bar chart, champion + per-kid + game-score cards), Games hub + Memory Match, Admin chores table, Admin chore edit modal (incl. icon picker), Admin Exercises table + new pagination.
+- [x] Speaker icon is not visible on the "match" exercises — match items now render a speaker below each text item (like ordering/MC)
+- [x] Multiple choise with long answers should align on a single column to make text easier to read — `mc-single-col` when a text-only option exceeds 18 chars
+- [x] speaker icon on ordering exercises is not working — the 32px speaker overlapped the tiny tray item; now a compact speaker sits below the item, clearly visible and tappable
+- [x] on exercise questions that have numberical input and show a keypad the "submit" button has no vertical separation from the keypad buttons. It is ugly (verify with playwright) — submit moved out of the keypad grid into a full-width `.num-submit` below, with a gap (numeric/decimal/fraction)
+- [x] On the admin sidepanel the "Approvals" icon is not verically aligned with the rest of the icons (maybe it is an icon border issue). It is ugly (verify with playwright) — fixed-width centered `.nav-icon` column; also fixed the pending-count badge (broken path condition + global `.admin-badge` class collision → renamed to `.admin-nav-badge`)
+
+
+## Features 
+
+- [ ] When in an exercise bundle, a user should be able to revisit previous questions (i.e buttons to move back and forward on the answered questions) 
+showing the correct answer but not able to play it again (it is already solved)
+- [ ] A service should run on the background to prerecord the tts files for the exercises. Maybe a cronjob in the container.

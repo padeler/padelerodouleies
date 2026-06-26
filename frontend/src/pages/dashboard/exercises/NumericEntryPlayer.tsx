@@ -43,21 +43,21 @@ export function NumericEntryPlayer({ exercise, disabled, resetSignal, onAnswer }
             {k}
           </button>
         ))}
+        <button type="button" className="num-key num-key-zero" disabled={disabled} onClick={() => push('0')}>
+          0
+        </button>
         <button type="button" className="num-key" disabled={disabled} onClick={backspace} aria-label="backspace">
           <Delete size={22} aria-hidden="true" />
         </button>
-        <button type="button" className="num-key" disabled={disabled} onClick={() => push('0')}>
-          0
-        </button>
-        <button
-          type="button"
-          className="num-key num-check"
-          disabled={disabled || value.length === 0}
-          onClick={submit}
-        >
-          {t('exercises.check')}
-        </button>
       </div>
+      <button
+        type="button"
+        className="num-submit"
+        disabled={disabled || value.length === 0}
+        onClick={submit}
+      >
+        {t('exercises.check')}
+      </button>
     </div>
   );
 }

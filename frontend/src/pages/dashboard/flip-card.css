@@ -5,12 +5,11 @@
   perspective: 1200px;
   cursor: pointer;
   transition: transform 0.2s;
-  /* Kid cards keep bright (light) surfaces in every theme, so the text inside
-     them must stay dark — otherwise the theme's light --text/--text-h render
-     invisibly on the white card back in dark mode. Pin the light palette here;
-     accent vars stay theme-driven so the accent tint still shifts. */
-  --text: #6b6375;
-  --text-h: #08060d;
+  /* Kid cards are theme-aware (like the game cards): the card surface is
+     var(--bg) and the text uses the theme's --text/--text-h, so they go dark in
+     dark mode instead of staying a glaring white. The flip back-face overlays
+     the front, so each face must keep an opaque background (var(--bg) is opaque
+     in both themes — see .chore-card/.reward-card). */
 }
 
 .flip-card:hover {
