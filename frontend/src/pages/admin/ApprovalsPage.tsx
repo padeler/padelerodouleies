@@ -46,10 +46,11 @@ function ClaimCard({ claim }: { claim: PendingClaim }) {
         {claim.chore_title}
       </div>
       <textarea
+        className="admin-textarea"
         placeholder={t('admin.reason_placeholder')}
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        style={{ width: '100%', marginBottom: 8, boxSizing: 'border-box', padding: '6px 8px' }}
+        style={{ marginBottom: 8 }}
         rows={2}
       />
       <div className="claim-actions" style={{ display: 'flex', gap: 8 }}>

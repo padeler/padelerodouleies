@@ -139,6 +139,17 @@
   object-fit: cover;
 }
 
+/* Dark mode: lighten the dark line-art catalog icons so they read on the dark
+   --accent-bg ring (photos, marked .avatar-img-photo, are left untouched). */
+html[data-theme="dark"] .avatar-img:not(.avatar-img-photo) {
+  filter: invert(0.85);
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .avatar-img:not(.avatar-img-photo) {
+    filter: invert(0.85);
+  }
+}
+
 .avatar-name {
   font-size: 17px;
   font-weight: 700;

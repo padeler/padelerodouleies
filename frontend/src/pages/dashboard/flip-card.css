@@ -5,6 +5,12 @@
   perspective: 1200px;
   cursor: pointer;
   transition: transform 0.2s;
+  /* Kid cards keep bright (light) surfaces in every theme, so the text inside
+     them must stay dark — otherwise the theme's light --text/--text-h render
+     invisibly on the white card back in dark mode. Pin the light palette here;
+     accent vars stay theme-driven so the accent tint still shifts. */
+  --text: #6b6375;
+  --text-h: #08060d;
 }
 
 .flip-card:hover {

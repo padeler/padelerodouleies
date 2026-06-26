@@ -122,6 +122,56 @@
   margin-bottom: 16px;
 }
 
+/* Dark mode: the card is hard-coded light, but the title/action/time text uses
+   the theme --text/--text-h (light in dark mode) — which is invisible on white.
+   Give the card a dark surface so the light theme text reads, and adjust the
+   inner light-only bits. Catalog SVG icons (dark line art) are inverted to a
+   light tone; uploaded chore images (/chore-images/…) are left untouched.
+   Mirrors the index.css admin-icon-invert pattern. */
+html[data-theme="dark"] .history-content {
+  background: #20222b;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+html[data-theme="dark"] .history-note {
+  background: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .history-time {
+  color: var(--text);
+  opacity: 0.7;
+}
+html[data-theme="dark"] .history-timeline::before {
+  background: #3a2f55;
+}
+html[data-theme="dark"] .history-dot {
+  border-color: #20222b;
+}
+html[data-theme="dark"] .history-chore-icon[src*="/api/icons/svg/"] {
+  filter: invert(0.85);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .history-content {
+    background: #20222b;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+  html:not([data-theme="light"]) .history-note {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  html:not([data-theme="light"]) .history-time {
+    color: var(--text);
+    opacity: 0.7;
+  }
+  html:not([data-theme="light"]) .history-timeline::before {
+    background: #3a2f55;
+  }
+  html:not([data-theme="light"]) .history-dot {
+    border-color: #20222b;
+  }
+  html:not([data-theme="light"]) .history-chore-icon[src*="/api/icons/svg/"] {
+    filter: invert(0.85);
+  }
+}
+
 /* Responsive */
 
 @media (max-width: 768px) {

@@ -272,6 +272,7 @@
 
 .mc-option-wrap {
   position: relative;
+  min-width: 0;
 }
 
 .mc-option {
@@ -279,12 +280,21 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  min-width: 0;
   padding: 16px;
   background: var(--bg);
   border: 3px solid var(--accent-border);
   border-radius: 16px;
   cursor: pointer;
   transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+/* Text-only options: keep a tappable height and reserve room on the right so
+   the absolutely-positioned speaker button never overlaps short/numeric text. */
+.mc-option-text-only {
+  justify-content: center;
+  min-height: 64px;
+  padding: 16px 44px;
 }
 
 .mc-option:active {
@@ -317,6 +327,11 @@
   font-size: 18px;
   font-weight: 700;
   color: var(--text-h);
+  /* Wrap long words instead of forcing the grid wider (horizontal scroll). */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 
 /* -- Numeric entry -- */
@@ -789,5 +804,13 @@
 @media (max-width: 768px) {
   .exercise-prompt-text {
     font-size: 18px;
+  }
+}
+
+/* Narrow phones: 3-up text options get too cramped (speaker padding + wrapping),
+   so collapse to 2 columns to avoid horizontal overflow. */
+@media (max-width: 480px) {
+  .mc-options.mc-count-3 {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

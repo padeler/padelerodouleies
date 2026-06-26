@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Play, RefreshCw } from 'lucide-react';
@@ -5,6 +6,7 @@ import { getAdminExerciseStats, rescanExercises } from '../../api/client';
 import { useT } from '../../i18n/store';
 import { notifyError, notifyInfo, notifySuccess } from '../../lib/notify';
 import { Avatar } from '../../components/Avatar';
+import { Pagination, usePagination } from '../../components/Pagination';
 import './AdminPage.css';
 
 export function AdminExercisesPage() {
@@ -23,12 +25,17 @@ export function AdminExercisesPage() {
     onError: () => notifyError(t('exercises.admin.rescan_failed')),
   });
 
+  const sortedBundles = useMemo(
+    () => (data?.bundles ?? []).slice().sort((a, b) => a.difficulty - b.difficulty),
+    [data],
+  );
+  const bundlePager = usePagination(sortedBundles);
+
   if (isLoading || !data) {
     return <div className="exercises-hub" />;
   }
 
   const { bundles, invalid, kid_stats } = data;
-  const sortedBundles = bundles.slice().sort((a, b) => a.difficulty - b.difficulty);
 
   return (
     <div className="exercises-hub">
@@ -63,7 +70,7 @@ export function AdminExercisesPage() {
             </tr>
           </thead>
           <tbody>
-            {sortedBundles.map((b) => (
+            {bundlePager.pageItems.map((b) => (
               <tr key={b.id}>
                 <td>
                   <span style={{ marginRight: 6 }}>{t(`exercises.subject.${b.subject}`)}</span>
@@ -87,6 +94,7 @@ export function AdminExercisesPage() {
           </tbody>
         </table>
       )}
+      <Pagination page={bundlePager.page} pageCount={bundlePager.pageCount} onChange={bundlePager.setPage} />
 
       {invalid.length > 0 && (
         <>

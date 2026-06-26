@@ -26,3 +26,15 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* Catalog SVGs are dark monochrome line art; on the dark --accent-bg ring in
+   dark mode they read low-contrast, so lighten them (same approach as the
+   admin-shell icon rule in index.css). Photos are never inverted. */
+html[data-theme="dark"] .avatar-icon {
+  filter: invert(0.85);
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .avatar-icon {
+    filter: invert(0.85);
+  }
+}

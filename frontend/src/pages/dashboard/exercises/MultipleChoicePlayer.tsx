@@ -22,7 +22,7 @@ export function MultipleChoicePlayer({ bundleId, exercise, disabled, onAnswer }:
         <div key={opt.id} className="mc-option-wrap">
           <button
             type="button"
-            className="mc-option"
+            className={`mc-option${opt.image ? '' : ' mc-option-text-only'}`}
             disabled={disabled}
             onClick={() => onAnswer(opt.id)}
           >

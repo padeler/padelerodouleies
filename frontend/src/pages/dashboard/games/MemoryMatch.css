@@ -104,6 +104,23 @@
   background: rgba(107, 203, 119, 0.14);
 }
 
+/* The revealed face shows the emoji tile. Some ≤6.1 emoji have dark outlines
+   that vanish on the dark theme surface, so keep this face light in dark mode. */
+html[data-theme="dark"] .mm-back {
+  background: #f4f3ec;
+}
+html[data-theme="dark"] .mm-card.matched .mm-back {
+  background: rgba(107, 203, 119, 0.22);
+}
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .mm-back {
+    background: #f4f3ec;
+  }
+  html:not([data-theme="light"]) .mm-card.matched .mm-back {
+    background: rgba(107, 203, 119, 0.22);
+  }
+}
+
 @media (max-width: 480px) {
   .mm-face {
     font-size: 26px;
