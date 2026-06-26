@@ -280,6 +280,8 @@ Producing exercise bundles is a multi-step process. For each course:
    `<id>-v<version>/` dir, so their writes never collide). **Spawn the subagents
    sequentially — one at a time, waiting for each to return before starting the
    next — unless the user explicitly asks you to run them in parallel.**
+   After the fan-out finishes, **always run step 4 (verify)** on the generated
+   bundles before considering the course done.
    Because this step is *guided*, the orchestrator must **gather the guidance up
    front for the whole batch** (which ideas become bundles, and each one's
    difficulty + star count) — you can't prompt the user mid-fan-out. Then:
@@ -321,3 +323,42 @@ Producing exercise bundles is a multi-step process. For each course:
    A bundle that generates clean must load clean. To play-test it, copy the dir
    into `EXERCISES_DIR` and set a kid's birthdate — see
    [../samples/exercises/README.md](../samples/exercises/README.md) ("How to test").
+
+4. **Verify the generated bundles.** Step 3 is fanned out to **Sonnet** subagents,
+   which are noticeably weaker at Greek than at English: the validator only checks
+   *structure* (schema, mono-script, asset paths), so it happily passes bundles that
+   contain **Greek spelling, accent (τόνος), and grammar mistakes**. This step is a
+   language proof-read of everything in `bundles/<grade>/<course>/`.
+
+   **Do this with the orchestrating (strong) model itself — never fan it out to a
+   Sonnet subagent.** Sonnet is the source of the errors, so re-checking with Sonnet
+   would miss the same mistakes. The orchestrator reads and corrects the text
+   directly; this is cheap (no PDF reading, just the small JSON manifests).
+
+   For every bundle directory under `bundles/<grade>/<course>/`:
+
+   - Read its `manifest.json` and proof-read **every human-visible string** — each
+     exercise's `prompt`/`hint`, every `option`/`left`/`right`/`item` `text`, the
+     bundle `title`/`description`, and any `*_tts` spoken override. Check for:
+     - **Greek spelling and accents** — missing or misplaced τόνος (e.g. `μηλο` →
+       `μήλο`, `ποια` vs `ποιά`), final-ν rules, ς/σ, ει/η/ι and ο/ω confusions.
+     - **Grammar and agreement** — article/noun/adjective gender and case, verb
+       endings, singular/plural.
+     - **English strings** (Magic Book) — spelling and obvious grammar, though these
+       are far less error-prone.
+     - **Factual / answer correctness slips** that a language read catches — a
+       `prompt` that contradicts its `answer`, a mislabelled option.
+   - **Fix mistakes in place** with a minimal edit — change only the wrong characters,
+     leave structure, ids, and assets untouched. Keep the mono-script-per-string rule
+     intact (don't introduce a Latin letter into a Greek string or vice-versa), and
+     update the matching `*_tts` override if you change a word it spelled out.
+   - After editing a bundle, **re-run the validator** to confirm it still loads:
+
+     ```
+     cd backend && python -m app.schemas.exercises ../exercise_lab/bundles/<grade>/<course>/<id>-v<version>
+     ```
+
+   Record the proof-read outcome per bundle in `bundles/<grade>/<course>/progress.md`
+   (e.g. a `verified` mark, noting any corrections made) so a later run can tell which
+   bundles have already been proof-read. Unlike steps 1 and 3, **do not fan this out**
+   — the whole point is to use the stronger model's better Greek.
