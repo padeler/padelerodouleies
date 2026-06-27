@@ -16,6 +16,6 @@
 
 ## Features 
 
-- [ ] When in an exercise bundle, a user should be able to revisit previous questions (i.e buttons to move back and forward on the answered questions) 
-showing the correct answer but not able to play it again (it is already solved)
-- [ ] A service should run on the background to prerecord the tts files for the exercises. Maybe a cronjob in the container.
+- [x] When in an exercise bundle, a user should be able to revisit previous questions (i.e buttons to move back and forward on the answered questions) 
+showing the correct answer but not able to play it again (it is already solved) — added ‹ Προηγούμενη / Επόμενη › nav + clickable progress dots in `BundlePlayer`; solved questions render a read-only `RevealedAnswer` (shows the kid's correct response, no interactive controls), and you can never skip ahead past the first unsolved question
+- [x] A service should run on the background to prerecord the tts files for the exercises. Maybe a cronjob in the container. — `app/services/exercise_tts.py` warms the content-hashed TTS cache for every bundle string (titles/prompts/hints/options), run in a daemon thread at startup (FastAPI `lifespan`) and after admin rescan; no cron (immutable bundles → one-shot pass, aligns with the no-scheduler ethos). CLI: `python -m app.services.exercise_tts`

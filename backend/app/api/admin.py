@@ -723,4 +723,9 @@ def rescan_exercises(
     logger.info("admin rescan: %d valid / %d invalid bundle(s)", valid, invalid)
     for b in discovery.invalid:
         logger.warning("admin rescan invalid bundle %s: %s", rel_path(b.dir), b.error)
+
+    # Pre-record TTS for any newly dropped bundle (background, never blocks).
+    from app.services.exercise_tts import warm_all_in_background
+
+    warm_all_in_background()
     return {"valid": valid, "invalid": invalid}

@@ -1,6 +1,8 @@
 """FastAPI application entry point."""
 
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -16,7 +18,27 @@ from app.db.engine import init_db
 from app.db.models import User
 from app.realtime import broadcaster
 
-app = FastAPI(title="padelerodouleies", docs_url=None, redoc_url=None, openapi_url="/api/openapi.json")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Pre-record the exercise TTS audio so the first speaker tap is instant.
+
+    Runs in a daemon thread (Piper is a blocking subprocess) so it never delays
+    startup; a missing TTS toolchain just logs and aborts the pass.
+    """
+    from app.services.exercise_tts import warm_all_in_background
+
+    warm_all_in_background()
+    yield
+
+
+app = FastAPI(
+    title="padelerodouleies",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url="/api/openapi.json",
+    lifespan=lifespan,
+)
 
 init_db()
 

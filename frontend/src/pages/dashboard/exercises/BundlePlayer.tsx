@@ -13,6 +13,7 @@ import { OrderingPlayer } from './OrderingPlayer';
 import { MatchPairsPlayer } from './MatchPairsPlayer';
 import { DecimalEntryPlayer } from './DecimalEntryPlayer';
 import { FractionEntryPlayer } from './FractionEntryPlayer';
+import { RevealedAnswer } from './RevealedAnswer';
 import '../flip-card.css'; // .speak-btn styles
 import './Exercises.css';
 
@@ -26,6 +27,11 @@ export function BundlePlayer() {
   const submit = useSubmitAnswer(bundleId);
 
   const [idx, setIdx] = useState(0);
+  // First-unsolved index: questions before it are solved and read-only. A kid can
+  // only pass a question by answering it correctly, so everything < frontier has a
+  // stored correct answer to reveal.
+  const [frontier, setFrontier] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, unknown>>({});
   const [feedback, setFeedback] = useState<Feedback>('none');
   const [missed, setMissed] = useState(false); // reveal the hint after the first miss
   const [resetSignal, setResetSignal] = useState(0); // clears the numeric pad on a wrong try
@@ -69,6 +75,9 @@ export function BundlePlayer() {
       if (result.correct) {
         setFeedback('correct');
         playReward();
+        // Record the correct response so this question can be revisited read-only.
+        setAnswers((prev) => ({ ...prev, [idx]: response }));
+        setFrontier((f) => Math.max(f, idx + 1));
         const isLast = idx === exercises.length - 1;
         if (isLast) {
           setStars(result.stars_awarded);
@@ -96,6 +105,17 @@ export function BundlePlayer() {
     }
   }
 
+  // A question before the frontier is already solved → shown read-only.
+  const isSolved = idx < frontier;
+
+  // Jump to any solved question or the active one (never skip ahead to unsolved).
+  const goTo = (target: number) => {
+    if (target < 0 || target > frontier || target === idx) return;
+    setIdx(target);
+    setMissed(false);
+    setFeedback('none');
+  };
+
   return (
     <div className="exercise-player">
       <div className="exercises-head">
@@ -110,7 +130,14 @@ export function BundlePlayer() {
 
       <div className="exercise-progress-dots">
         {exercises.map((ex, i) => (
-          <span key={ex.id} className={`exercise-dot ${i < idx ? 'dot-done' : ''} ${i === idx ? 'dot-active' : ''}`} />
+          <button
+            key={ex.id}
+            type="button"
+            className={`exercise-dot ${i < frontier ? 'dot-done' : ''} ${i === idx ? 'dot-active' : ''}`}
+            disabled={i > frontier}
+            aria-label={t('exercises.progress', { current: String(i + 1), total: String(exercises.length) })}
+            onClick={() => goTo(i)}
+          />
         ))}
       </div>
 
@@ -136,7 +163,9 @@ export function BundlePlayer() {
         <SpeakButton src={exerciseTtsUrl(bundleId, exercise.id, 'prompt')} />
       </div>
 
-      {exercise.type === 'numeric_entry' ? (
+      {isSolved ? (
+        <RevealedAnswer bundleId={bundleId} exercise={exercise} response={answers[idx]} />
+      ) : exercise.type === 'numeric_entry' ? (
         <NumericEntryPlayer
           key={exercise.id}
           exercise={exercise}
@@ -213,6 +242,25 @@ export function BundlePlayer() {
           <SpeakButton src={exerciseTtsUrl(bundleId, exercise.id, 'hint')} />
         </div>
       )}
+
+      <div className="exercise-nav">
+        <button
+          type="button"
+          className="exercise-nav-btn"
+          disabled={idx === 0}
+          onClick={() => goTo(idx - 1)}
+        >
+          ‹ {t('exercises.prev')}
+        </button>
+        <button
+          type="button"
+          className="exercise-nav-btn"
+          disabled={idx >= frontier}
+          onClick={() => goTo(idx + 1)}
+        >
+          {t('exercises.next_q')} ›
+        </button>
+      </div>
     </div>
   );
 }

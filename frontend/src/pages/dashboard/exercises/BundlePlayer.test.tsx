@@ -23,6 +23,9 @@ const TRANSLATIONS: Record<string, Record<string, string>> = {
   'exercises.hint': { el: 'Βοήθεια', en: 'Hint' },
   'exercises.check': { el: 'Έλεγχος', en: 'Check' },
   'exercises.tap_to_order': { el: 'Πάτησε με τη σειρά', en: 'Tap in order' },
+  'exercises.prev': { el: 'Προηγούμενη', en: 'Previous' },
+  'exercises.next_q': { el: 'Επόμενη', en: 'Next' },
+  'exercises.solved': { el: 'Λυμένη', en: 'Solved' },
   'exercises.well_done': { el: 'Τέλεια!', en: 'Great!' },
   'exercises.earned_stars': { el: 'Κέρδισες {stars} ⭐!', en: 'You earned {stars} ⭐!' },
   'exercises.fraction_numerator': { el: 'Αριθμητής', en: 'Numerator' },
@@ -105,6 +108,29 @@ describe('BundlePlayer — multiple choice', () => {
     // Correct answer → advance to the second exercise.
     await user.click(screen.getByRole('button', { name: 'apple' }));
     await waitFor(() => expect(screen.getByText('Which says meow?')).toBeInTheDocument(), { timeout: 2000 });
+  });
+
+  it('revisits a solved question read-only and returns to the active one', async () => {
+    const user = userEvent.setup();
+    renderPlayer('letters-A');
+
+    await screen.findByText('Which is apple?');
+    // Solve the first question → advance to the second.
+    await user.click(screen.getByRole('button', { name: 'apple' }));
+    await waitFor(() => expect(screen.getByText('Which says meow?')).toBeInTheDocument(), { timeout: 2000 });
+
+    // Go back to the solved question — it is now read-only and reveals the answer.
+    await user.click(screen.getByRole('button', { name: /Previous/ }));
+    await screen.findByText('Which is apple?');
+    expect(screen.getByText('Solved')).toBeInTheDocument(); // read-only "Solved" label
+    expect(screen.getByText('apple')).toBeInTheDocument();
+    // The interactive option buttons are gone — cannot answer again.
+    expect(screen.queryByRole('button', { name: 'ball' })).not.toBeInTheDocument();
+
+    // Forward returns to the active (unsolved) second question.
+    await user.click(screen.getByRole('button', { name: /Next/ }));
+    await screen.findByText('Which says meow?');
+    expect(screen.getByRole('button', { name: 'cat' })).toBeInTheDocument();
   });
 
   it('celebrates exactly once on completion', async () => {
