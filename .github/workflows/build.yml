@@ -6,7 +6,7 @@ name: Build and push image
 # Build-only: no tests are run here (run them locally / in a separate workflow).
 on:
   push:
-    branches: [main]
+    # branches: [main]
     tags: ["v*.*.*"]
   workflow_dispatch:
 
