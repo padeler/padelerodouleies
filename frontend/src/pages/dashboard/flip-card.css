@@ -93,6 +93,12 @@
   top: 6px;
   right: 6px;
   z-index: 2;
+  /* backface-visibility on the parent face does not cascade to children, and the
+     z-index promotes this button to its own layer on old WebKit — so without its
+     own hidden backface it leaks through the flipped card as a mirrored speaker
+     at top-left. Hide its back so it only ever shows on the front face. */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -110,6 +116,15 @@
 
 .speak-btn:hover {
   opacity: 1;
+}
+
+/* The speaker lives on the front face only. Its z-index promotes it to its own
+   compositing layer that escapes the face's backface-visibility, so on flip it
+   would otherwise leak through the card back as a mirrored ghost. Hide it
+   outright whenever the card is flipped (it fades faster than the 90° point). */
+.flip-card.flipped .speak-btn {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .speak-btn-active {

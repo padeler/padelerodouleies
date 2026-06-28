@@ -10,6 +10,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from httpx import Cookies
 
+from app.api.tts import _text_for
 from app.db.engine import LocalSession
 from app.db.models import Chore, Reward, User
 from app.main import app
@@ -43,6 +44,21 @@ def test_detect_language():
 def test_voice_for_language():
     assert tts.voice_for_language("el") == tts.VOICE_EL
     assert tts.voice_for_language("en") == tts.VOICE_EN
+
+
+def test_text_for_sentence_boundary():
+    """Title and description become separate sentences so Piper pauses between
+    them — even when the admin typed a lowercase description (a bare ". " before
+    a lowercase word is not treated as a sentence end by the phonemizer)."""
+    chore = Chore(title="Βούρτσισμα", description="δόντια")
+    # Description capitalized + each part terminated, so the phonemizer pauses.
+    assert _text_for(chore) == "Βούρτσισμα. Δόντια."
+
+    # Existing terminal punctuation is preserved, not doubled.
+    assert _text_for(Chore(title="Έτοιμος;", description="Πάμε!")) == "Έτοιμος; Πάμε!"
+
+    # No description → a single terminated sentence.
+    assert _text_for(Chore(title="Καθάρισμα", description=None)) == "Καθάρισμα."
 
 
 def test_empty_text_raises():

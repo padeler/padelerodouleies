@@ -23,12 +23,38 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/tts", tags=["tts"])
 
 
+# Sentence-terminating punctuation Piper/espeak already treats as a clause end
+# (incl. the Greek ano-teleia "·" and question mark ";").
+_TERMINAL_PUNCT = ".!?;·"
+
+
+def _as_sentence(text: str) -> str:
+    """Normalize a fragment into a standalone sentence for clear TTS prosody.
+
+    Capitalizes the first letter and appends a period when the fragment lacks
+    terminal punctuation. A bare ". " before a *lowercase* word is not treated as
+    a sentence boundary by the phonemizer, so the title and description would run
+    together with no pause; capitalizing the next fragment makes Piper pause.
+    """
+    text = text.strip()
+    if not text:
+        return ""
+    text = text[0].upper() + text[1:]
+    if text[-1] not in _TERMINAL_PUNCT:
+        text += "."
+    return text
+
+
 def _text_for(item: Chore | Reward) -> str:
-    """Build the spoken text from an item's title and optional description."""
+    """Build the spoken text from an item's title and optional description.
+
+    Each part is emitted as its own sentence so Piper inserts an audible pause
+    between the title and the description (see ``_as_sentence``).
+    """
     parts = [item.title]
     if item.description:
         parts.append(item.description)
-    return ". ".join(p.strip() for p in parts if p and p.strip())
+    return " ".join(s for s in (_as_sentence(p) for p in parts) if s)
 
 
 @router.get("/{kind}/{item_id}.mp3")
