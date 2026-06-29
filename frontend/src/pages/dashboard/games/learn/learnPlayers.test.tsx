@@ -60,13 +60,16 @@ describe('CountThem', () => {
 });
 
 describe('MatchCase', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
   const round = {
     kind: 'match' as const,
     left: [letter('l01', 'Α', 'α'), letter('l02', 'Β', 'β')],
     right: [letter('l02', 'Β', 'β'), letter('l01', 'Α', 'α')],
   };
 
-  it('clears only when every pair is linked', () => {
+  it('clears only when every pair is linked (after a brief beat)', () => {
     const onAnswer = vi.fn();
     render(<MatchCase round={round} onAnswer={onAnswer} playToken={vi.fn()} />);
     fireEvent.click(screen.getByText('Α')); // upper
@@ -74,6 +77,8 @@ describe('MatchCase', () => {
     expect(onAnswer).not.toHaveBeenCalled(); // one pair left
     fireEvent.click(screen.getByText('Β'));
     fireEvent.click(screen.getByText('β'));
+    expect(onAnswer).not.toHaveBeenCalled(); // held while the TTS finishes
+    act(() => void vi.advanceTimersByTime(900));
     expect(onAnswer).toHaveBeenCalledWith(true, expect.anything());
   });
 
@@ -110,7 +115,10 @@ describe('WhatsNext', () => {
 });
 
 describe('PutInOrder', () => {
-  it('accepts taps in order and clears', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('accepts taps in order and clears after a brief beat', () => {
     const onAnswer = vi.fn();
     render(
       <PutInOrder
@@ -122,6 +130,8 @@ describe('PutInOrder', () => {
     fireEvent.click(screen.getByText('1'));
     fireEvent.click(screen.getByText('2'));
     fireEvent.click(screen.getByText('3'));
+    expect(onAnswer).not.toHaveBeenCalled(); // held while the TTS finishes
+    act(() => void vi.advanceTimersByTime(900));
     expect(onAnswer).toHaveBeenCalledWith(true, expect.anything());
   });
 

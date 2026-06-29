@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { OrderRound, RoundFeedback } from './learnEngine';
 
 const NO_FEEDBACK: RoundFeedback = {
@@ -7,6 +7,10 @@ const NO_FEEDBACK: RoundFeedback = {
   correctToken: '',
   correctGlyph: '',
 };
+
+// Hold the completed sequence on screen for a beat so the last letter/number name
+// finishes speaking and the kid sees the filled-in answer before the result panel.
+const FINAL_DELAY_MS = 900;
 
 /**
  * Put In Order (slot 2): tap the shuffled tiles in the correct order. Tapping
@@ -24,6 +28,9 @@ export function PutInOrder({
 }) {
   const [placed, setPlaced] = useState<string[]>([]);
   const [wrong, setWrong] = useState<string | null>(null);
+  const finalTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(finalTimer.current), []);
 
   function pick(token: string): void {
     if (placed.includes(token)) return;
@@ -33,7 +40,9 @@ export function PutInOrder({
       const next = [...placed, token];
       setPlaced(next);
       setWrong(null);
-      if (next.length === round.sequence.length) onAnswer(true, NO_FEEDBACK);
+      if (next.length === round.sequence.length) {
+        finalTimer.current = window.setTimeout(() => onAnswer(true, NO_FEEDBACK), FINAL_DELAY_MS);
+      }
     } else {
       setWrong(token);
       const picked = round.shown.find((it) => it.token === token);

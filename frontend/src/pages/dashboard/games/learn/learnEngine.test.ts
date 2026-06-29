@@ -10,10 +10,17 @@ import {
   finalScore,
   isTimeTrial,
   nextRound,
+  roundSignature,
   tierNumber,
   type Deck,
   type GameState,
 } from './learnEngine';
+
+/** A deterministic rng that walks a fixed list of values (cycling). */
+function seqRng(values: number[]): () => number {
+  let i = 0;
+  return () => values[i++ % values.length]!;
+}
 
 function numbersDeck(max = 20): Deck {
   const items = Array.from({ length: max }, (_, i) => ({
@@ -202,4 +209,40 @@ describe('learnEngine round generation', () => {
     const round = nextRound({ ...deep, slot: 1 }, () => 0.5);
     expect(round.kind).toBe('hear');
   });
+
+  it('does not hand back the same question twice in a row (no-repeat)', () => {
+    // A two-item hear pool: with the previous round targeting n1, passing it as
+    // `prev` makes nextRound regenerate until it lands on the other target (n2).
+    const items = [
+      { token: 'n1', glyph: '1', glyph_alt: null, audio_url: '/a/n1' },
+      { token: 'n2', glyph: '2', glyph_alt: null, audio_url: '/a/n2' },
+    ];
+    const deck: Deck = { items, tiers: [{ level: 1, tokens: ['n1', 'n2'] }] };
+    const state = { ...createGame('numbers', deck), slot: 1 }; // hear
+    const prev = nextRound(state, () => 0); // target n1
+    expect(prev.kind === 'hear' && prev.target.token).toBe('n1');
+    // First generation repeats n1 (→ regenerate), second yields n2.
+    const next = nextRound(state, seqRng([0, 0, 0.9, 0]), prev);
+    expect(roundSignature(next)).not.toBe(roundSignature(prev));
+    expect(next.kind === 'hear' && next.target.token).toBe('n2');
+  });
+
+  it('roundSignature distinguishes questions but ignores distractor order', () => {
+    const a = num3CountRound(3);
+    const b = num3CountRound(3);
+    const c = num3CountRound(5);
+    expect(roundSignature(a)).toBe(roundSignature(b));
+    expect(roundSignature(a)).not.toBe(roundSignature(c));
+  });
 });
+
+function num3CountRound(count: number) {
+  const item = (n: number) => ({ token: `n${n}`, glyph: String(n), glyph_alt: null, audio_url: `/a/n${n}` });
+  return {
+    kind: 'count' as const,
+    count,
+    objectGlyph: '⭐',
+    answer: item(count),
+    choices: [item(count), item(count + 1)],
+  };
+}

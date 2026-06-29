@@ -143,13 +143,16 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
         feedback,
         levelType,
         next,
-        nextRound: next.status === 'playing' ? nextRound(next) : null,
+        // Pass the round just played so the next one is never an exact repeat
+        // (only meaningful when the slot stays the same — across a slot/level
+        // change the round kind differs, so the signature can't collide).
+        nextRound: next.status === 'playing' ? nextRound(next, Math.random, round?.data) : null,
         newLevel,
         tierJustCleared: events.includes('tier_cleared') ? tierNumber(game) : null,
       });
       setPhase('feedback');
     },
-    [game, deck, prefetch, playSuccessPhrase, playWrongPhrase, t],
+    [game, round, deck, prefetch, playSuccessPhrase, playWrongPhrase, t],
   );
 
   // Commit the held result and move on: end the run (submit the score) or start
@@ -173,6 +176,14 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
 
   const titleKey = `games.${track}.title`;
   const loading = !deck || !audioReady;
+
+  // Start the run automatically once the deck + audio are ready — the old
+  // welcome screen with a Start button was redundant (the kid is already on the
+  // game page). A finished run still shows the game-over panel with Play again.
+  useEffect(() => {
+    if (!loading && !game) start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, game, start]);
 
   return (
     <GamePage emoji={emoji} title={t(titleKey)}>
@@ -204,51 +215,48 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
             </div>
           )}
 
-          {game && game.status === 'playing' ? (
-            phase === 'feedback' && pending ? (
-              <ResultPanel pending={pending} onContinue={handleContinue} />
-            ) : round ? (
-              <div className="learn-stage">
-                <p className="learn-level-name">{t(LEVEL_NAME_KEY[currentLevelType(game)])}</p>
-                <p className="learn-prompt">{t(LEVEL_PROMPT_KEY[currentLevelType(game)])}</p>
-                {phase === 'intro' ? (
-                  <RoundIntro
-                    key={round.id}
-                    levelType={currentLevelType(game)}
-                    speak={round.newLevel}
-                    countdown={isTimeTrial(game)}
-                    playPhrase={playPhrase}
-                    onReady={() => setPhase('play')}
-                  />
-                ) : (
-                  <PlayerSwitch
-                    key={round.id}
-                    round={round.data}
-                    onAnswer={handleAnswer}
-                    playToken={playToken}
-                    playFind={playFind}
-                  />
-                )}
+          {/* Bordered play area, matching the other games' boards. */}
+          <div className="learn-board">
+            {game && game.status === 'playing' ? (
+              phase === 'feedback' && pending ? (
+                <ResultPanel pending={pending} onContinue={handleContinue} />
+              ) : round ? (
+                <div className="learn-stage">
+                  <p className="learn-level-name">{t(LEVEL_NAME_KEY[currentLevelType(game)])}</p>
+                  <p className="learn-prompt">{t(LEVEL_PROMPT_KEY[currentLevelType(game)])}</p>
+                  {phase === 'intro' ? (
+                    <RoundIntro
+                      key={round.id}
+                      levelType={currentLevelType(game)}
+                      speak={round.newLevel}
+                      countdown={isTimeTrial(game)}
+                      playPhrase={playPhrase}
+                      onReady={() => setPhase('play')}
+                    />
+                  ) : (
+                    <PlayerSwitch
+                      key={round.id}
+                      round={round.data}
+                      onAnswer={handleAnswer}
+                      playToken={playToken}
+                      playFind={playFind}
+                    />
+                  )}
+                </div>
+              ) : null
+            ) : game && game.status === 'over' ? (
+              <div className="learn-overlay">
+                <p className="game-overlay-title">{t('games.game_over')}</p>
+                <p className="game-overlay-text">
+                  {t('games.score')}: {game.points}
+                </p>
+                {newBest && <p className="game-overlay-best">⭐ {t('games.new_best')}</p>}
+                <button type="button" className="game-action-btn" onClick={start}>
+                  {t('games.play_again')}
+                </button>
               </div>
-            ) : null
-          ) : (
-            <div className="learn-overlay">
-              {game && game.status === 'over' ? (
-                <>
-                  <p className="game-overlay-title">{t('games.game_over')}</p>
-                  <p className="game-overlay-text">
-                    {t('games.score')}: {game.points}
-                  </p>
-                  {newBest && <p className="game-overlay-best">⭐ {t('games.new_best')}</p>}
-                </>
-              ) : (
-                <p className="game-overlay-text">{t(`games.${track}.desc`)}</p>
-              )}
-              <button type="button" className="game-action-btn" onClick={start}>
-                {game ? t('games.play_again') : t('games.start')}
-              </button>
-            </div>
-          )}
+            ) : null}
+          </div>
         </>
       )}
     </GamePage>

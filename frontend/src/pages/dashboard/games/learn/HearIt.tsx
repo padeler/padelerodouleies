@@ -131,14 +131,6 @@ export function HearIt({
 
   return (
     <div className="learn-hear">
-      <button
-        type="button"
-        className="learn-replay"
-        onClick={() => playFind(round.target.token)}
-        aria-label={t('games.learn.replay')}
-      >
-        <Volume2 size={40} />
-      </button>
       <canvas
         ref={canvasRef}
         width={HEAR_W}
@@ -146,6 +138,15 @@ export function HearIt({
         className="learn-hear-canvas"
         onPointerDown={(e) => onTap(e.clientX, e.clientY)}
       />
+      {/* Subtle replay tucked into the canvas's top-right corner. */}
+      <button
+        type="button"
+        className="learn-replay"
+        onClick={() => playFind(round.target.token)}
+        aria-label={t('games.learn.replay')}
+      >
+        <Volume2 size={22} />
+      </button>
     </div>
   );
 }

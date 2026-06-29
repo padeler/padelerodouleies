@@ -229,9 +229,31 @@ export function applyAnswer(state: GameState, correct: boolean): { state: GameSt
   };
 }
 
-/** Generate the round for the current slot/tier. Pure; rng injectable. */
-export function nextRound(state: GameState, rng: () => number = Math.random): Round {
-  const pool = poolForState(state);
+// How many regeneration attempts before giving up on avoiding a repeat (the
+// pool may be too small to vary — then we accept whatever we last generated).
+const MAX_REGEN_TRIES = 8;
+
+/**
+ * A stable signature of a round's "question", used to avoid handing the kid the
+ * exact same exercise twice in a row within a slot (TODO: no-repeat). Two rounds
+ * with the same signature pose the same task even if the distractors differ.
+ */
+export function roundSignature(round: Round): string {
+  switch (round.kind) {
+    case 'count':
+      return `count:${round.count}`;
+    case 'match':
+      return `match:${round.left.map((it) => it.token).sort().join(',')}`;
+    case 'hear':
+      return `hear:${round.target.token}`;
+    case 'order':
+      return `order:${round.sequence.map((it) => it.token).join(',')}`;
+    case 'whats_next':
+      return `wn:${round.answer.token}`;
+  }
+}
+
+function generateRound(state: GameState, pool: DeckItem[], rng: () => number): Round {
   switch (currentLevelType(state)) {
     case 'count':
       return countRound(state, pool, rng);
@@ -244,6 +266,21 @@ export function nextRound(state: GameState, rng: () => number = Math.random): Ro
     case 'whats_next':
       return whatsNextRound(pool, rng);
   }
+}
+
+/**
+ * Generate the round for the current slot/tier. Pure; rng injectable. Pass the
+ * previous round so the same question is not repeated back-to-back — we
+ * regenerate up to MAX_REGEN_TRIES times to land on a different signature.
+ */
+export function nextRound(state: GameState, rng: () => number = Math.random, prev?: Round): Round {
+  const pool = poolForState(state);
+  const avoid = prev ? roundSignature(prev) : null;
+  let round = generateRound(state, pool, rng);
+  for (let i = 0; avoid !== null && i < MAX_REGEN_TRIES && roundSignature(round) === avoid; i += 1) {
+    round = generateRound(state, pool, rng);
+  }
+  return round;
 }
 
 function withDistractors(answer: DeckItem, pool: DeckItem[], rng: () => number): DeckItem[] {

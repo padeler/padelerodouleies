@@ -10,10 +10,28 @@
   padding: 40px 0;
 }
 
+/* Bordered play area — a single board that frames every screen (stage, intro,
+   result, game-over) the way the other games frame their canvas/grid. */
+.learn-board {
+  max-width: 460px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 22px 16px;
+  min-height: 380px;
+  border: 2px solid var(--accent-border);
+  border-radius: 16px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .learn-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
 .learn-level-name {
@@ -122,6 +140,7 @@
   margin: 0 18px;
 }
 .learn-match-tile {
+  position: relative;
   width: 72px;
   height: 72px;
   margin: 6px 0;
@@ -141,11 +160,28 @@
   border-color: var(--accent);
   background: var(--accent-bg);
 }
+/* Linked pair: the inline per-pair colour is applied to background/border; keep
+   the glyph white for contrast. */
 .learn-match-tile.matched {
-  background: #16a34a;
-  border-color: #16a34a;
   color: #fff;
-  opacity: 0.7;
+}
+/* Small numbered badge tying a left tile to its right partner (same colour). */
+.learn-match-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 22px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 .learn-match-tile.wrong {
   background: #ef4444;
@@ -155,26 +191,34 @@
 
 /* Listen */
 .learn-hear {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+/* Compact, subtle replay speaker tucked into the canvas's top-right corner
+   (like the chore cards) instead of a big button hogging vertical space. */
 .learn-replay {
-  width: 96px;
-  height: 96px;
-  margin-bottom: 22px;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  background: var(--accent);
   color: #fff;
+  opacity: 0.85;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.12s ease;
+  transition: transform 0.12s ease, opacity 0.15s ease;
 }
 .learn-replay:active {
-  transform: scale(0.93);
+  transform: scale(0.9);
+  opacity: 1;
 }
 .learn-hear-canvas {
   width: 100%;
@@ -360,9 +404,22 @@
   padding: 24px 16px;
 }
 .learn-result-emoji {
-  font-size: 72px;
-  margin: 0 0 8px;
-  animation: learn-count-pop 0.4s ease;
+  font-size: 64px;
+  line-height: 1.1; /* reserve the glyph's box so the title never rides over it */
+  margin: 0 0 12px;
+  animation: learn-result-pop 0.4s ease;
+}
+/* A gentler pop than the countdown's (no big scale overshoot) so the glyph stays
+   inside its box and doesn't visually collide with the title below it. */
+@keyframes learn-result-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 .learn-result-title {
   font-size: 26px;
