@@ -135,18 +135,6 @@ export function playWrong(): void {
   ]);
 }
 
-/** Bouncy two-octave run when a Learning Adventure tier is cleared. */
-export function playLevelUp(): void {
-  playTones([
-    { freq: 523.25, delay: 0, duration: 0.1, type: 'triangle' }, // C5
-    { freq: 659.25, delay: 0.1, duration: 0.1, type: 'triangle' }, // E5
-    { freq: 783.99, delay: 0.2, duration: 0.1, type: 'triangle' }, // G5
-    { freq: 1046.5, delay: 0.3, duration: 0.12, type: 'triangle' }, // C6
-    { freq: 783.99, delay: 0.44, duration: 0.1, type: 'triangle' }, // G5
-    { freq: 1046.5, delay: 0.54, duration: 0.3, type: 'triangle', gain: 0.22 }, // C6
-  ]);
-}
-
 /** Short neutral blip for each countdown tick (3… 2… 1…). */
 export function playCountTick(): void {
   playTones([{ freq: 440, delay: 0, duration: 0.12, type: 'triangle', gain: 0.16 }]);
@@ -169,4 +157,57 @@ export function playSuccess(): void {
     { freq: 987.77, delay: 0.27, duration: 0.1 }, // B5
     { freq: 1046.5, delay: 0.36, duration: 0.35 }, // C6
   ]);
+}
+
+/**
+ * A small set of cheerful "you got it!" jingles for the Learning Adventure
+ * result screen. Each is short (≈1–1.4s) so the screen can auto-advance once it
+ * finishes; `playWinTune` picks one at random so the celebration stays fresh.
+ */
+const WIN_TUNES: readonly Tone[][] = [
+  // 1 — C-major climb with a little echo flourish.
+  [
+    { freq: 523.25, delay: 0, duration: 0.12, type: 'triangle' }, // C5
+    { freq: 659.25, delay: 0.12, duration: 0.12, type: 'triangle' }, // E5
+    { freq: 783.99, delay: 0.24, duration: 0.12, type: 'triangle' }, // G5
+    { freq: 1046.5, delay: 0.36, duration: 0.16, type: 'triangle' }, // C6
+    { freq: 783.99, delay: 0.56, duration: 0.1, type: 'triangle' }, // G5
+    { freq: 1046.5, delay: 0.66, duration: 0.34, type: 'triangle', gain: 0.22 }, // C6
+  ],
+  // 2 — bouncy G-major skip.
+  [
+    { freq: 392.0, delay: 0, duration: 0.12, type: 'triangle' }, // G4
+    { freq: 493.88, delay: 0.12, duration: 0.12, type: 'triangle' }, // B4
+    { freq: 587.33, delay: 0.24, duration: 0.12, type: 'triangle' }, // D5
+    { freq: 783.99, delay: 0.36, duration: 0.16, type: 'triangle' }, // G5
+    { freq: 587.33, delay: 0.54, duration: 0.1, type: 'triangle' }, // D5
+    { freq: 783.99, delay: 0.64, duration: 0.32, type: 'triangle', gain: 0.22 }, // G5
+  ],
+  // 3 — playful "da-da-da-daa" with a high finish.
+  [
+    { freq: 659.25, delay: 0, duration: 0.1, type: 'triangle' }, // E5
+    { freq: 659.25, delay: 0.16, duration: 0.1, type: 'triangle' }, // E5
+    { freq: 523.25, delay: 0.32, duration: 0.1, type: 'triangle' }, // C5
+    { freq: 659.25, delay: 0.46, duration: 0.1, type: 'triangle' }, // E5
+    { freq: 783.99, delay: 0.6, duration: 0.14, type: 'triangle' }, // G5
+    { freq: 1046.5, delay: 0.8, duration: 0.36, type: 'triangle', gain: 0.22 }, // C6
+  ],
+  // 4 — sparkly rising arpeggio.
+  [
+    { freq: 523.25, delay: 0, duration: 0.1, type: 'triangle' }, // C5
+    { freq: 587.33, delay: 0.1, duration: 0.1, type: 'triangle' }, // D5
+    { freq: 659.25, delay: 0.2, duration: 0.1, type: 'triangle' }, // E5
+    { freq: 783.99, delay: 0.3, duration: 0.1, type: 'triangle' }, // G5
+    { freq: 880.0, delay: 0.4, duration: 0.1, type: 'triangle' }, // A5
+    { freq: 1046.5, delay: 0.5, duration: 0.36, type: 'triangle', gain: 0.22 }, // C6
+  ],
+];
+
+/** Longest win tune, in ms — callers use it to time an auto-advance. */
+export const WIN_TUNE_MAX_MS = 1200;
+
+/** Play a random winning jingle (Learning Adventure correct-answer screen). */
+export function playWinTune(rng: () => number = Math.random): void {
+  const tune = WIN_TUNES[Math.floor(rng() * WIN_TUNES.length)] ?? WIN_TUNES[0]!;
+  playTones(tune);
 }

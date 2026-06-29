@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Heart } from 'lucide-react';
 import { useT } from '../../../../i18n/store';
 import { notifyCelebration } from '../../../../lib/notify';
-import { playLevelUp, playReward, playSuccess, playWrong } from '../../../../lib/sound';
+import { WIN_TUNE_MAX_MS, playWinTune, playWrong } from '../../../../lib/sound';
 import { GamePage } from '../GamePage';
 import { useGameBest, useSubmitScore } from '../useGameScores';
 import { CountThem } from './CountThem';
@@ -76,7 +76,7 @@ interface Pending {
 /** The Learning Adventure shell: one component, rendered per track. */
 export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }) {
   const t = useT();
-  const { deck, prefetch, playToken, playPhrase, playFind, playSuccessPhrase, playWrongPhrase, stopAudio } =
+  const { deck, prefetch, playToken, playPhrase, playFind, playWrongPhrase, stopAudio } =
     useLearnDeck(track);
   const best = useGameBest(SCORE_KEY[track]);
   const submitScore = useSubmitScore();
@@ -123,16 +123,14 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
 
       if (events.includes('wrong')) playWrong();
       if (events.includes('tier_cleared')) {
-        playLevelUp();
         notifyCelebration(t('games.learn.tier_cleared', { tier: String(tierNumber(game)) }));
         if (deck) void prefetch(tierTokens(deck, next.tierIndex));
-      } else if (events.includes('slot_cleared')) {
-        playReward();
-      } else if (events.includes('correct')) {
-        playSuccess();
       }
 
-      if (correct) playSuccessPhrase();
+      // Celebrate a correct answer with a random winning jingle (replaces the
+      // spoken praise — the result screen then auto-advances). A wrong answer
+      // keeps its spoken explanation and waits for the kid to dismiss it.
+      if (correct) playWinTune();
       else playWrongPhrase(feedback.correctToken, feedback.pickedToken);
 
       const newLevel =
@@ -152,7 +150,7 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
       });
       setPhase('feedback');
     },
-    [game, round, deck, prefetch, playSuccessPhrase, playWrongPhrase, t],
+    [game, round, deck, prefetch, playWrongPhrase, t],
   );
 
   // Commit the held result and move on: end the run (submit the score) or start
@@ -269,9 +267,22 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
  * on a cleared slot/tier it celebrates. The kid taps Continue to move on, so
  * they always get a beat to take in the result.
  */
+// How long the winning result screen lingers before auto-advancing — long
+// enough for the jingle to finish, plus a short beat to enjoy it.
+const WIN_RESULT_MS = WIN_TUNE_MAX_MS + 500;
+
 function ResultPanel({ pending, onContinue }: { pending: Pending; onContinue: () => void }) {
   const t = useT();
   const { correct, feedback, levelType, events, tierJustCleared, next } = pending;
+
+  // A correct answer celebrates with a jingle and moves on by itself after a
+  // short beat (no button). A wrong answer waits for the kid to tap Continue so
+  // they can read the explanation at their own pace.
+  useEffect(() => {
+    if (!correct) return;
+    const id = window.setTimeout(onContinue, WIN_RESULT_MS);
+    return () => window.clearTimeout(id);
+  }, [correct, onContinue]);
 
   let emoji: string;
   let title: string;
@@ -315,9 +326,11 @@ function ResultPanel({ pending, onContinue }: { pending: Pending; onContinue: ()
       <p className="learn-result-score">
         {t('games.score')}: {next.points}
       </p>
-      <button type="button" className="game-action-btn" onClick={onContinue}>
-        {t('games.learn.continue')}
-      </button>
+      {!correct && (
+        <button type="button" className="game-action-btn" onClick={onContinue}>
+          {t('games.learn.continue')}
+        </button>
+      )}
     </div>
   );
 }
