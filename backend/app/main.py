@@ -21,14 +21,16 @@ from app.realtime import broadcaster
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    """Pre-record the exercise TTS audio so the first speaker tap is instant.
+    """Pre-record TTS audio so the first speaker tap / game round is instant.
 
-    Runs in a daemon thread (Piper is a blocking subprocess) so it never delays
-    startup; a missing TTS toolchain just logs and aborts the pass.
+    Both passes run in daemon threads (Piper is a blocking subprocess) so they
+    never delay startup; a missing TTS toolchain just logs and aborts the pass.
     """
-    from app.services.exercise_tts import warm_all_in_background
+    from app.services.exercise_tts import warm_all_in_background as warm_exercises
+    from app.services.learn_tts import warm_all_in_background as warm_learn
 
-    warm_all_in_background()
+    warm_exercises()
+    warm_learn()
     yield
 
 
@@ -65,6 +67,7 @@ from app.api.stats import router as stats_router
 from app.api.games import router as games_router
 from app.api.tts import router as tts_router
 from app.api.exercises import router as exercises_router
+from app.api.learn import router as learn_router
 
 app.include_router(i18n_router)
 app.include_router(bootstrap_router)
@@ -78,6 +81,7 @@ app.include_router(stats_router)
 app.include_router(games_router)
 app.include_router(tts_router)
 app.include_router(exercises_router)
+app.include_router(learn_router)
 
 
 @app.get("/api/health")

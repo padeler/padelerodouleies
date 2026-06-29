@@ -135,6 +135,31 @@ export function playWrong(): void {
   ]);
 }
 
+/** Bouncy two-octave run when a Learning Adventure tier is cleared. */
+export function playLevelUp(): void {
+  playTones([
+    { freq: 523.25, delay: 0, duration: 0.1, type: 'triangle' }, // C5
+    { freq: 659.25, delay: 0.1, duration: 0.1, type: 'triangle' }, // E5
+    { freq: 783.99, delay: 0.2, duration: 0.1, type: 'triangle' }, // G5
+    { freq: 1046.5, delay: 0.3, duration: 0.12, type: 'triangle' }, // C6
+    { freq: 783.99, delay: 0.44, duration: 0.1, type: 'triangle' }, // G5
+    { freq: 1046.5, delay: 0.54, duration: 0.3, type: 'triangle', gain: 0.22 }, // C6
+  ]);
+}
+
+/** Short neutral blip for each countdown tick (3… 2… 1…). */
+export function playCountTick(): void {
+  playTones([{ freq: 440, delay: 0, duration: 0.12, type: 'triangle', gain: 0.16 }]);
+}
+
+/** Rising "go!" cue when a countdown ends and a timed round starts. */
+export function playGo(): void {
+  playTones([
+    { freq: 659.25, delay: 0, duration: 0.1, type: 'triangle', gain: 0.2 }, // E5
+    { freq: 987.77, delay: 0.1, duration: 0.2, type: 'triangle', gain: 0.2 }, // B5
+  ]);
+}
+
 /** Triumphant ascending fanfare on exercise bundle completion. */
 export function playSuccess(): void {
   playTones([

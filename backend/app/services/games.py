@@ -24,6 +24,9 @@ GAME_SCORE_DIRECTIONS: dict[str, Direction] = {
     "catcher": "higher",
     "snake": "higher",
     "whack": "higher",
+    # Learning Adventure teaching games — best = tier*1000 + points, higher better.
+    "number_adventure": "higher",
+    "letter_adventure": "higher",
 }
 
 

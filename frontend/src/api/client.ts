@@ -582,3 +582,16 @@ export async function submitGameScore(game: string, score: number) {
     body: JSON.stringify({ game, score }),
   });
 }
+
+export async function getLearnDeck(track: 'numbers' | 'letters') {
+  return request<{
+    track: 'numbers' | 'letters';
+    items: Array<{ token: string; glyph: string; glyph_alt: string | null; audio_url: string }>;
+    tiers: Array<{ level: number; tokens: string[] }>;
+  }>(`/games/learn/${track}`);
+}
+
+/** Same-origin URL for a level's spoken intro sentence (track-agnostic). */
+export function learnSayUrl(level: string): string {
+  return `${BASE}/games/learn/say/${level}.mp3`;
+}

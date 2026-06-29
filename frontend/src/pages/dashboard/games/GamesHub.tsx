@@ -8,6 +8,8 @@ const GAMES = [
   { path: 'catcher', emoji: '⭐', titleKey: 'games.catcher.title', descKey: 'games.catcher.desc' },
   { path: 'snake', emoji: '🐍', titleKey: 'games.snake.title', descKey: 'games.snake.desc' },
   { path: 'whack', emoji: '🐹', titleKey: 'games.whack.title', descKey: 'games.whack.desc' },
+  { path: 'numbers', emoji: '🔢', titleKey: 'games.numbers.title', descKey: 'games.numbers.desc' },
+  { path: 'letters', emoji: '🔤', titleKey: 'games.letters.title', descKey: 'games.letters.desc' },
 ];
 
 export function GamesHub() {

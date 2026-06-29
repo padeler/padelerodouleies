@@ -1,0 +1,378 @@
+/* Learning Adventure styles. Follows the old-tablet rules: no flex `gap`
+   (margins instead), no `aspect-ratio`/`inset`, transform/opacity transitions
+   only. Colours come from the shared accent/theme vars so it goes dark too. */
+
+.learn-loading {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-h);
+  padding: 40px 0;
+}
+
+.learn-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.learn-level-name {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 4px;
+}
+
+.learn-prompt {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-h);
+  margin: 0 0 18px;
+  text-align: center;
+}
+
+/* Lives */
+.learn-lives {
+  display: inline-flex;
+  align-items: center;
+}
+.learn-heart {
+  margin: 0 2px;
+}
+.learn-heart.full {
+  color: #ef4444;
+}
+.learn-heart.empty {
+  color: var(--accent-border);
+}
+
+/* Shared big-glyph choices */
+.learn-choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 420px;
+}
+.learn-choice {
+  width: 84px;
+  height: 84px;
+  margin: 8px;
+  border: 3px solid var(--accent-border);
+  border-radius: 18px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 40px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.learn-choice:active {
+  transform: scale(0.94);
+}
+.learn-choice.correct {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+.learn-choice.wrong {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+/* Count Them */
+.learn-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.learn-objects {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 360px;
+  margin-bottom: 20px;
+}
+.learn-object {
+  font-size: 44px;
+  margin: 4px;
+  animation: learn-pop 0.25s ease;
+}
+@keyframes learn-pop {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Match Case */
+.learn-match {
+  display: flex;
+  justify-content: center;
+}
+.learn-match-col {
+  display: flex;
+  flex-direction: column;
+  margin: 0 18px;
+}
+.learn-match-tile {
+  width: 72px;
+  height: 72px;
+  margin: 6px 0;
+  border: 3px solid var(--accent-border);
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 36px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.learn-match-tile:active {
+  transform: scale(0.94);
+}
+.learn-match-tile.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+.learn-match-tile.matched {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+  opacity: 0.7;
+}
+.learn-match-tile.wrong {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+/* Listen */
+.learn-hear {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.learn-replay {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 22px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease;
+}
+.learn-replay:active {
+  transform: scale(0.93);
+}
+.learn-hear-canvas {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  border-radius: 16px;
+  background: var(--accent-bg);
+  border: 2px solid var(--accent-border);
+  touch-action: none; /* taps shouldn't scroll the page while playing */
+}
+
+/* Time-trial countdown bar */
+.learn-timebar {
+  width: 100%;
+  max-width: 320px;
+  height: 12px;
+  margin: 0 auto 18px;
+  border-radius: 999px;
+  background: var(--accent-border);
+  overflow: hidden;
+}
+.learn-timebar-fill {
+  width: 100%;
+  height: 100%;
+  transform-origin: left center;
+  background: var(--accent);
+  border-radius: 999px;
+}
+.learn-timebar-fill.low {
+  background: #ef4444;
+}
+
+/* What Comes Next */
+.learn-next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.learn-sequence {
+  display: flex;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.learn-seq-item {
+  min-width: 56px;
+  height: 64px;
+  margin: 0 6px;
+  padding: 0 6px;
+  border-radius: 14px;
+  background: var(--accent-bg);
+  color: var(--text-h);
+  font-size: 36px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.learn-seq-blank {
+  background: transparent;
+  border: 3px dashed var(--accent-border);
+  color: var(--accent);
+}
+
+/* Put In Order */
+.learn-order {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.learn-order-slots {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+.learn-order-slot {
+  min-width: 56px;
+  height: 64px;
+  margin: 0 6px;
+  border-radius: 14px;
+  border: 3px dashed var(--accent-border);
+  color: var(--text-h);
+  font-size: 36px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.learn-order-pool {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 420px;
+}
+.learn-order-tile {
+  width: 72px;
+  height: 72px;
+  margin: 8px;
+  border: 3px solid var(--accent-border);
+  border-radius: 16px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 34px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.15s ease;
+}
+.learn-order-tile:active {
+  transform: scale(0.94);
+}
+.learn-order-tile.placed {
+  opacity: 0.25;
+}
+.learn-order-tile.wrong {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+/* Start / game-over panel (not an absolute overlay — no board behind it).
+   The shared .game-overlay-* classes hardcode light text for the dark scrim of
+   the canvas games; here the panel sits on the page background, so re-theme its
+   text or it would be white-on-white in light mode. */
+.learn-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 28px 16px;
+}
+.learn-overlay .game-overlay-title {
+  color: var(--text-h);
+}
+.learn-overlay .game-overlay-text {
+  color: var(--text);
+}
+.learn-overlay .game-overlay-best {
+  color: #d97706; /* amber-600 — readable on both light and dark backgrounds */
+}
+
+/* Round intro: spoken description pause + 3·2·1 countdown */
+.learn-intro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+.learn-countdown {
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  animation: learn-count-pop 0.4s ease;
+}
+@keyframes learn-count-pop {
+  from {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.learn-intro-ready {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.learn-go {
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+  color: #16a34a; /* green "go" — readable on both themes */
+  animation: learn-count-pop 0.35s ease;
+}
+
+/* Level-complete celebration (kid dismisses it with Continue) */
+.learn-cleared {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 16px;
+}
+.learn-cleared-emoji {
+  font-size: 72px;
+  margin: 0 0 8px;
+  animation: learn-count-pop 0.4s ease;
+}
+.learn-cleared-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-h);
+  margin: 0 0 6px;
+}
+.learn-cleared-score {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 18px;
+}
