@@ -83,10 +83,9 @@ async def test_token_tts_served_from_cache(kid_client, monkeypatch, tmp_path):
     resp = await kid_client.get("/api/games/learn/numbers/tts/n5.mp3")
     assert resp.status_code == 200
     assert resp.headers["content-type"] == "audio/mpeg"
-    # A carrier phrase (not the glyph, not a bare word) is what gets synthesized —
-    # isolated short words clip/mangle in Piper (rhasspy/piper#252).
-    assert captured == [learn_decks.number_tts("πέντε")]
-    assert captured == ["Αριθμός πέντε."]
+    # The bare spoken word is what gets synthesized; the TTS service carrier-wraps
+    # lone words itself (and trims the carrier back off) for clean Piper output.
+    assert captured == ["πέντε"]
 
 
 async def test_unknown_token_404(kid_client):

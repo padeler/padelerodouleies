@@ -7,17 +7,14 @@ from app.services import learn_decks, learn_tts, tts
 
 def test_iter_collects_every_deck_word() -> None:
     texts = set(learn_tts.iter_deck_tts_texts())
-    # Carrier phrases (not bare glyphs, not isolated words) — short words clip in
-    # Piper (rhasspy/piper#252), so each name/word is wrapped for context.
-    assert "Αριθμός πέντε." in texts
-    assert "Αριθμός εκατό." in texts
-    assert "Γράμμα άλφα." in texts
-    assert "Γράμμα ωμέγα." in texts
-    # Neither the glyph nor the bare word is ever synthesized on its own.
+    # The bare spoken word — the TTS service carrier-wraps lone words itself.
+    assert "πέντε" in texts
+    assert "εκατό" in texts
+    assert "άλφα" in texts
+    assert "ωμέγα" in texts
+    # The glyph is never synthesized on its own.
     assert "5" not in texts
     assert "Α" not in texts
-    assert "πέντε" not in texts
-    assert "άλφα" not in texts
 
 
 def test_iter_deduplicates() -> None:

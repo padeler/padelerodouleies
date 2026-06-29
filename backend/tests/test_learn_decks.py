@@ -17,8 +17,6 @@ from app.services.learn_decks import (
     find_tts,
     greek_number_word,
     intro_text,
-    letter_tts,
-    number_tts,
     wrong_tts,
 )
 
@@ -93,8 +91,8 @@ def test_number_deck_shape():
     assert [it.token for it in deck.items[:3]] == ["n1", "n2", "n3"]
     assert deck.items[4].glyph == "5"
     assert deck.items[4].glyph_alt is None
-    # tts is a carrier phrase (short isolated words clip in Piper, #252).
-    assert deck.items[4].tts == "Αριθμός πέντε."
+    # tts is the bare spoken word; the TTS service carrier-wraps lone words itself.
+    assert deck.items[4].tts == "πέντε"
     assert len({it.token for it in deck.items}) == 100
     # Four looping tiers with the documented ceilings.
     assert [t.level for t in deck.tiers] == [1, 2, 3, 4]
@@ -107,9 +105,9 @@ def test_letter_deck_shape():
     assert deck.track == "letters"
     assert len(deck.items) == LETTER_COUNT == 24
     first = deck.items[0]
-    assert (first.token, first.glyph, first.glyph_alt, first.tts) == ("l01", "Α", "α", "Γράμμα άλφα.")
+    assert (first.token, first.glyph, first.glyph_alt, first.tts) == ("l01", "Α", "α", "άλφα")
     last = deck.items[-1]
-    assert (last.token, last.glyph, last.glyph_alt, last.tts) == ("l24", "Ω", "ω", "Γράμμα ωμέγα.")
+    assert (last.token, last.glyph, last.glyph_alt, last.tts) == ("l24", "Ω", "ω", "ωμέγα")
     # Every letter carries both cases and a spoken name.
     assert all(it.glyph_alt is not None and it.tts for it in deck.items)
     assert len({it.token for it in deck.items}) == 24
@@ -144,15 +142,16 @@ def test_intro_text_returns_sentence_and_rejects_unknown():
         intro_text("bogus")
 
 
-def test_carrier_phrases_wrap_name_and_word():
-    # Short isolated words clip/mangle in Piper (rhasspy/piper#252) — the spoken
-    # string is a two-word carrier with a declarative period, never a lone word.
-    assert letter_tts("άλφα") == "Γράμμα άλφα."
-    assert number_tts("πέντε") == "Αριθμός πέντε."
-    # Every deck item's tts is a carrier phrase (multi-word, ends with a period).
+def test_deck_tts_is_bare_spoken_word():
+    # The deck stores the plain spoken word — no carrier phrase, no trailing
+    # period. The TTS service (carrier_phrase) wraps lone words for synthesis and
+    # trims the carrier back off, so the kid hears just the word.
     for track in TRACKS:
         for item in build_deck(track).items:
-            assert " " in item.tts and item.tts.endswith(".")
+            assert item.tts and not item.tts.endswith(".")
+    # Letter names are single words; numbers are one or two words (e.g. 21).
+    letters = build_deck("letters").items
+    assert all(" " not in it.tts for it in letters)
 
 
 def test_find_tts_uses_track_noun():
@@ -175,7 +174,9 @@ def test_wrong_tts_without_pick_states_only_the_answer():
     assert wrong_tts("numbers", "n5", None) == "Δεν πρόλαβες. Έπρεπε να βρεις τον αριθμό πέντε."
 
 
-def test_success_phrase_is_a_short_sentence():
-    # "something like Μπράβο", but two exclamatory words so Piper doesn't clip it.
+def test_success_phrase_is_praise():
+    # The praise spoken on a correct answer. Just assert it is non-empty praise —
+    # no multi-word / "short sentence" constraint, which was the old Piper
+    # clip-avoidance workaround the TTS service now handles itself.
+    assert SUCCESS_PHRASE.strip()
     assert SUCCESS_PHRASE.startswith("Μπράβο")
-    assert " " in SUCCESS_PHRASE

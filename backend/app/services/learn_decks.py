@@ -1,14 +1,13 @@
 """Learning Adventure decks — Greek phonetics + deck/tier definitions.
 
 Single source of truth for the two teaching-game tracks (``letters`` / ``numbers``).
-The string fed to Piper TTS (``DeckItem.tts``) is never the bare glyph — Piper's
-Greek voice mispronounces isolated digits ("5") and letter glyphs ("Α") — and is
-never even the bare spoken word: Piper renders *isolated short words* with broken
-intonation and clips them badly (rhasspy/piper#252 — a one-syllable name like
-"πι" synthesizes to ~0.16s of illegible audio). So the spoken string embeds the
-name/word in a tiny carrier phrase ("Γράμμα άλφα." / "Αριθμός πέντε.") that gives
-Piper sentence context — and that the kid also benefits from ("the letter alpha",
-"the number five"). The on-screen ``glyph`` is unchanged.
+``DeckItem.tts`` is the Piper input — the bare spoken word ("άλφα" / "πέντε"),
+not the on-screen ``glyph`` ("Α" / "5"), which the Greek voice mispronounces.
+Isolated short words used to clip in Piper (rhasspy/piper#252), so the deck once
+wrapped them in a carrier phrase; the TTS service now handles that transparently
+(``app.services.tts.carrier_phrase`` wraps a lone Greek word/number for synthesis
+and trims the carrier back off), so the deck stores the plain word and the kid
+hears just it.
 
 Pure and DOM-free. ``build_deck()`` is the only entry point the API
 (``app.api.learn``) and the TTS-warming pass (``app.services.learn_tts``)
@@ -88,7 +87,7 @@ def greek_number_word(n: int) -> str:
 
 # --- Greek letter names -------------------------------------------------------
 # (uppercase, lowercase, spoken name) in alphabetical order, indexed 1..24.
-# Both cases share one spoken name (Α and α → "άλφα"), wrapped by letter_tts().
+# Both cases share one spoken name (Α and α → "άλφα").
 _LETTERS: tuple[tuple[str, str, str], ...] = (
     ("Α", "α", "άλφα"),
     ("Β", "β", "βήτα"),
@@ -119,25 +118,6 @@ _LETTERS: tuple[tuple[str, str, str], ...] = (
 LETTER_COUNT = len(_LETTERS)  # 24
 
 
-# --- Carrier phrases for Piper ------------------------------------------------
-# Piper renders isolated short words with broken intonation and clips them
-# (rhasspy/piper#252) — bare "πι" is ~0.16s of illegible audio. Wrapping the
-# name/word in a two-word carrier gives Piper sentence context (and teaches the
-# kid "the letter …" / "the number …"). The trailing period yields a declarative
-# (falling) intonation instead of the clipped, question-like reading of a lone
-# word. The on-screen glyph is unchanged.
-
-
-def letter_tts(name: str) -> str:
-    """Spoken Piper string for a letter: e.g. ``"άλφα"`` → ``"Γράμμα άλφα."``."""
-    return f"Γράμμα {name}."
-
-
-def number_tts(word: str) -> str:
-    """Spoken Piper string for a number: e.g. ``"πέντε"`` → ``"Αριθμός πέντε."``."""
-    return f"Αριθμός {word}."
-
-
 # --- Interactive feedback phrases ---------------------------------------------
 # Spoken sentences the game plays *during* a round: the "find X" prompt for the
 # falling-targets level, a praise phrase on a correct answer, and an explanation
@@ -149,9 +129,8 @@ def number_tts(word: str) -> str:
 # Accusative article + noun used inside the carrier sentences, per track.
 _TRACK_NOUN: dict[Track, str] = {"numbers": "τον αριθμό", "letters": "το γράμμα"}
 
-# Praise spoken on a correct answer. Two short exclamatory words (not a lone
-# "Μπράβο") so Piper gives it confident prosody instead of clipping it.
-SUCCESS_PHRASE = "Μπράβο! Σωστά!"
+# Praise spoken on a correct answer.
+SUCCESS_PHRASE = "Μπράβο!"
 
 
 def _word_for_token(track: Track, token: str) -> str:
@@ -267,14 +246,14 @@ _LETTER_TIER_MAX: tuple[int, ...] = (9, 13, 18, 24)  # Α–Ι, Α–Ν, Α–Σ
 
 def _number_items() -> list[DeckItem]:
     return [
-        DeckItem(token=f"n{n}", glyph=str(n), glyph_alt=None, tts=number_tts(greek_number_word(n)))
+        DeckItem(token=f"n{n}", glyph=str(n), glyph_alt=None, tts=greek_number_word(n))
         for n in range(NUMBER_MIN, NUMBER_MAX + 1)
     ]
 
 
 def _letter_items() -> list[DeckItem]:
     return [
-        DeckItem(token=f"l{i:02d}", glyph=upper, glyph_alt=lower, tts=letter_tts(name))
+        DeckItem(token=f"l{i:02d}", glyph=upper, glyph_alt=lower, tts=name)
         for i, (upper, lower, name) in enumerate(_LETTERS, start=1)
     ]
 
