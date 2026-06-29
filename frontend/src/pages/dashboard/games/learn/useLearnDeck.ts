@@ -16,7 +16,13 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getLearnDeck, learnSayUrl } from '../../../../api/client';
+import {
+  getLearnDeck,
+  learnFindUrl,
+  learnSayUrl,
+  learnSuccessUrl,
+  learnWrongUrl,
+} from '../../../../api/client';
 import type { Deck, DeckItem, LevelType, Track } from './learnEngine';
 
 const PREFETCH_TIMEOUT_MS = 4000;
@@ -30,6 +36,12 @@ interface UseLearnDeck {
   playToken: (token: string) => void;
   /** Speak a level's intro sentence; resolves when the clip ends (or times out). */
   playPhrase: (level: LevelType) => Promise<void>;
+  /** Speak the "find this one" prompt for the falling-targets level. */
+  playFind: (token: string) => void;
+  /** Speak the praise played on a correct answer. */
+  playSuccessPhrase: () => void;
+  /** Speak the explanation of a mistake (picked vs. correct; picked null = timed out). */
+  playWrongPhrase: (correctToken: string, pickedToken: string | null) => void;
   /** Stop whatever clip is currently playing (e.g. on round teardown). */
   stopAudio: () => void;
 }
@@ -48,6 +60,8 @@ export function useLearnDeck(track: Track): UseLearnDeck {
   );
   const cache = useRef<Map<string, HTMLAudioElement>>(new Map());
   const phraseCache = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const findCache = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const successRef = useRef<HTMLAudioElement | null>(null);
   const playingRef = useRef<HTMLAudioElement | null>(null);
 
   // Single-channel playback: stop the current clip before starting another so
@@ -165,5 +179,48 @@ export function useLearnDeck(track: Track): UseLearnDeck {
     [playAudio],
   );
 
-  return { deck, ready: !!deck, prefetch, playToken, playPhrase, stopAudio };
+  // "Find X" prompt for the falling-targets level — cached per token (finite set).
+  const playFind = useCallback(
+    (token: string): void => {
+      let audio = findCache.current.get(token);
+      if (!audio) {
+        audio = new Audio(learnFindUrl(track, token));
+        audio.preload = 'auto';
+        findCache.current.set(token, audio);
+      }
+      playAudio(audio);
+    },
+    [track, playAudio],
+  );
+
+  const playSuccessPhrase = useCallback((): void => {
+    let audio = successRef.current;
+    if (!audio) {
+      audio = new Audio(learnSuccessUrl());
+      audio.preload = 'auto';
+      successRef.current = audio;
+    }
+    playAudio(audio);
+  }, [playAudio]);
+
+  // Mistake explanations are combinatorial (picked × correct), so they are not
+  // cached here — a fresh element per play is fine on the button-gated pause.
+  const playWrongPhrase = useCallback(
+    (correctToken: string, pickedToken: string | null): void => {
+      playAudio(new Audio(learnWrongUrl(track, correctToken, pickedToken)));
+    },
+    [track, playAudio],
+  );
+
+  return {
+    deck,
+    ready: !!deck,
+    prefetch,
+    playToken,
+    playPhrase,
+    playFind,
+    playSuccessPhrase,
+    playWrongPhrase,
+    stopAudio,
+  };
 }

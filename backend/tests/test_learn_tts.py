@@ -38,11 +38,29 @@ def test_iter_intro_texts_collects_level_intros() -> None:
     assert texts == {s.strip() for s in learn_decks.LEVEL_INTROS.values()}
 
 
-def test_iter_all_texts_is_union_of_words_and_intros() -> None:
+def test_iter_find_texts_collects_find_prompts() -> None:
+    texts = set(learn_tts.iter_find_texts())
+    # One "find X" prompt per deck token, both tracks (full carrier sentences).
+    assert "Βρες τον αριθμό πέντε." in texts
+    assert "Βρες το γράμμα άλφα." in texts
+    assert len(texts) == sum(
+        len(learn_decks.build_deck(track).items) for track in learn_decks.TRACKS
+    )
+
+
+def test_iter_all_texts_is_union_of_warmed_strings() -> None:
     all_texts = set(learn_tts.iter_all_texts())
-    assert all_texts == set(learn_tts.iter_deck_tts_texts()) | set(learn_tts.iter_intro_texts())
-    # Intro sentences are warmed alongside the deck words.
+    expected = (
+        set(learn_tts.iter_deck_tts_texts())
+        | set(learn_tts.iter_intro_texts())
+        | set(learn_tts.iter_find_texts())
+        | {learn_decks.SUCCESS_PHRASE}
+    )
+    assert all_texts == expected
+    # Intro sentences, find prompts and the praise phrase are all warmed too.
     assert any("Μέτρησε" in s for s in all_texts)
+    assert any("Βρες" in s for s in all_texts)
+    assert learn_decks.SUCCESS_PHRASE in all_texts
 
 
 def test_warm_all_synthesizes_every_word(monkeypatch, tmp_path) -> None:

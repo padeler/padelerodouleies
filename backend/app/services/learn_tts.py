@@ -46,11 +46,33 @@ def iter_intro_texts() -> list[str]:
     return list(seen)
 
 
-def iter_all_texts() -> list[str]:
-    """Every spoken string the games need warmed: deck words + level intros."""
+def iter_find_texts() -> list[str]:
+    """The spoken "find X" prompts (one per deck token, both tracks, deduped).
+
+    Finite (numbers 1..100 + 24 letters), so warming them keeps the falling-
+    targets prompt instant. The mistake-explanation phrases are combinatorial
+    (picked × correct) and are deliberately *not* warmed — they synthesize on
+    demand during the button-gated feedback pause.
+    """
     seen: dict[str, None] = {}
-    for text in (*iter_deck_tts_texts(), *iter_intro_texts()):
-        seen.setdefault(text, None)
+    for track in learn_decks.TRACKS:
+        for item in learn_decks.build_deck(track).items:
+            seen.setdefault(learn_decks.find_tts(track, item.token), None)
+    return list(seen)
+
+
+def iter_all_texts() -> list[str]:
+    """Every spoken string the games warm: deck words + intros + find prompts + praise."""
+    seen: dict[str, None] = {}
+    for text in (
+        *iter_deck_tts_texts(),
+        *iter_intro_texts(),
+        *iter_find_texts(),
+        learn_decks.SUCCESS_PHRASE,
+    ):
+        text = text.strip()
+        if text:
+            seen.setdefault(text, None)
     return list(seen)
 
 

@@ -51,7 +51,7 @@ export const COUNT_MAX = 10; // Count Them never shows more than this many objec
 export const SEQUENCE_LEN = 3; // items shown in order / match / before "what's next"
 export const CHOICES = 4; // tappable choices in single-answer levels
 export const COUNT_OBJECT = '⭐'; // ≤ Unicode 6.1 — safe on the old tablets
-export const TIME_LIMIT_SECONDS = 6; // time-trial rounds (component runs the clock)
+export const TIME_LIMIT_SECONDS = 12; // time-trial rounds (component runs the clock)
 
 // Time-trial slots: Hear It (1) and What Comes Next (3). The component reads
 // this to decide whether to run the countdown.
@@ -92,6 +92,18 @@ export interface WhatsNextRound {
   choices: DeckItem[];
 }
 export type Round = CountRound | MatchRound | HearRound | OrderRound | WhatsNextRound;
+
+/**
+ * What the kid did on a round, surfaced to the result panel so it can explain
+ * the outcome (display text) and play the spoken explanation (by token). The
+ * player components build this; `picked*` is null when the kid ran out of time.
+ */
+export interface RoundFeedback {
+  pickedToken: string | null;
+  pickedGlyph: string | null;
+  correctToken: string;
+  correctGlyph: string;
+}
 
 // --- Game state ---------------------------------------------------------------
 

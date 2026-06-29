@@ -334,6 +334,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "games.learn.go": {"el": "Πάμε!", "en": "Go!"},
     "games.learn.level_cleared": {"el": "Μπράβο!", "en": "Well done!"},
     "games.learn.continue": {"el": "Συνέχεια", "en": "Continue"},
+    # Per-round result panel (shown after every answer; the kid taps Continue)
+    "games.learn.correct_title": {"el": "Μπράβο!", "en": "Correct!"},
+    "games.learn.wrong_title": {"el": "Δεν πειράζει!", "en": "Never mind!"},
+    "games.learn.fb_you_picked": {"el": "Διάλεξες το {glyph}.", "en": "You picked {glyph}."},
+    "games.learn.fb_correct_was": {"el": "Το σωστό ήταν το {glyph}.", "en": "The right one was {glyph}."},
+    "games.learn.fb_count_was": {"el": "Τα αστεράκια είναι {count}.", "en": "There are {count} stars."},
+    "games.learn.fb_time_up": {"el": "Δεν πρόλαβες!", "en": "Out of time!"},
     # Exercises
     "nav.exercises": {"el": "Ασκήσεις", "en": "Exercises"},
     "exercises.title": {"el": "Ασκήσεις", "en": "Exercises"},

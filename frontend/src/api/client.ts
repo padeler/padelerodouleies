@@ -595,3 +595,22 @@ export async function getLearnDeck(track: 'numbers' | 'letters') {
 export function learnSayUrl(level: string): string {
   return `${BASE}/games/learn/say/${level}.mp3`;
 }
+
+/** Spoken "find this one" prompt for the falling-targets level. */
+export function learnFindUrl(track: 'numbers' | 'letters', token: string): string {
+  return `${BASE}/games/learn/${track}/find/${token}.mp3`;
+}
+
+/** Spoken praise played on a correct answer (track-agnostic, fixed phrase). */
+export function learnSuccessUrl(): string {
+  return `${BASE}/games/learn/feedback/success.mp3`;
+}
+
+/** Spoken explanation of a mistake; `picked` is null when the kid ran out of time. */
+export function learnWrongUrl(
+  track: 'numbers' | 'letters',
+  correct: string,
+  picked: string | null,
+): string {
+  return `${BASE}/games/learn/${track}/wrong/${correct}/${picked ?? '_none'}.mp3`;
+}

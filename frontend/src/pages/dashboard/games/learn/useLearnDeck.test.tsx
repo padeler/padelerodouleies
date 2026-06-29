@@ -8,6 +8,10 @@ const getLearnDeck = vi.fn();
 vi.mock('../../../../api/client', () => ({
   getLearnDeck: (track: 'numbers' | 'letters') => getLearnDeck(track),
   learnSayUrl: (level: string) => `/api/games/learn/say/${level}.mp3`,
+  learnFindUrl: (track: string, token: string) => `/api/games/learn/${track}/find/${token}.mp3`,
+  learnSuccessUrl: () => '/api/games/learn/feedback/success.mp3',
+  learnWrongUrl: (track: string, correct: string, picked: string | null) =>
+    `/api/games/learn/${track}/wrong/${correct}/${picked ?? '_none'}.mp3`,
 }));
 
 const created: FakeAudio[] = [];

@@ -138,6 +138,61 @@ def number_tts(word: str) -> str:
     return f"Αριθμός {word}."
 
 
+# --- Interactive feedback phrases ---------------------------------------------
+# Spoken sentences the game plays *during* a round: the "find X" prompt for the
+# falling-targets level, a praise phrase on a correct answer, and an explanation
+# of a mistake. All are full sentences (Piper gives them natural prosody) and the
+# noun ("τον αριθμό" / "το γράμμα") is chosen per track. The praise/find phrases
+# are a finite set (warmed at startup); the mistake explanation is combinatorial
+# (one per picked/correct pair) so it synthesizes on demand into the same cache.
+
+# Accusative article + noun used inside the carrier sentences, per track.
+_TRACK_NOUN: dict[Track, str] = {"numbers": "τον αριθμό", "letters": "το γράμμα"}
+
+# Praise spoken on a correct answer. Two short exclamatory words (not a lone
+# "Μπράβο") so Piper gives it confident prosody instead of clipping it.
+SUCCESS_PHRASE = "Μπράβο! Σωστά!"
+
+
+def _word_for_token(track: Track, token: str) -> str:
+    """Return the bare spoken word for a deck token (no carrier phrase).
+
+    ``"n5"`` → ``"πέντε"``; ``"l01"`` → ``"άλφα"``. Raises ValueError on a token
+    that does not belong to the track — no silent default.
+    """
+    if track == "numbers":
+        if not token.startswith("n"):
+            raise ValueError(f"_word_for_token: bad numbers token {token!r}")
+        return greek_number_word(int(token[1:]))
+    if track == "letters":
+        if not token.startswith("l"):
+            raise ValueError(f"_word_for_token: bad letters token {token!r}")
+        idx = int(token[1:])
+        if not 1 <= idx <= LETTER_COUNT:
+            raise ValueError(f"_word_for_token: letter index out of range {idx}")
+        return _LETTERS[idx - 1][2]
+    raise ValueError(f"_word_for_token: unknown track {track!r}")
+
+
+def find_tts(track: Track, token: str) -> str:
+    """Spoken "find this one" prompt: e.g. ``"Βρες τον αριθμό οκτώ."``."""
+    return f"Βρες {_TRACK_NOUN[track]} {_word_for_token(track, token)}."
+
+
+def wrong_tts(track: Track, correct_token: str, picked_token: str | None) -> str:
+    """Spoken explanation of a mistake.
+
+    With a pick: ``"Επέλεξες τον αριθμό τρία, έπρεπε να βρεις τον αριθμό οκτώ."``
+    Without one (the kid ran out of time): ``"Δεν πρόλαβες. Έπρεπε να βρεις …"``.
+    """
+    noun = _TRACK_NOUN[track]
+    correct_word = _word_for_token(track, correct_token)
+    if picked_token:
+        picked_word = _word_for_token(track, picked_token)
+        return f"Επέλεξες {noun} {picked_word}, έπρεπε να βρεις {noun} {correct_word}."
+    return f"Δεν πρόλαβες. Έπρεπε να βρεις {noun} {correct_word}."
+
+
 # --- Spoken level intros ------------------------------------------------------
 # A short, kid-friendly sentence spoken before each level starts (the "audible
 # description of the round"). Full sentences (not isolated words) so Piper gives

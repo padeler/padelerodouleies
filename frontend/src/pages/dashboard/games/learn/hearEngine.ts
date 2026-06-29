@@ -14,9 +14,11 @@ export const HEAR_W = 360;
 export const HEAR_H = 420;
 export const FALLER_R = 30;
 
-const BASE_FALL_SPEED = 70; // px/s at entry
-const SPEED_RAMP_PER_SEC = 9; // accelerates the longer the round runs
-const MAX_FALL_SPEED = 220;
+// Gentle pace so a young kid has time to find the spoken target (the level is
+// still a time-trial — fallers keep accelerating — just with more breathing room).
+const BASE_FALL_SPEED = 42; // px/s at entry
+const SPEED_RAMP_PER_SEC = 4; // accelerates the longer the round runs
+const MAX_FALL_SPEED = 130;
 const COLUMN_STAGGER = 90; // px of head-start spread between fallers
 
 export interface Faller {

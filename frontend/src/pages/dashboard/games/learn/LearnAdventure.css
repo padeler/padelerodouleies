@@ -351,26 +351,41 @@
   animation: learn-count-pop 0.35s ease;
 }
 
-/* Level-complete celebration (kid dismisses it with Continue) */
-.learn-cleared {
+/* Per-round result panel (explains the outcome; kid dismisses it with Continue) */
+.learn-result {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   padding: 24px 16px;
 }
-.learn-cleared-emoji {
+.learn-result-emoji {
   font-size: 72px;
   margin: 0 0 8px;
   animation: learn-count-pop 0.4s ease;
 }
-.learn-cleared-title {
+.learn-result-title {
   font-size: 26px;
   font-weight: 800;
   color: var(--text-h);
   margin: 0 0 6px;
 }
-.learn-cleared-score {
+.learn-result.ok .learn-result-title {
+  color: #16a34a; /* green praise — readable on both themes */
+}
+.learn-result.bad .learn-result-title {
+  color: #ef4444; /* red — gentle "never mind" heading */
+}
+.learn-result-explain {
+  margin: 4px 0 10px;
+}
+.learn-result-explain p {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 2px 0;
+}
+.learn-result-score {
   font-size: 16px;
   font-weight: 700;
   color: var(--text);

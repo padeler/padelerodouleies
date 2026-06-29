@@ -38,7 +38,7 @@ describe('CountThem', () => {
     fireEvent.click(screen.getByText('3'));
     expect(playToken).toHaveBeenCalledWith('n3');
     act(() => void vi.advanceTimersByTime(800));
-    expect(onAnswer).toHaveBeenCalledWith(true);
+    expect(onAnswer).toHaveBeenCalledWith(true, expect.objectContaining({ correctToken: 'n3' }));
   });
 
   it('reports a wrong pick', () => {
@@ -52,7 +52,10 @@ describe('CountThem', () => {
     );
     fireEvent.click(screen.getByText('5'));
     act(() => void vi.advanceTimersByTime(800));
-    expect(onAnswer).toHaveBeenCalledWith(false);
+    expect(onAnswer).toHaveBeenCalledWith(
+      false,
+      expect.objectContaining({ pickedToken: 'n5', correctToken: 'n2' }),
+    );
   });
 });
 
@@ -71,7 +74,7 @@ describe('MatchCase', () => {
     expect(onAnswer).not.toHaveBeenCalled(); // one pair left
     fireEvent.click(screen.getByText('Β'));
     fireEvent.click(screen.getByText('β'));
-    expect(onAnswer).toHaveBeenCalledWith(true);
+    expect(onAnswer).toHaveBeenCalledWith(true, expect.anything());
   });
 
   it('reports a wrong link', () => {
@@ -79,7 +82,10 @@ describe('MatchCase', () => {
     render(<MatchCase round={round} onAnswer={onAnswer} playToken={vi.fn()} />);
     fireEvent.click(screen.getByText('Α'));
     fireEvent.click(screen.getByText('β')); // wrong lower
-    expect(onAnswer).toHaveBeenCalledWith(false);
+    expect(onAnswer).toHaveBeenCalledWith(
+      false,
+      expect.objectContaining({ pickedToken: 'l02', correctToken: 'l01' }),
+    );
   });
 });
 
@@ -99,7 +105,7 @@ describe('WhatsNext', () => {
     expect(screen.getByText('?')).toBeInTheDocument();
     fireEvent.click(screen.getByText('4'));
     act(() => void vi.advanceTimersByTime(800));
-    expect(onAnswer).toHaveBeenCalledWith(true);
+    expect(onAnswer).toHaveBeenCalledWith(true, expect.objectContaining({ correctToken: 'n4' }));
   });
 });
 
@@ -116,7 +122,7 @@ describe('PutInOrder', () => {
     fireEvent.click(screen.getByText('1'));
     fireEvent.click(screen.getByText('2'));
     fireEvent.click(screen.getByText('3'));
-    expect(onAnswer).toHaveBeenCalledWith(true);
+    expect(onAnswer).toHaveBeenCalledWith(true, expect.anything());
   });
 
   it('reports a wrong order tap', () => {
@@ -129,22 +135,25 @@ describe('PutInOrder', () => {
       />,
     );
     fireEvent.click(screen.getByText('2')); // expected 1 first
-    expect(onAnswer).toHaveBeenCalledWith(false);
+    expect(onAnswer).toHaveBeenCalledWith(
+      false,
+      expect.objectContaining({ pickedToken: 'n2', correctToken: 'n1' }),
+    );
   });
 });
 
 describe('HearIt (canvas action level)', () => {
-  it('speaks the target word on entry', () => {
-    const playToken = vi.fn();
+  it('speaks the "find" prompt for the target on entry', () => {
+    const playFind = vi.fn();
     render(
       <HearIt
         round={{ kind: 'hear', target: num(7), choices: [num(3), num(7), num(9)] }}
         onAnswer={vi.fn()}
-        playToken={playToken}
+        playFind={playFind}
       />,
     );
     // Drawing/hit-testing is exercised by hearEngine.test.ts (jsdom has no
     // canvas 2D); here we just assert the prompt is auto-spoken on mount.
-    expect(playToken).toHaveBeenCalledWith('n7');
+    expect(playFind).toHaveBeenCalledWith('n7');
   });
 });

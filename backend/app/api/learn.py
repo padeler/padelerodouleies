@@ -72,6 +72,78 @@ def get_level_intro_tts(
     )
 
 
+@router.get("/feedback/success.mp3")
+def get_success_tts(
+    _current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken praise played on a correct answer (track-agnostic, fixed phrase)."""
+    try:
+        path = tts.get_or_synthesize(learn_decks.SUCCESS_PHRASE)
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for learn success phrase: %s", exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
+def _require_token(track: Track, token: str) -> str:
+    """404 if ``token`` is not a real deck token for ``track`` (no traversal surface)."""
+    if not any(it.token == token for it in build_deck(track).items):
+        raise HTTPException(404, f"Unknown token: {token}")
+    return token
+
+
+@router.get("/{track}/find/{token}.mp3")
+def get_find_tts(
+    track: str,
+    token: str,
+    _current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken "find this one" prompt for the falling-targets level."""
+    valid_track = _validate_track(track)
+    _require_token(valid_track, token)
+    try:
+        path = tts.get_or_synthesize(learn_decks.find_tts(valid_track, token))
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for learn find %s/%s: %s", valid_track, token, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
+# Sentinel for "the kid made no pick" (ran out of time) in the wrong-answer route.
+_NO_PICK = "_none"
+
+
+@router.get("/{track}/wrong/{correct}/{picked}.mp3")
+def get_wrong_tts(
+    track: str,
+    correct: str,
+    picked: str,
+    _current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken explanation of a mistake (the picked vs. the correct answer).
+
+    ``picked`` may be the ``_none`` sentinel when the kid ran out of time. Both
+    tokens are resolved against the in-code deck, so there is no traversal
+    surface; the explanation synthesizes on demand (it is combinatorial, so it is
+    not pre-warmed) into the shared cache.
+    """
+    valid_track = _validate_track(track)
+    _require_token(valid_track, correct)
+    picked_token = None if picked == _NO_PICK else _require_token(valid_track, picked)
+    try:
+        path = tts.get_or_synthesize(learn_decks.wrong_tts(valid_track, correct, picked_token))
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for learn wrong %s: %s", valid_track, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
 @router.get("/{track}")
 def get_deck(
     track: str,

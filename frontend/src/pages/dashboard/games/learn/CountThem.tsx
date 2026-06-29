@@ -1,6 +1,6 @@
 import { ChoiceGrid } from './ChoiceGrid';
 import { useDelayedAnswer } from './useDelayedAnswer';
-import type { CountRound } from './learnEngine';
+import type { CountRound, DeckItem, RoundFeedback } from './learnEngine';
 
 /** Count Them (numbers slot 0): tap-countable objects → pick the numeral. */
 export function CountThem({
@@ -9,14 +9,19 @@ export function CountThem({
   playToken,
 }: {
   round: CountRound;
-  onAnswer: (correct: boolean) => void;
+  onAnswer: (correct: boolean, feedback: RoundFeedback) => void;
   playToken: (token: string) => void;
 }) {
   const { picked, submit } = useDelayedAnswer(onAnswer);
 
-  function pick(token: string): void {
-    playToken(token);
-    submit(token, token === round.answer.token);
+  function pick(item: DeckItem): void {
+    playToken(item.token);
+    submit(item.token, item.token === round.answer.token, {
+      pickedToken: item.token,
+      pickedGlyph: item.glyph,
+      correctToken: round.answer.token,
+      correctGlyph: round.answer.glyph,
+    });
   }
 
   return (
@@ -30,7 +35,7 @@ export function CountThem({
       </div>
       <ChoiceGrid
         choices={round.choices}
-        onPick={(item) => pick(item.token)}
+        onPick={(item) => pick(item)}
         pickedToken={picked}
         correctToken={round.answer.token}
       />

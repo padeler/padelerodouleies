@@ -1,7 +1,7 @@
 import { ChoiceGrid } from './ChoiceGrid';
 import { TimeTrialBar } from './TimeTrialBar';
 import { useDelayedAnswer } from './useDelayedAnswer';
-import { TIME_LIMIT_SECONDS, type WhatsNextRound } from './learnEngine';
+import { TIME_LIMIT_SECONDS, type DeckItem, type RoundFeedback, type WhatsNextRound } from './learnEngine';
 
 /** What Comes Next (slot 3): show a run, then tap the item that follows. Timed. */
 export function WhatsNext({
@@ -10,14 +10,19 @@ export function WhatsNext({
   playToken,
 }: {
   round: WhatsNextRound;
-  onAnswer: (correct: boolean) => void;
+  onAnswer: (correct: boolean, feedback: RoundFeedback) => void;
   playToken: (token: string) => void;
 }) {
   const { picked, submit } = useDelayedAnswer(onAnswer);
 
-  function pick(token: string): void {
-    playToken(token);
-    submit(token, token === round.answer.token);
+  function pick(item: DeckItem): void {
+    playToken(item.token);
+    submit(item.token, item.token === round.answer.token, {
+      pickedToken: item.token,
+      pickedGlyph: item.glyph,
+      correctToken: round.answer.token,
+      correctGlyph: round.answer.glyph,
+    });
   }
 
   return (
@@ -25,7 +30,14 @@ export function WhatsNext({
       <TimeTrialBar
         durationMs={TIME_LIMIT_SECONDS * 1000}
         paused={picked !== null}
-        onExpire={() => submit('', false)}
+        onExpire={() =>
+          submit('', false, {
+            pickedToken: null,
+            pickedGlyph: null,
+            correctToken: round.answer.token,
+            correctGlyph: round.answer.glyph,
+          })
+        }
       />
       <div className="learn-sequence">
         {round.prefix.map((item) => (
@@ -37,7 +49,7 @@ export function WhatsNext({
       </div>
       <ChoiceGrid
         choices={round.choices}
-        onPick={(item) => pick(item.token)}
+        onPick={(item) => pick(item)}
         pickedToken={picked}
         correctToken={round.answer.token}
       />

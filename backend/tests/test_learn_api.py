@@ -138,6 +138,64 @@ async def test_level_intro_503_when_unavailable(kid_client, monkeypatch):
     assert (await kid_client.get("/api/games/learn/say/order.mp3")).status_code == 503
 
 
+async def test_find_prompt_synthesizes_carrier_sentence(kid_client, monkeypatch, tmp_path):
+    captured: list[str] = []
+
+    def fake_synth(text: str) -> Path:
+        captured.append(text)
+        out = tmp_path / "find.mp3"
+        out.write_bytes(b"id3-stub")
+        return out
+
+    monkeypatch.setattr(tts, "get_or_synthesize", fake_synth)
+    resp = await kid_client.get("/api/games/learn/numbers/find/n8.mp3")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "audio/mpeg"
+    assert captured == ["Βρες τον αριθμό οκτώ."]
+
+
+async def test_find_prompt_unknown_token_404(kid_client):
+    assert (await kid_client.get("/api/games/learn/numbers/find/n999.mp3")).status_code == 404
+
+
+async def test_success_phrase(kid_client, monkeypatch, tmp_path):
+    captured: list[str] = []
+
+    def fake_synth(text: str) -> Path:
+        captured.append(text)
+        out = tmp_path / "ok.mp3"
+        out.write_bytes(b"id3-stub")
+        return out
+
+    monkeypatch.setattr(tts, "get_or_synthesize", fake_synth)
+    resp = await kid_client.get("/api/games/learn/feedback/success.mp3")
+    assert resp.status_code == 200
+    assert captured == [learn_decks.SUCCESS_PHRASE]
+
+
+async def test_wrong_explanation_with_and_without_pick(kid_client, monkeypatch, tmp_path):
+    captured: list[str] = []
+
+    def fake_synth(text: str) -> Path:
+        captured.append(text)
+        out = tmp_path / "wrong.mp3"
+        out.write_bytes(b"id3-stub")
+        return out
+
+    monkeypatch.setattr(tts, "get_or_synthesize", fake_synth)
+    # With a pick: explains both the chosen and the correct answer.
+    assert (await kid_client.get("/api/games/learn/numbers/wrong/n8/n3.mp3")).status_code == 200
+    assert captured[-1] == "Επέλεξες τον αριθμό τρία, έπρεπε να βρεις τον αριθμό οκτώ."
+    # Sentinel _none = the kid ran out of time: only states the right answer.
+    assert (await kid_client.get("/api/games/learn/letters/wrong/l01/_none.mp3")).status_code == 200
+    assert captured[-1] == "Δεν πρόλαβες. Έπρεπε να βρεις το γράμμα άλφα."
+
+
+async def test_wrong_explanation_unknown_token_404(kid_client):
+    assert (await kid_client.get("/api/games/learn/numbers/wrong/n8/n999.mp3")).status_code == 404
+    assert (await kid_client.get("/api/games/learn/numbers/wrong/n999/n3.mp3")).status_code == 404
+
+
 def test_score_keys_registered():
     assert GAME_SCORE_DIRECTIONS["number_adventure"] == "higher"
     assert GAME_SCORE_DIRECTIONS["letter_adventure"] == "higher"

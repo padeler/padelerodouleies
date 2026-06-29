@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import type { MatchRound } from './learnEngine';
+import type { MatchRound, RoundFeedback } from './learnEngine';
+
+const NO_FEEDBACK: RoundFeedback = {
+  pickedToken: null,
+  pickedGlyph: null,
+  correctToken: '',
+  correctGlyph: '',
+};
 
 /**
  * Match Case (letters slot 0): tap an uppercase letter, then its lowercase
@@ -13,7 +20,7 @@ export function MatchCase({
   playToken,
 }: {
   round: MatchRound;
-  onAnswer: (correct: boolean) => void;
+  onAnswer: (correct: boolean, feedback: RoundFeedback) => void;
   playToken: (token: string) => void;
 }) {
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
@@ -34,11 +41,20 @@ export function MatchCase({
       const next = new Set(matched).add(token);
       setMatched(next);
       setSelectedLeft(null);
-      if (next.size === round.left.length) onAnswer(true);
+      if (next.size === round.left.length) onAnswer(true, NO_FEEDBACK);
     } else {
       setWrong(token);
+      // The kid linked the wrong pair: report what they picked (the lowercase
+      // glyph) against the uppercase they had selected.
+      const picked = round.right.find((it) => it.token === token);
+      const correct = round.left.find((it) => it.token === selectedLeft);
       setSelectedLeft(null);
-      onAnswer(false);
+      onAnswer(false, {
+        pickedToken: token,
+        pickedGlyph: picked?.glyph_alt ?? null,
+        correctToken: selectedLeft,
+        correctGlyph: correct?.glyph ?? '',
+      });
     }
   }
 

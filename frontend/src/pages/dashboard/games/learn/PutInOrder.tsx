@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import type { OrderRound } from './learnEngine';
+import type { OrderRound, RoundFeedback } from './learnEngine';
+
+const NO_FEEDBACK: RoundFeedback = {
+  pickedToken: null,
+  pickedGlyph: null,
+  correctToken: '',
+  correctGlyph: '',
+};
 
 /**
  * Put In Order (slot 2): tap the shuffled tiles in the correct order. Tapping
@@ -12,7 +19,7 @@ export function PutInOrder({
   playToken,
 }: {
   round: OrderRound;
-  onAnswer: (correct: boolean) => void;
+  onAnswer: (correct: boolean, feedback: RoundFeedback) => void;
   playToken: (token: string) => void;
 }) {
   const [placed, setPlaced] = useState<string[]>([]);
@@ -26,10 +33,16 @@ export function PutInOrder({
       const next = [...placed, token];
       setPlaced(next);
       setWrong(null);
-      if (next.length === round.sequence.length) onAnswer(true);
+      if (next.length === round.sequence.length) onAnswer(true, NO_FEEDBACK);
     } else {
       setWrong(token);
-      onAnswer(false);
+      const picked = round.shown.find((it) => it.token === token);
+      onAnswer(false, {
+        pickedToken: token,
+        pickedGlyph: picked?.glyph ?? null,
+        correctToken: expected.token,
+        correctGlyph: expected.glyph,
+      });
     }
   }
 

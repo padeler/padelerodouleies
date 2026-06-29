@@ -11,12 +11,15 @@ import pytest
 from app.services.learn_decks import (
     LEVEL_INTROS,
     LETTER_COUNT,
+    SUCCESS_PHRASE,
     TRACKS,
     build_deck,
+    find_tts,
     greek_number_word,
     intro_text,
     letter_tts,
     number_tts,
+    wrong_tts,
 )
 
 # Hand-checked Greek neuter counting words. Covers all irregular forms (1–20),
@@ -150,3 +153,29 @@ def test_carrier_phrases_wrap_name_and_word():
     for track in TRACKS:
         for item in build_deck(track).items:
             assert " " in item.tts and item.tts.endswith(".")
+
+
+def test_find_tts_uses_track_noun():
+    assert find_tts("numbers", "n8") == "Βρες τον αριθμό οκτώ."
+    assert find_tts("letters", "l01") == "Βρες το γράμμα άλφα."
+    with pytest.raises(ValueError):
+        find_tts("numbers", "l01")  # token does not belong to the track
+
+
+def test_wrong_tts_explains_pick_and_correct():
+    assert wrong_tts("numbers", "n8", "n3") == (
+        "Επέλεξες τον αριθμό τρία, έπρεπε να βρεις τον αριθμό οκτώ."
+    )
+    assert wrong_tts("letters", "l03", "l01") == (
+        "Επέλεξες το γράμμα άλφα, έπρεπε να βρεις το γράμμα γάμμα."
+    )
+
+
+def test_wrong_tts_without_pick_states_only_the_answer():
+    assert wrong_tts("numbers", "n5", None) == "Δεν πρόλαβες. Έπρεπε να βρεις τον αριθμό πέντε."
+
+
+def test_success_phrase_is_a_short_sentence():
+    # "something like Μπράβο", but two exclamatory words so Piper doesn't clip it.
+    assert SUCCESS_PHRASE.startswith("Μπράβο")
+    assert " " in SUCCESS_PHRASE
