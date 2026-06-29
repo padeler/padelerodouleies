@@ -87,15 +87,23 @@ def carrier_phrase(text: str) -> str | None:
     alignments. Every carrier prefix is exactly ``_CARRIER_PREFIX_WORDS`` espeak
     words. The English voice does not have this problem, so only Greek text is
     wrapped — numbers carry no script and default to Greek (invariant #5).
+
+    A single word keeps any punctuation it carries (``"Μπράβο!"`` →
+    ``"Η λέξη: Μπράβο!"``) — the trailing prefix is what gets trimmed, so the
+    exclamation/question prosody on the target word survives. Only multi-word
+    phrases (which already read cleanly) are left unwrapped.
     """
     if detect_language(text) != "el":
         return None
     if _NUMBER_RE.fullmatch(text):
         return f"Ο αριθμός {text}"
-    # ``str.isalpha()`` is true only for a single whitespace-free run of letters,
-    # i.e. exactly one word; tell a lone letter apart from a whole word.
-    if text.isalpha():
-        return f"Το γράμμα {text}" if len(text) == 1 else f"Η λέξη: {text}"
+    # A lone letter or single word: one whitespace-free token with at least one
+    # Greek letter — even when punctuation ("!", ";") defeats ``str.isalpha()``.
+    # A multi-word phrase has internal whitespace and is left alone. Count actual
+    # letters (not string length) to tell a lone letter from a word with a mark.
+    if not any(ch.isspace() for ch in text) and _GREEK_RE.search(text):
+        letters = sum(1 for ch in text if ch.isalpha())
+        return f"Το γράμμα {text}" if letters == 1 else f"Η λέξη: {text}"
     return None
 
 

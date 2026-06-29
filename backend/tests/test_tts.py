@@ -107,6 +107,18 @@ def test_carrier_phrase_wraps_lone_greek_tokens():
     assert tts.carrier_phrase("3,5") == "Ο αριθμός 3,5"  # Greek decimal comma
 
 
+def test_carrier_phrase_wraps_single_word_with_punctuation():
+    """A single Greek word that carries punctuation (which defeats str.isalpha)
+    is still wrapped — the mark rides along on the target word."""
+    assert tts.carrier_phrase("Μπράβο!") == "Η λέξη: Μπράβο!"
+    assert tts.carrier_phrase("Σωστά;") == "Η λέξη: Σωστά;"
+    assert tts.carrier_phrase("σπίτι.") == "Η λέξη: σπίτι."
+    # A lone letter with a mark is still classed as a letter (one letter char).
+    assert tts.carrier_phrase("Α!") == "Το γράμμα Α!"
+    # Pure punctuation has no letter to read — not wrapped.
+    assert tts.carrier_phrase("!!!") is None
+
+
 def test_carrier_phrase_skips_english_and_multiword():
     """English text is fine on its own voice; multi-word strings already read
     cleanly, so neither is wrapped."""
