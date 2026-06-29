@@ -79,6 +79,16 @@ COPY --from=backend-build /opt/venv /opt/venv
 COPY --from=backend-build /app/backend /app/backend
 COPY --from=frontend /build/dist /app/static
 
+# Expose phoneme/audio alignments on the Greek voice (mark its Ceil tensor as an
+# output) so the TTS service can carrier-wrap lone letters/digits and trim the
+# prefix back off (see app/services/piper_synth.py). `onnx` is needed only for
+# this one-time patch; installing and removing it in the same layer keeps it out
+# of the final image. The English voice has no lone-token issue, so only the
+# Greek model is patched.
+RUN pip install --no-cache-dir onnx \
+    && python -m piper.patch_voice_with_alignment /app/voices/el_GR-joy-medium.onnx \
+    && pip uninstall -y onnx protobuf
+
 WORKDIR /app/backend
 # Data dir is the bind-mount target; create it so first boot works without a mount.
 RUN mkdir -p /app/data

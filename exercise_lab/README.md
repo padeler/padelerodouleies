@@ -85,7 +85,10 @@ Some manifest fields can't be read straight off the page — set them as follows
       `prompt: "Translate to Greek"` + Greek options. Use an image (no text) for
       the word being translated to avoid putting it in the prompt string.
   - Add `prompt_tts`/`hint_tts` spoken overrides wherever Piper would mis-read a
-    token (digits, operators, respelled or re-accented words).
+    token (digits, operators, respelled or re-accented words). You **do not** need
+    an override just to read a string that is a lone Greek letter, a single Greek
+    word, or a bare number — the TTS service carrier-wraps those automatically
+    (see `docs/EXERCISE_FORMAT.md` § Spoken-text overrides).
 
 - **`schema_version`**: use `1` for bundles that only need the five original
   types (`multiple_choice`, `numeric_entry`, `counting`, `ordering`,

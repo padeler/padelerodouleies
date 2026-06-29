@@ -21,10 +21,15 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# Backend root, so the carrier-trim subprocess can import the ``app`` package
+# regardless of the server's working directory.
+_BACKEND_ROOT = Path(__file__).parents[2]
 
 # data/tts under the backend root by default; overridable for the container.
 TTS_DIR = Path(os.getenv("TTS_DIR", str(Path(__file__).parents[2] / "data" / "tts")))
@@ -42,6 +47,12 @@ VOICE_EN = Path(os.getenv("TTS_VOICE_EN", str(_VOICES_DIR / "en_US-amy-low.onnx"
 _GREEK_RE = re.compile(r"[Ͱ-Ͽἀ-῿]")
 # ASCII letters signal English script; digits/symbols have no script affiliation.
 _LATIN_RE = re.compile(r"[a-zA-Z]")
+
+# A bare integer or decimal (Greek uses a comma for the decimal point).
+_NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)?")
+# Number of espeak words in the Greek carrier prefixes below ("Το γράμμα",
+# "Η λέξη:", "Ο αριθμός"), trimmed away after synthesis to leave only the target.
+_CARRIER_PREFIX_WORDS = 2
 
 
 class TTSUnavailableError(RuntimeError):
@@ -64,6 +75,28 @@ def detect_language(text: str) -> str:
 def voice_for_language(lang: str) -> Path:
     """Return the voice model path for a detected language."""
     return VOICE_EL if lang == "el" else VOICE_EN
+
+
+def carrier_phrase(text: str) -> str | None:
+    """Wrap a lone Greek letter / word / number in a carrier sentence, else None.
+
+    The Greek medium voice garbles a single token synthesized in isolation — a
+    letter (``"Α"``), a word (``"σπίτι"``) or a number (``"14"``) — but reads it
+    cleanly inside a sentence. We wrap it so the model has context, then
+    ``_synthesize`` trims the carrier prefix back off via the voice's phoneme
+    alignments. Every carrier prefix is exactly ``_CARRIER_PREFIX_WORDS`` espeak
+    words. The English voice does not have this problem, so only Greek text is
+    wrapped — numbers carry no script and default to Greek (invariant #5).
+    """
+    if detect_language(text) != "el":
+        return None
+    if _NUMBER_RE.fullmatch(text):
+        return f"Ο αριθμός {text}"
+    # ``str.isalpha()`` is true only for a single whitespace-free run of letters,
+    # i.e. exactly one word; tell a lone letter apart from a whole word.
+    if text.isalpha():
+        return f"Το γράμμα {text}" if len(text) == 1 else f"Η λέξη: {text}"
+    return None
 
 
 def cache_path_for(text: str, voice: Path) -> Path:
@@ -118,12 +151,30 @@ def _synthesize(text: str, voice: Path, out_path: Path) -> None:
     try:
         with tempfile.TemporaryDirectory() as tmp:
             wav = Path(tmp) / "out.wav"
-            subprocess.run(
-                [piper, "-m", str(voice), "-f", str(wav)],
-                input=text.encode("utf-8"),
-                check=True,
-                capture_output=True,
-            )
+            carrier = carrier_phrase(text)
+            if carrier is None:
+                # Ordinary text: the piper CLI loads the model and writes a WAV.
+                subprocess.run(
+                    [piper, "-m", str(voice), "-f", str(wav)],
+                    input=text.encode("utf-8"),
+                    check=True,
+                    capture_output=True,
+                )
+            else:
+                # Lone letter/number: synthesize the carrier sentence and trim
+                # its prefix off using phoneme alignments (needs the Python API,
+                # so this runs through our piper_synth module — still one short-
+                # lived subprocess, so idle RAM stays near zero).
+                logger.info("TTS carrier-wrapping lone token %r → %r", text, carrier)
+                subprocess.run(
+                    [sys.executable, "-m", "app.services.piper_synth",
+                     "--model", str(voice), "--out", str(wav),
+                     "--drop-words", str(_CARRIER_PREFIX_WORDS)],
+                    input=carrier.encode("utf-8"),
+                    check=True,
+                    capture_output=True,
+                    cwd=str(_BACKEND_ROOT),
+                )
             subprocess.run(
                 # -f mp3 is explicit because the temp path has a .tmp suffix
                 # ffmpeg cannot infer the container format from.

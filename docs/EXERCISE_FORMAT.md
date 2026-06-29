@@ -196,9 +196,18 @@ Greek and English strings (e.g. an English-learning bundle with Greek↔English
 The card **displays** `prompt`/`hint`; the speaker button **reads** the matching
 `*_tts` value when present (respelled / re-accented / transliterated), else the
 displayed text. Use it where espeak-ng's Greek G2P misreads a word, or to give a
-spoken rendition of a digits-only expression (e.g. `"2 * 3"` →
-`"δύο επί τρία"`). The TTS cache key hashes the exact text synthesized, so it
-stays correct.
+spoken rendition of a multi-token expression (e.g. `"2 * 3"` → `"δύο επί τρία"`).
+The TTS cache key hashes the exact text synthesized, so it stays correct.
+
+> **You no longer need a `*_tts` override just to read a lone Greek letter, a
+> single Greek word, or a bare number.** The Greek voice used to garble a string
+> that is *only* a single letter (`"Α"`), a single word (`"σπίτι"`) or a number
+> (`"14"`); the TTS service now wraps such a string in a carrier sentence
+> (`"Το γράμμα Α"` / `"Η λέξη: σπίτι"` / `"Ο αριθμός 14"`) and trims the prefix
+> back off via the voice's phoneme alignments, so an option whose `text` is just
+> `"Α"`, `"σπίτι"` or `"14"` is spoken cleanly with no override. Overrides are
+> still useful for genuinely mis-G2P'd *words* and for reading multi-token
+> expressions naturally.
 
 ## Validating a bundle
 

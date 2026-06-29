@@ -95,6 +95,56 @@ def test_synthesize_raises_when_toolchain_missing(monkeypatch, tmp_path):
         _REAL_SYNTHESIZE("hello", tts.VOICE_EN, tmp_path / "x.mp3")
 
 
+def test_carrier_phrase_wraps_lone_greek_tokens():
+    """Lone Greek letters, single Greek words and bare numbers each get a carrier
+    sentence (the medium voice garbles them in isolation)."""
+    assert tts.carrier_phrase("Α") == "Το γράμμα Α"
+    assert tts.carrier_phrase("ω") == "Το γράμμα ω"
+    assert tts.carrier_phrase("σπίτι") == "Η λέξη: σπίτι"
+    assert tts.carrier_phrase("αυτοκίνητο") == "Η λέξη: αυτοκίνητο"
+    assert tts.carrier_phrase("14") == "Ο αριθμός 14"
+    assert tts.carrier_phrase("21") == "Ο αριθμός 21"  # multi-word reading, trimmed by word count
+    assert tts.carrier_phrase("3,5") == "Ο αριθμός 3,5"  # Greek decimal comma
+
+
+def test_carrier_phrase_skips_english_and_multiword():
+    """English text is fine on its own voice; multi-word strings already read
+    cleanly, so neither is wrapped."""
+    assert tts.carrier_phrase("A") is None  # Latin letter → English voice
+    assert tts.carrier_phrase("house") is None  # Latin word → English voice
+    assert tts.carrier_phrase("Καλημέρα παιδιά") is None  # already a phrase
+    assert tts.carrier_phrase("2 + 3") is None
+    assert tts.carrier_phrase("") is None
+
+
+def test_carrier_cut_sample_drops_prefix_words():
+    """The cut is the cumulative samples up to the Nth word-break space, so the
+    carrier prefix is removed while every target word is kept."""
+    from app.services.piper_synth import carrier_cut_sample
+    from types import SimpleNamespace
+
+    def align(phoneme, n):
+        return SimpleNamespace(phoneme=phoneme, num_samples=n)
+
+    # "Ο αριθμός | είκοσι ένα": two prefix words, target spans two words.
+    alignments = [
+        align("^", 5), align("o", 10), align(" ", 2),
+        align("a", 8), align("s", 6), align(" ", 3),   # end of "αριθμός" → 2nd space
+        align("i", 7), align(" ", 2), align("e", 9), align("$", 4),
+    ]
+    # Cumulative up to and including the 2nd space: 5+10+2+8+6+3 = 34.
+    assert carrier_cut_sample(alignments, 2) == 34
+
+
+def test_carrier_cut_sample_raises_on_too_few_breaks():
+    from app.services.piper_synth import carrier_cut_sample
+    from types import SimpleNamespace
+
+    alignments = [SimpleNamespace(phoneme="a", num_samples=3)]
+    with pytest.raises(ValueError):
+        carrier_cut_sample(alignments, 2)
+
+
 # --- Endpoint tests --------------------------------------------------------
 
 

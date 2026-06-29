@@ -32,4 +32,21 @@ for rel in "${VOICES[@]}"; do
   done
 done
 
+# Patch the Greek model to expose phoneme/audio alignments, so the TTS service
+# can carrier-wrap lone letters/digits (e.g. "Α", "14") and trim the prefix back
+# off — they garble when synthesized alone (see app/services/piper_synth.py).
+# Needs the `onnx` package (pip install onnx); skips cleanly if it is missing or
+# the model is already patched. The English voice does not need this.
+EL="$VOICES_DIR/el_GR-joy-medium.onnx"
+if python -c "import onnx" >/dev/null 2>&1; then
+  if python -m piper.patch_voice_with_alignment "$EL" >/dev/null 2>&1; then
+    echo "patch  el_GR-joy-medium.onnx (alignment output added)"
+  else
+    echo "skip   patch (already patched, or piper/onnx unavailable)"
+  fi
+else
+  echo "NOTE   install onnx to patch the Greek voice for lone-letter/number TTS:"
+  echo "         pip install onnx && python -m piper.patch_voice_with_alignment '$EL'"
+fi
+
 echo "Voices ready in $VOICES_DIR"
