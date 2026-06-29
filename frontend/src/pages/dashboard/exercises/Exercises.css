@@ -335,10 +335,13 @@
 
 .mc-option-img {
   position: absolute;
+  /* Size the box by offsets (not height:100%): on the old tablets' WebKit a
+     percentage height does not resolve against a padding-bottom-sized parent,
+     so the image collapses to zero height and the icon goes invisible. */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   object-fit: contain;
 }
 
@@ -503,10 +506,11 @@
 
 .exercise-scene-img {
   position: absolute;
+  /* Offset-based sizing — see .mc-option-img for the old-tablet rationale. */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   object-fit: contain;
 }
 
@@ -653,10 +657,11 @@
 
 .order-item-img {
   position: absolute;
+  /* Offset-based sizing — see .mc-option-img for the old-tablet rationale. */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   object-fit: contain;
 }
 
@@ -791,10 +796,11 @@
 
 .match-item-img {
   position: absolute;
+  /* Offset-based sizing — see .mc-option-img for the old-tablet rationale. */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   object-fit: contain;
 }
 
