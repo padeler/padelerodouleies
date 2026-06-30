@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { LETTER_VOCAB } from './letterVocab';
 import {
   CHOICES,
   LIVES_START,
@@ -173,6 +174,23 @@ describe('learnEngine round generation', () => {
       new Set(round.right.map((i) => i.token)),
     );
     expect(round.left.every((i) => i.glyph_alt !== null)).toBe(true);
+  });
+
+  it('match (letters): populates icons from vocab for tokens that have entries', () => {
+    const g = createGame('letters', lettersDeck());
+    const round = nextRound({ ...g, slot: 0 }, () => 0.3);
+    if (round.kind !== 'match') throw new Error('wrong kind');
+    expect(round.icons).toBeDefined();
+    for (const item of round.left) {
+      const vocabEntry = LETTER_VOCAB[item.token];
+      if (vocabEntry?.emoji) {
+        expect(round.icons!.get(item.token)).toBe(vocabEntry.emoji);
+      } else {
+        // Tokens without a vocab emoji entry are not in the icons map;
+        // the component falls back to glyph_alt rendering.
+        expect(round.icons!.has(item.token)).toBe(false);
+      }
+    }
   });
 
   it('hear: the target is one of the choices', () => {

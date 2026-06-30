@@ -92,6 +92,34 @@ describe('MatchCase', () => {
       expect.objectContaining({ pickedToken: 'l02', correctToken: 'l01' }),
     );
   });
+
+  it('renders emoji icons from icons map when provided', () => {
+    const roundWithIcons = {
+      kind: 'match' as const,
+      left: [letter('l01', 'Α', 'α'), letter('l03', 'Γ', 'γ')],
+      right: [letter('l03', 'Γ', 'γ'), letter('l01', 'Α', 'α')],
+      icons: new Map([['l01', '\u{1F41A}'], ['l03', '\u{1F431}']]), // 🐚, 🐱
+    };
+    const onAnswer = vi.fn();
+    render(<MatchCase round={roundWithIcons} onAnswer={onAnswer} playToken={vi.fn()} />);
+    // Tiles should render emoji from icons map
+    expect(screen.getByText('\u{1F41A}')).toBeInTheDocument(); // 🐚
+    expect(screen.getByText('\u{1F431}')).toBeInTheDocument(); // 🐱
+    // Lowercase glyphs should NOT be rendered (replaced by emojis)
+    expect(screen.queryByText('α')).not.toBeInTheDocument();
+  });
+
+  it('falls back to glyph_alt when icons map lacks an entry', () => {
+    const partialIcons = {
+      kind: 'match' as const,
+      left: [letter('l01', 'Α', 'α'), letter('l07', 'Η', 'η')], // l07 has no icon
+      right: [letter('l07', 'Η', 'η'), letter('l01', 'Α', 'α')],
+      icons: new Map([['l01', '\u{1F41A}']]), // 🐚 for l01 only
+    };
+    render(<MatchCase round={partialIcons} onAnswer={vi.fn()} playToken={vi.fn()} />);
+    expect(screen.getByText('\u{1F41A}')).toBeInTheDocument(); // 🐚 icon tile
+    expect(screen.getByText('η')).toBeInTheDocument(); // fallback glyph for l07
+  });
 });
 
 describe('WhatsNext', () => {

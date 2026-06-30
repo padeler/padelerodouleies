@@ -188,6 +188,11 @@
   border-color: #ef4444;
   color: #fff;
 }
+/* Tiles that render an emoji icon (match-level icon mode) need slightly smaller
+   font-size so the glyph sits centered in the fixed tile. */
+.learn-match-tile.has-icon {
+  font-size: 32px;
+}
 
 /* Listen */
 .learn-hear {

@@ -15,6 +15,8 @@
  * (the component compares locally) — there is no server grading to protect.
  */
 
+import { LETTER_VOCAB } from './letterVocab';
+
 export type Track = 'numbers' | 'letters';
 
 /** A deck item as the client holds it (mirrors the API `KidDeckItem`). */
@@ -74,6 +76,7 @@ export interface MatchRound {
   kind: 'match';
   left: DeckItem[]; // shown via glyph (uppercase)
   right: DeckItem[]; // shown via glyph_alt (lowercase), shuffled; pair by token
+  icons?: Map<string, string>; // token → emoji for visual icon matching; undefined = no icons
 }
 export interface HearRound {
   kind: 'hear';
@@ -334,9 +337,22 @@ function countRound(state: GameState, pool: DeckItem[], rng: () => number): Coun
   };
 }
 
-function matchRound(_state: GameState, pool: DeckItem[], rng: () => number): MatchRound {
+function matchRound(state: GameState, pool: DeckItem[], rng: () => number): MatchRound {
   const left = sample(pool, SEQUENCE_LEN, rng);
-  return { kind: 'match', left, right: shuffleWith(left, rng) };
+  const round: MatchRound = { kind: 'match', left, right: shuffleWith(left, rng) };
+
+  // Letters track: populate icon hints from the vocabulary dataset.
+  // Numbers track (count slot) uses glyph-only matching — skip icons.
+  if (state.track === 'letters') {
+    const icons = new Map<string, string>();
+    for (const item of left) {
+      const entry = LETTER_VOCAB[item.token];
+      if (entry?.emoji) icons.set(item.token, entry.emoji);
+    }
+    round.icons = icons;
+  }
+
+  return round;
 }
 
 function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearRound {

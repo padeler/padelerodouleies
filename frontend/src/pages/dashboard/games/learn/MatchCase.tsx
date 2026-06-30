@@ -100,18 +100,20 @@ export function MatchCase({
         {round.right.map((item) => {
           const order = matchedOrder.get(item.token);
           const color = order !== undefined ? pairColor(order) : undefined;
+          const iconEmoji = round.icons?.get(item.token);
+          const display = iconEmoji ?? item.glyph_alt;
           return (
             <button
               key={item.token}
               type="button"
               className={`learn-match-tile lower ${order !== undefined ? 'matched' : ''} ${
-                wrong === item.token ? 'wrong' : ''
-              }`}
+                iconEmoji ? 'has-icon' : ''
+              } ${wrong === item.token ? 'wrong' : ''}`}
               style={color ? { background: color, borderColor: color } : undefined}
               disabled={order !== undefined}
               onClick={() => pickRight(item.token)}
             >
-              {item.glyph_alt}
+              {display}
               {order !== undefined && <span className="learn-match-badge">{order + 1}</span>}
             </button>
           );
