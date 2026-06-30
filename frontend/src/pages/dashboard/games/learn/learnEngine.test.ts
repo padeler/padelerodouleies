@@ -200,6 +200,29 @@ describe('learnEngine round generation', () => {
     expect(round.choices.map((c) => c.token)).toContain(round.target.token);
   });
 
+  it('hear (letters): populates icons from vocab for choice tokens', () => {
+    const g = createGame('letters', lettersDeck());
+    const round = nextRound({ ...g, slot: 1 }, () => 0.3);
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.icons).toBeDefined();
+    // Every choice with a vocab emoji should appear in the icons map.
+    for (const item of round.choices) {
+      const entry = LETTER_VOCAB[item.token];
+      if (entry?.emoji) {
+        expect(round.icons!.get(item.token)).toBe(entry.emoji);
+      } else {
+        expect(round.icons!.has(item.token)).toBe(false);
+      }
+    }
+  });
+
+  it('hear (numbers): does not populate icons for numbers track', () => {
+    const g = createGame('numbers', numbersDeck());
+    const round = nextRound({ ...g, slot: 1 }, () => 0.2);
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.icons).toBeUndefined();
+  });
+
   it('order: the correct sequence is in deck order; shown holds the same items', () => {
     const g = createGame('numbers', numbersDeck());
     const round = nextRound({ ...g, slot: 2 }, () => 0.4);

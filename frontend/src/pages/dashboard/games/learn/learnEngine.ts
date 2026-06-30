@@ -84,6 +84,7 @@ export interface HearRound {
   choices: DeckItem[];
   timeLimit?: number; // seconds; undefined means engine default (TIME_LIMIT_SECONDS)
   fallSpeedMult?: number; // multiplier for hearEngine base speed; undefined = 1.0
+  icons?: Map<string, string>; // token → emoji for falling-target visual hints
 }
 export interface OrderRound {
   kind: 'order';
@@ -357,13 +358,25 @@ function matchRound(state: GameState, pool: DeckItem[], rng: () => number): Matc
 
 function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearRound {
   const target = pickOne(pool, rng);
-  return {
+  const round: HearRound = {
     kind: 'hear',
     target,
     choices: withDistractors(target, pool, rng),
     timeLimit: timeLimitForState(state),
     fallSpeedMult: fallSpeedMultiplier(state),
   };
+
+  // Letters track: attach emoji icon hints from vocab for visible choices.
+  if (state.track === 'letters') {
+    const icons = new Map<string, string>();
+    for (const item of round.choices) {
+      const entry = LETTER_VOCAB[item.token];
+      if (entry?.emoji) icons.set(item.token, entry.emoji);
+    }
+    round.icons = icons;
+  }
+
+  return round;
 }
 
 function orderRound(state: GameState, pool: DeckItem[], rng: () => number): OrderRound {

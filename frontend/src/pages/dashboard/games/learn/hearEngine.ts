@@ -25,6 +25,7 @@ export interface Faller {
   id: number;
   token: string;
   glyph: string;
+  icon?: string; // optional emoji icon alongside the glyph
   x: number;
   y: number;
 }
@@ -56,6 +57,7 @@ export function createHearWorld(
   choices: HearChoice[],
   rng: () => number = Math.random,
   speedMult: number = 1.0,
+  icons?: Map<string, string>, // token → emoji; undefined = no icons
 ): HearWorld {
   const n = choices.length;
   const columns = shuffleColumns(n, rng);
@@ -65,6 +67,7 @@ export function createHearWorld(
       id: i + 1,
       token: choice.token,
       glyph: choice.glyph,
+      icon: icons?.get(choice.token),
       x: HEAR_W * ((col + 0.5) / n),
       y: -FALLER_R - i * COLUMN_STAGGER,
     };

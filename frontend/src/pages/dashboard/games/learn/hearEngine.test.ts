@@ -75,4 +75,25 @@ describe('hearEngine', () => {
     };
     expect(clearAt(2.0)).toBeLessThan(clearAt(1.0));
   });
+
+  it('attaches emoji icons from an icons map when provided', () => {
+    const iconMap = new Map<string, string>([
+      ['n3', '\u{1F31F}'], // 🌟
+      ['n7', '\u{1F4AF}'], // ⭐
+    ]);
+    const world = createHearWorld(CHOICES, () => 0, 1.0, iconMap);
+    expect(world.fallers[0]).toHaveProperty('icon');
+    expect(world.fallers.find((f) => f.token === 'n3')).toHaveProperty('icon', '\u{1F31F}');
+    expect(world.fallers.find((f) => f.token === 'n7')).toHaveProperty('icon', '\u{1F4AF}');
+    // Choices not in the map should have no icon (undefined, falsy).
+    const n9 = world.fallers.find((f) => f.token === 'n9');
+    expect(n9?.icon).toBeUndefined();
+  });
+
+  it('works without an icons map (icons undefined)', () => {
+    const world = createHearWorld(CHOICES, () => 0);
+    for (const faller of world.fallers) {
+      expect(faller.icon).toBeUndefined();
+    }
+  });
 });

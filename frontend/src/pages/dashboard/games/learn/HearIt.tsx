@@ -39,7 +39,7 @@ export function HearIt({
 }) {
   const t = useT();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const worldRef = useRef<HearWorld>(createHearWorld(round.choices, Math.random, round.fallSpeedMult ?? 1.0));
+  const worldRef = useRef<HearWorld>(createHearWorld(round.choices, Math.random, round.fallSpeedMult ?? 1.0, round.icons));
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const answeredRef = useRef(false);
@@ -101,7 +101,6 @@ export function HearIt({
     ctx.clearRect(0, 0, HEAR_W, HEAR_H);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = 'bold 36px sans-serif';
     for (const faller of worldRef.current.fallers) {
       // While frozen, recolour: the target green, the wrong pick red.
       let fill = '#6c5ce7';
@@ -114,6 +113,13 @@ export function HearIt({
       ctx.arc(faller.x, faller.y, FALLER_R, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#fff';
+      // If this faller carries an emoji icon, draw it above the circle.
+      if (faller.icon) {
+        ctx.font = '24px sans-serif';
+        ctx.fillText(faller.icon, faller.x, faller.y - FALLER_R - 14);
+      }
+      // Glyph inside the circle.
+      ctx.font = 'bold 36px sans-serif';
       ctx.fillText(faller.glyph, faller.x, faller.y + 2);
     }
   }
