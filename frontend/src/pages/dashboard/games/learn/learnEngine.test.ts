@@ -234,6 +234,50 @@ describe('learnEngine round generation', () => {
     expect(roundSignature(a)).toBe(roundSignature(b));
     expect(roundSignature(a)).not.toBe(roundSignature(c));
   });
+
+  it('hear round carries timeLimit and fallSpeedMult that ramp with difficulty', () => {
+    const g = createGame('numbers', numbersDeck());
+    const r0 = nextRound({ ...g, slot: 1, roundInSlot: 0 }, () => 0.5);
+    const r2 = nextRound({ ...g, slot: 1, roundInSlot: 2 }, () => 0.5);
+    if (r0.kind !== 'hear' || r2.kind !== 'hear') throw new Error('wrong kind');
+    expect(r0.timeLimit).toBe(12); // full time at round 0
+    expect(r2.timeLimit).toBeLessThan(r0.timeLimit!); // less time at higher difficulty
+    expect(r2.fallSpeedMult ?? 1.0).toBeGreaterThan(r0.fallSpeedMult ?? 1.0); // faster drops
+  });
+
+  it('whats_next carries timeLimit that ramps with difficulty', () => {
+    const g = createGame('numbers', numbersDeck());
+    const r0 = nextRound({ ...g, slot: 3, roundInSlot: 0 }, () => 0.5);
+    const r2 = nextRound({ ...g, slot: 3, roundInSlot: 2 }, () => 0.5);
+    if (r0.kind !== 'whats_next' || r2.kind !== 'whats_next') throw new Error('wrong kind');
+    expect(r0.timeLimit).toBe(12);
+    expect(r2.timeLimit).toBeLessThan(r0.timeLimit!);
+  });
+
+  it('order round sequence grows with difficulty within a slot', () => {
+    const g = createGame('numbers', numbersDeck());
+    const r0 = nextRound({ ...g, slot: 2, roundInSlot: 0 }, () => 0.5);
+    const r2 = nextRound({ ...g, slot: 2, roundInSlot: 2 }, () => 0.5);
+    if (r0.kind !== 'order' || r2.kind !== 'order') throw new Error('wrong kind');
+    expect(r0.sequence.length).toBeLessThanOrEqual(2); // shorter at round 0
+    expect(r2.sequence.length).toBeGreaterThanOrEqual(r0.sequence.length);
+  });
+
+  it('count round max count increases with difficulty within a slot', () => {
+    const g = createGame('numbers', numbersDeck());
+    // Tier 2 has a pool of 20 items. With difficulty step=2, the effective max
+    // is Math.min(COUNT_MAX + 2, 20) = 12, so we can see counts > COUNT_MAX.
+    const tier2 = { ...g, tierIndex: 1 };
+    let foundAbove = false;
+    for (let i = 0; i < 200; i += 1) {
+      const r = nextRound({ ...tier2, slot: 0, roundInSlot: 2 }, () => 0.5 + (i % 10) * 0.05);
+      if (r.kind === 'count' && r.count > 10) {
+        foundAbove = true;
+        break;
+      }
+    }
+    expect(foundAbove).toBe(true);
+  });
 });
 
 function num3CountRound(count: number) {

@@ -79,6 +79,8 @@ export interface HearRound {
   kind: 'hear';
   target: DeckItem; // component plays target.audio_url
   choices: DeckItem[];
+  timeLimit?: number; // seconds; undefined means engine default (TIME_LIMIT_SECONDS)
+  fallSpeedMult?: number; // multiplier for hearEngine base speed; undefined = 1.0
 }
 export interface OrderRound {
   kind: 'order';
@@ -90,6 +92,7 @@ export interface WhatsNextRound {
   prefix: DeckItem[]; // the run shown so far
   answer: DeckItem; // the next item
   choices: DeckItem[];
+  timeLimit?: number; // seconds; undefined means engine default (TIME_LIMIT_SECONDS)
 }
 export type Round = CountRound | MatchRound | HearRound | OrderRound | WhatsNextRound;
 
@@ -142,6 +145,34 @@ function sample<T>(items: T[], n: number, rng: () => number): T[] {
 function pickOne<T>(items: T[], rng: () => number): T {
   if (items.length === 0) throw new Error('pickOne: empty pool');
   return items[Math.floor(rng() * items.length)]!;
+}
+
+// --- Difficulty ramping (progressive within each slot) -------------------------
+
+/** Clamp roundInSlot to 0..2 for a 3-step ramp within each slot. */
+function diffStep(state: GameState): number {
+  return Math.min(state.roundInSlot, ROUNDS_PER_SLOT - 1);
+}
+
+/** Time-trial duration in seconds (decreases as rounds progress). */
+export function timeLimitForState(state: GameState): number {
+  const step = diffStep(state);
+  // Round 0: full time; round 1: -1s; round 2: -2s (but never < 4s).
+  return Math.max(4, TIME_LIMIT_SECONDS - step);
+}
+
+/** Fall speed multiplier for Hear It (increases as rounds progress). */
+export function fallSpeedMultiplier(state: GameState): number {
+  const step = diffStep(state);
+  // Round 0: 1.0x; round 1: 1.25x; round 2: 1.5x
+  return 1 + step * 0.25;
+}
+
+/** Sequence length for Ordering (starts shorter, grows to SEQUENCE_LEN). */
+export function orderSequenceLength(state: GameState): number {
+  const step = diffStep(state);
+  // Round 0: 2 items; round 1+: up to SEQUENCE_LEN
+  return Math.min(2 + step, SEQUENCE_LEN);
 }
 
 // --- Public API ---------------------------------------------------------------
@@ -258,13 +289,13 @@ function generateRound(state: GameState, pool: DeckItem[], rng: () => number): R
     case 'count':
       return countRound(state, pool, rng);
     case 'match':
-      return matchRound(pool, rng);
+      return matchRound(state, pool, rng);
     case 'hear':
-      return hearRound(pool, rng);
+      return hearRound(state, pool, rng);
     case 'order':
-      return orderRound(pool, rng);
+      return orderRound(state, pool, rng);
     case 'whats_next':
-      return whatsNextRound(pool, rng);
+      return whatsNextRound(state, pool, rng);
   }
 }
 
@@ -291,7 +322,7 @@ function withDistractors(answer: DeckItem, pool: DeckItem[], rng: () => number):
 
 function countRound(state: GameState, pool: DeckItem[], rng: () => number): CountRound {
   // Count is numbers-only; objects are capped regardless of tier.
-  const maxValue = Math.min(COUNT_MAX, pool.length);
+  const maxValue = Math.min(COUNT_MAX + diffStep(state), pool.length);
   const count = 1 + Math.floor(rng() * maxValue);
   const answer = state.itemsByToken[`n${count}`]!;
   return {
@@ -303,18 +334,25 @@ function countRound(state: GameState, pool: DeckItem[], rng: () => number): Coun
   };
 }
 
-function matchRound(pool: DeckItem[], rng: () => number): MatchRound {
+function matchRound(_state: GameState, pool: DeckItem[], rng: () => number): MatchRound {
   const left = sample(pool, SEQUENCE_LEN, rng);
   return { kind: 'match', left, right: shuffleWith(left, rng) };
 }
 
-function hearRound(pool: DeckItem[], rng: () => number): HearRound {
+function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearRound {
   const target = pickOne(pool, rng);
-  return { kind: 'hear', target, choices: withDistractors(target, pool, rng) };
+  return {
+    kind: 'hear',
+    target,
+    choices: withDistractors(target, pool, rng),
+    timeLimit: timeLimitForState(state),
+    fallSpeedMult: fallSpeedMultiplier(state),
+  };
 }
 
-function orderRound(pool: DeckItem[], rng: () => number): OrderRound {
-  const chosen = sample(pool, Math.min(SEQUENCE_LEN, pool.length), rng);
+function orderRound(state: GameState, pool: DeckItem[], rng: () => number): OrderRound {
+  const seqLen = orderSequenceLength(state);
+  const chosen = sample(pool, Math.min(seqLen, pool.length), rng);
   // Restore deck order (pool is already ordered) for the correct sequence.
   const order = new Map(pool.map((it, i) => [it.token, i]));
   const sequence = [...chosen].sort((a, b) => order.get(a.token)! - order.get(b.token)!);
@@ -326,7 +364,7 @@ function orderRound(pool: DeckItem[], rng: () => number): OrderRound {
   return { kind: 'order', sequence, shown };
 }
 
-function whatsNextRound(pool: DeckItem[], rng: () => number): WhatsNextRound {
+function whatsNextRound(state: GameState, pool: DeckItem[], rng: () => number): WhatsNextRound {
   // A run of consecutive items, then pick the next. Shorten the prefix if the
   // tier pool is too small to show SEQUENCE_LEN and still have a successor.
   const prefixLen = Math.min(SEQUENCE_LEN, pool.length - 1);
@@ -336,5 +374,5 @@ function whatsNextRound(pool: DeckItem[], rng: () => number): WhatsNextRound {
   const answer = pool[start + prefixLen]!;
   const others = pool.filter((it) => !prefix.includes(it) && it.token !== answer.token);
   const choices = shuffleWith([answer, ...sample(others, CHOICES - 1, rng)], rng);
-  return { kind: 'whats_next', prefix, answer, choices };
+  return { kind: 'whats_next', prefix, answer, choices, timeLimit: timeLimitForState(state) };
 }

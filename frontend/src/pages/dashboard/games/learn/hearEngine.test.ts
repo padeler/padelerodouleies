@@ -53,4 +53,26 @@ describe('hearEngine', () => {
     // A tap far from every faller misses.
     expect(fallerAt(world, -500, HEAR_H * 2)).toBeNull();
   });
+
+  it('fallSpeed applies multiplier before capping', () => {
+    const base = fallSpeed(10, 1.0);
+    const faster = fallSpeed(10, 1.5);
+    expect(faster).toBeGreaterThan(base);
+    // Even with extreme mult, stays capped at MAX_FALL_SPEED.
+    expect(fallSpeed(10, 100)).toBeLessThanOrEqual(fallSpeed(1000)); // near-max base speed
+  });
+
+  it('higher speedMult clears fallers faster', () => {
+    const clearAt = (mult: number): number => {
+      let world = createHearWorld(CHOICES, () => 0, mult);
+      let steps = 0;
+      for (; steps < 600; steps += 1) {
+        const r = stepHear(world, 0.05);
+        world = r.world;
+        if (world.fallers.length === 0) break;
+      }
+      return steps;
+    };
+    expect(clearAt(2.0)).toBeLessThan(clearAt(1.0));
+  });
 });

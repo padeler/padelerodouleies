@@ -39,7 +39,7 @@ export function HearIt({
 }) {
   const t = useT();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const worldRef = useRef<HearWorld>(createHearWorld(round.choices));
+  const worldRef = useRef<HearWorld>(createHearWorld(round.choices, Math.random, round.fallSpeedMult ?? 1.0));
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const answeredRef = useRef(false);

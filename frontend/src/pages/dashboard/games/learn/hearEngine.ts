@@ -32,6 +32,7 @@ export interface Faller {
 export interface HearWorld {
   fallers: Faller[];
   elapsed: number;
+  speedMult: number; // multiplier for fall speed; defaults to 1.0
 }
 
 export interface HearChoice {
@@ -51,7 +52,11 @@ function shuffleColumns(n: number, rng: () => number): number[] {
 }
 
 /** Lay the choices out in evenly spaced columns, staggered above the screen. */
-export function createHearWorld(choices: HearChoice[], rng: () => number = Math.random): HearWorld {
+export function createHearWorld(
+  choices: HearChoice[],
+  rng: () => number = Math.random,
+  speedMult: number = 1.0,
+): HearWorld {
   const n = choices.length;
   const columns = shuffleColumns(n, rng);
   const fallers = choices.map((choice, i) => {
@@ -64,11 +69,11 @@ export function createHearWorld(choices: HearChoice[], rng: () => number = Math.
       y: -FALLER_R - i * COLUMN_STAGGER,
     };
   });
-  return { fallers, elapsed: 0 };
+  return { fallers, elapsed: 0, speedMult };
 }
 
-export function fallSpeed(elapsed: number): number {
-  return Math.min(BASE_FALL_SPEED + elapsed * SPEED_RAMP_PER_SEC, MAX_FALL_SPEED);
+export function fallSpeed(elapsed: number, mult: number = 1.0): number {
+  return Math.min((BASE_FALL_SPEED + elapsed * SPEED_RAMP_PER_SEC) * mult, MAX_FALL_SPEED);
 }
 
 /**
@@ -77,7 +82,7 @@ export function fallSpeed(elapsed: number): number {
  */
 export function stepHear(world: HearWorld, dt: number): { world: HearWorld; fallen: string[] } {
   const elapsed = world.elapsed + dt;
-  const speed = fallSpeed(elapsed);
+  const speed = fallSpeed(elapsed, world.speedMult);
   const fallen: string[] = [];
   const fallers: Faller[] = [];
   for (const faller of world.fallers) {
@@ -85,7 +90,7 @@ export function stepHear(world: HearWorld, dt: number): { world: HearWorld; fall
     if (y - FALLER_R > HEAR_H) fallen.push(faller.token);
     else fallers.push({ ...faller, y });
   }
-  return { world: { fallers, elapsed }, fallen };
+  return { world: { fallers, elapsed, speedMult: world.speedMult }, fallen };
 }
 
 /** Hit-test a tap (in world coords) against the fallers; nearest within radius. */

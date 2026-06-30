@@ -19,4 +19,4 @@ Still open (need a curated Greek word→icon vocabulary dataset + a design decis
             - [ ] "click on all letter A" (multiple letters) or
             - [ ] "click on all items that start with B" or
             - [ ] spell the word (i.e spell "γάτα" -> press letters in the correct order, or count to 5 -> press numbers in the correct order)
-- [ ] progressive intra-tier difficulty (less time allowed, faster drops, larger numbers) — the no-repeat fix is landed; ramping within a tier is a follow-up.
+- [x] progressive intra-tier difficulty: less time in timed rounds (12→11→10s), faster falling targets (1.0×→1.5×), wider count ranges, shorter→longer ordering sequences

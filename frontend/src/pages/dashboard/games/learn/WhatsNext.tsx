@@ -25,10 +25,12 @@ export function WhatsNext({
     });
   }
 
+  const effectiveLimit = round.timeLimit ?? TIME_LIMIT_SECONDS;
+
   return (
     <div className="learn-next">
       <TimeTrialBar
-        durationMs={TIME_LIMIT_SECONDS * 1000}
+        durationMs={effectiveLimit * 1000}
         paused={picked !== null}
         onExpire={() =>
           submit('', false, {
