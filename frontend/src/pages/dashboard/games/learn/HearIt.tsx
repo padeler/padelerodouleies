@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Volume2 } from 'lucide-react';
 import { useT } from '../../../../i18n/store';
 import {
@@ -7,11 +7,17 @@ import {
   HEAR_W,
   createHearWorld,
   fallerAt,
+  removeFaller,
   stepHear,
   type Faller,
   type HearWorld,
 } from './hearEngine';
 import type { HearRound, RoundFeedback } from './learnEngine';
+
+// How long a correctly-tapped (but not final) multi-target faller flashes
+// green before the pulse fades, giving the kid a "got it, keep going" beat
+// without freezing the still-running simulation.
+const PULSE_MS = 300;
 
 // How long the frozen, highlighted frame lingers after a tap/miss so the kid
 // sees which faller was right (and which they picked) before the result panel.
@@ -38,6 +44,7 @@ export function HearIt({
   playFind: (token: string) => void;
 }) {
   const t = useT();
+  const isMultiTarget = round.variant === 'multi-target';
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const worldRef = useRef<HearWorld>(createHearWorld(round.choices, Math.random, round.fallSpeedMult ?? 1.0, round.icons));
   const rafRef = useRef<number | null>(null);
@@ -47,6 +54,13 @@ export function HearIt({
   // faller the kid picked, or null on a miss) until `finish` reports it.
   const resultRef = useRef<{ picked: Faller | null; correct: boolean } | null>(null);
   const finishTimer = useRef<number | undefined>(undefined);
+  // Multi-target only: brief green flashes at the tap spot of already-cleared
+  // target fallers, so the still-running simulation gives "got it" feedback
+  // without freezing on every intermediate tap.
+  const pulsesRef = useRef<{ x: number; y: number; until: number }[]>([]);
+  const [remaining, setRemaining] = useState<number>(() =>
+    isMultiTarget ? round.choices.filter((c) => c.token === round.target.token).length : 0,
+  );
 
   useEffect(() => {
     playFind(round.target.token); // speak the "find X" prompt once on entry
@@ -85,6 +99,7 @@ export function HearIt({
     const dt = last === null ? 0 : Math.min((ts - last) / 1000, 0.05);
     const { world, fallen } = stepHear(worldRef.current, dt);
     worldRef.current = world;
+    if (pulsesRef.current.length > 0) pulsesRef.current = pulsesRef.current.filter((p) => p.until > ts);
     draw();
     if (fallen.includes(round.target.token)) {
       resolve(null); // missed the target — it hit the floor
@@ -122,6 +137,13 @@ export function HearIt({
       ctx.font = 'bold 36px sans-serif';
       ctx.fillText(faller.glyph, faller.x, faller.y + 2);
     }
+    // Multi-target: a fading green pulse where an already-cleared target was tapped.
+    for (const pulse of pulsesRef.current) {
+      ctx.fillStyle = '#16a34a';
+      ctx.beginPath();
+      ctx.arc(pulse.x, pulse.y, FALLER_R, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   function onTap(clientX: number, clientY: number): void {
@@ -132,6 +154,19 @@ export function HearIt({
     const y = ((clientY - rect.top) / rect.height) * HEAR_H;
     const hit = fallerAt(worldRef.current, x, y);
     if (!hit) return;
+
+    if (isMultiTarget && hit.token === round.target.token) {
+      const world = removeFaller(worldRef.current, hit.id);
+      worldRef.current = world;
+      const left = world.fallers.filter((f) => f.token === round.target.token).length;
+      setRemaining(left);
+      if (left === 0) {
+        resolve(hit); // last one found — freeze and report as correct
+        return;
+      }
+      pulsesRef.current.push({ x: hit.x, y: hit.y, until: performance.now() + PULSE_MS });
+      return;
+    }
     resolve(hit);
   }
 
@@ -144,6 +179,8 @@ export function HearIt({
         className="learn-hear-canvas"
         onPointerDown={(e) => onTap(e.clientX, e.clientY)}
       />
+      {/* Multi-target: how many more of the target the kid still needs to tap. */}
+      {isMultiTarget && <div className="learn-hear-remaining">×{remaining}</div>}
       {/* Subtle replay tucked into the canvas's top-right corner. */}
       <button
         type="button"

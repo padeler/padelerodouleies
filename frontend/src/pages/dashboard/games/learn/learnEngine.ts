@@ -78,6 +78,10 @@ export interface MatchRound {
   right: DeckItem[]; // shown via glyph_alt (lowercase), shuffled; pair by token
   icons?: Map<string, string>; // token → emoji for visual icon matching; undefined = no icons
 }
+// 'multi-target' spawns 2-3 extra fallers sharing the target's token — the kid
+// must tap every one before the round resolves (HearIt.tsx owns that tracking).
+export type HearVariant = 'single' | 'multi-target';
+
 export interface HearRound {
   kind: 'hear';
   target: DeckItem; // component plays target.audio_url
@@ -85,6 +89,7 @@ export interface HearRound {
   timeLimit?: number; // seconds; undefined means engine default (TIME_LIMIT_SECONDS)
   fallSpeedMult?: number; // multiplier for hearEngine base speed; undefined = 1.0
   icons?: Map<string, string>; // token → emoji for falling-target visual hints
+  variant?: HearVariant; // undefined/'single' = one target faller to find
 }
 export interface OrderRound {
   kind: 'order';
@@ -356,12 +361,36 @@ function matchRound(state: GameState, pool: DeckItem[], rng: () => number): Matc
   return round;
 }
 
+// Multi-target ("find all the Α's") only kicks in once the kid has cleared a
+// full tier and is on a harder step within the current slot — it needs the
+// extra screen real estate/pressure to feel like a step up, not a trap early on.
+function isMultiTargetHear(state: GameState): boolean {
+  return state.tierIndex >= 2 && diffStep(state) >= 1;
+}
+
 function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearRound {
   const target = pickOne(pool, rng);
+  let choices: DeckItem[];
+  let variant: HearVariant | undefined;
+
+  if (isMultiTargetHear(state)) {
+    const extraCopies = 2 + Math.floor(rng() * 2); // 2 or 3 additional target fallers
+    const distractor = sample(
+      pool.filter((it) => it.token !== target.token),
+      1,
+      rng,
+    );
+    choices = shuffleWith([target, ...(Array(extraCopies).fill(target) as DeckItem[]), ...distractor], rng);
+    variant = 'multi-target';
+  } else {
+    choices = withDistractors(target, pool, rng);
+  }
+
   const round: HearRound = {
     kind: 'hear',
     target,
-    choices: withDistractors(target, pool, rng),
+    choices,
+    variant,
     timeLimit: timeLimitForState(state),
     fallSpeedMult: fallSpeedMultiplier(state),
   };

@@ -225,6 +225,25 @@
   transform: scale(0.9);
   opacity: 1;
 }
+/* Multi-target "find them all" counter, mirrored top-left of the replay button. */
+.learn-hear-remaining {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .learn-hear-canvas {
   width: 100%;
   max-width: 360px;

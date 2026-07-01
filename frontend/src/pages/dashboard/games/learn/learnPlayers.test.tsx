@@ -6,6 +6,7 @@ import { MatchCase } from './MatchCase';
 import { WhatsNext } from './WhatsNext';
 import { PutInOrder } from './PutInOrder';
 import { HearIt } from './HearIt';
+import { FALLER_R, HEAR_H, HEAR_W } from './hearEngine';
 import type { DeckItem } from './learnEngine';
 
 function num(n: number): DeckItem {
@@ -193,5 +194,74 @@ describe('HearIt (canvas action level)', () => {
     // Drawing/hit-testing is exercised by hearEngine.test.ts (jsdom has no
     // canvas 2D); here we just assert the prompt is auto-spoken on mount.
     expect(playFind).toHaveBeenCalledWith('n7');
+  });
+
+  describe('multi-target variant', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // Fixes createHearWorld's internal shuffle so faller positions are
+      // predictable (fake timers also hold off the rAF loop from moving them).
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    // Mirrors hearEngine's private shuffleColumns(n, () => 0) + column layout
+    // formula so the test can compute exactly where each faller starts.
+    function fallerPosition(n: number, index: number): { x: number; y: number } {
+      const cols = Array.from({ length: n }, (_, i) => i);
+      for (let i = cols.length - 1; i > 0; i -= 1) {
+        const tmp = cols[i]!;
+        cols[i] = cols[0]!; // rng() === 0 → j is always 0
+        cols[0] = tmp;
+      }
+      return { x: HEAR_W * ((cols[index]! + 0.5) / n), y: -FALLER_R - index * 90 };
+    }
+
+    function renderMultiTarget(choices: DeckItem[], target: DeckItem, onAnswer = vi.fn()) {
+      const { container } = render(
+        <HearIt
+          round={{ kind: 'hear', target, choices, variant: 'multi-target' }}
+          onAnswer={onAnswer}
+          playFind={vi.fn()}
+        />,
+      );
+      const canvas = container.querySelector('canvas')!;
+      canvas.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, width: HEAR_W, height: HEAR_H, right: HEAR_W, bottom: HEAR_H, x: 0, y: 0, toJSON() {} }) as DOMRect;
+      return { canvas, onAnswer };
+    }
+
+    it('needs every target faller tapped before it resolves as correct', () => {
+      const target = num(7);
+      const choices = [target, target, target, num(2), num(9)]; // 3 target fallers + 2 distractors
+      const { canvas, onAnswer } = renderMultiTarget(choices, target);
+
+      for (let i = 0; i < 2; i += 1) {
+        const p = fallerPosition(choices.length, i);
+        fireEvent.pointerDown(canvas, { clientX: p.x, clientY: p.y });
+        expect(onAnswer).not.toHaveBeenCalled(); // still targets left to find
+      }
+      const last = fallerPosition(choices.length, 2);
+      fireEvent.pointerDown(canvas, { clientX: last.x, clientY: last.y });
+      act(() => void vi.advanceTimersByTime(900)); // freeze beat before reporting
+      expect(onAnswer).toHaveBeenCalledWith(true, expect.objectContaining({ correctToken: 'n7' }));
+    });
+
+    it('resolves as wrong immediately on a distractor tap', () => {
+      const target = num(7);
+      const choices = [target, target, target, num(2), num(9)];
+      const { canvas, onAnswer } = renderMultiTarget(choices, target);
+
+      const distractor = fallerPosition(choices.length, 3); // num(2)
+      fireEvent.pointerDown(canvas, { clientX: distractor.x, clientY: distractor.y });
+      act(() => void vi.advanceTimersByTime(900));
+      expect(onAnswer).toHaveBeenCalledWith(
+        false,
+        expect.objectContaining({ pickedToken: 'n2', correctToken: 'n7' }),
+      );
+    });
   });
 });

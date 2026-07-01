@@ -96,6 +96,11 @@ export function stepHear(world: HearWorld, dt: number): { world: HearWorld; fall
   return { world: { fallers, elapsed, speedMult: world.speedMult }, fallen };
 }
 
+/** Drop a faller by id (e.g. after a correct multi-target tap) — pure, no side effects. */
+export function removeFaller(world: HearWorld, id: number): HearWorld {
+  return { ...world, fallers: world.fallers.filter((f) => f.id !== id) };
+}
+
 /** Hit-test a tap (in world coords) against the fallers; nearest within radius. */
 export function fallerAt(world: HearWorld, x: number, y: number): Faller | null {
   let best: Faller | null = null;

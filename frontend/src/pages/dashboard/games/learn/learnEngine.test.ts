@@ -223,6 +223,24 @@ describe('learnEngine round generation', () => {
     expect(round.icons).toBeUndefined();
   });
 
+  it('hear round is single-target below the multi-target threshold', () => {
+    const g = createGame('numbers', numbersDeck());
+    const round = nextRound({ ...g, tierIndex: 0, slot: 1, roundInSlot: 0 }, () => 0.5);
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.variant).toBeUndefined();
+    expect(round.choices.filter((c) => c.token === round.target.token)).toHaveLength(1);
+  });
+
+  it('hear round spawns 2-3 extra target fallers once tier/difficulty is high enough', () => {
+    const g = createGame('numbers', numbersDeck());
+    const round = nextRound({ ...g, tierIndex: 2, slot: 1, roundInSlot: 1 }, () => 0.5);
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.variant).toBe('multi-target');
+    const targetCount = round.choices.filter((c) => c.token === round.target.token).length;
+    expect(targetCount).toBeGreaterThanOrEqual(3); // the original + 2..3 extra copies
+    expect(targetCount).toBeLessThanOrEqual(4);
+  });
+
   it('order: the correct sequence is in deck order; shown holds the same items', () => {
     const g = createGame('numbers', numbersDeck());
     const round = nextRound({ ...g, slot: 2 }, () => 0.4);

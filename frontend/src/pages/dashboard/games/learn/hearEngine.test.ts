@@ -4,6 +4,7 @@ import {
   createHearWorld,
   fallSpeed,
   fallerAt,
+  removeFaller,
   stepHear,
   type HearChoice,
 } from './hearEngine';
@@ -95,5 +96,17 @@ describe('hearEngine', () => {
     for (const faller of world.fallers) {
       expect(faller.icon).toBeUndefined();
     }
+  });
+
+  it('removeFaller drops only the matching faller, leaving the rest untouched', () => {
+    const world = createHearWorld(CHOICES, () => 0);
+    const target = world.fallers[1]!;
+    const next = removeFaller(world, target.id);
+    expect(next.fallers).toHaveLength(world.fallers.length - 1);
+    expect(next.fallers.find((f) => f.id === target.id)).toBeUndefined();
+    // Untouched fallers keep their original data.
+    expect(next.fallers.map((f) => f.token)).toEqual(
+      world.fallers.filter((f) => f.id !== target.id).map((f) => f.token),
+    );
   });
 });

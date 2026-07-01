@@ -12,11 +12,11 @@ In number-adventure and letter-adventure:
 - [x] make the speeker icon most subtle. It takes too much space. You can move it on the top right of the game area similar to the chore cards
 
 Still open (need a curated Greek word→icon vocabulary dataset + a design decision — see notes below):
-- [ ] matching letters (lower-case with capital) is too simple it needs to be more engaging. For example it could be match the icons with the first letter of the word.
+- [x] matching letters (lower-case with capital) is too simple it needs to be more engaging. For example it could be match the icons with the first letter of the word.
 - [ ] the falling letters need to be more engaging.
-      - [ ] Add falling icons with the letters/numbers
+      - [x] Add falling icons with the letters/numbers
       - [ ] add variations like
-            - [ ] "click on all letter A" (multiple letters) or
+            - [x] "click on all letter A" (multiple letters) or
             - [ ] "click on all items that start with B" or
             - [ ] spell the word (i.e spell "γάτα" -> press letters in the correct order, or count to 5 -> press numbers in the correct order)
 - [x] progressive intra-tier difficulty: less time in timed rounds (12→11→10s), faster falling targets (1.0×→1.5×), wider count ranges, shorter→longer ordering sequences
