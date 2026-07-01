@@ -1,8 +1,8 @@
 # Learning Adventure — Remaining Work Plan
 
 **Branch:** `feat/learn-adventure`
-**Date:** 2026-06-30
-**State:** Items A + B.1 + B.2 committed. Only B.3 (spell-word, deferred) remains.
+**Date:** 2026-07-01
+**State:** Items A + B.1 + B.2 + B.2b + B.3 committed. All planned work for the falling-letters engagement variations is done.
 
 ---
 
@@ -23,13 +23,13 @@
 | 9 | Progressive intra-tier difficulty | `042e06f` | Wider counts, faster drops, shorter→longer sequences, less time |
 | A | Icon-based letter matching | `d0f5ced` | Vocab dataset + MatchRound.icons + has-icon CSS + fallback |
 | B.1 | Emoji icons on falling targets | `7251b18` | Faller.icon + createHearWorld icons map + canvas draw + hearRound population |
-| B.2 | Multi-target mode ("Click all letter Α") | pending commit | HearVariant + multi-target hearRound generation + HearIt tap handler + removeFaller |
+| B.2 | Multi-target mode ("Click all letter Α") | `afa707f` | HearVariant + multi-target hearRound generation + HearIt tap handler + removeFaller |
+| B.2b | Starts-with mode ("Click all items that start with Β") | pending commit | `LETTER_VOCAB_EXTRA` curated 2nd word/icon per letter + `starts-with` HearVariant + generalized group-target tap handling in HearIt |
+| B.3 | Spell-word mode ("Spell γάτα" / "Count to 5") | pending commit | `SPELL_WORDS` curated word→letter-token list + `spell` HearVariant + sequential per-letter dictation in HearIt |
 
 ### Open Items
 
-| # | Item | Priority | Deps |
-|---|------|----------|------|
-| B.3 | Spell-word mode | Low (deferred) | Reverse vocab map, polytonic letter handling |
+None — all planned Learning Adventure items (A, B.1, B.2, B.2b, B.3) are implemented.
 
 ---
 
@@ -208,17 +208,160 @@ This state lives in `HearIt.tsx` refs (consistent with existing pattern where co
 
 ---
 
-#### Sub-feature B.3: Spell-Word Mode (DEFERRED)
+#### Sub-feature B.2b: Starts-With Mode ("Click All Items That Start With Β") — Implemented
 
-**Rationale:** Requires mapping Greek words → individual letter tokens (e.g., "γάτα" → `[l03, l25, l18, l25]` where l25=ά). This needs a cross-reference between vocab words and deck tokens for each letter in the word. The current `LETTER_VOCAB` maps letter→word, not word→[letters].
+**Goal:** A third Hear It variant where the kid finds every falling icon whose
+*word* begins with the spoken target letter, instead of every faller repeating
+the same glyph. Reinforces letter→initial-sound recognition via genuinely
+different pictures, not a repeated icon.
 
-**Future approach:**
-1. Build a reverse map: `word → [token_for_each_letter]`
-2. Extend HearRound with `spellSequence?: string[]` (array of tokens to tap in order)
-3. `HearIt.tsx`: show the word as text above canvas, track progress through the sequence
-4. Fallers spawn a continuous stream of random letters; kid taps the ones matching the current needed letter
+**Why a design decision was needed:** `LETTER_VOCAB` (Item A) maps each letter
+to exactly *one* word/icon, so there was no second icon to offer as a match for
+the same initial letter. Scope (which letters get a second curated word) was
+confirmed with the user rather than guessed — the recommended "only letters
+with 2+ safe words" option was chosen over covering all 24 letters or skipping
+the variant.
 
-**Estimated effort:** ~100 lines across 4 files. Blocker: reverse vocab map.
+##### Step B.2b.1 — Add `LETTER_VOCAB_EXTRA` in `letterVocab.ts`
+
+A second curated `{ word, emoji }` per letter, only for letters where a safe
+(Unicode ≤6.1) second icon exists — sourced from the same textbook notes as
+`LETTER_VOCAB` (`exercise_lab/notes/Α_ΤΑΞΗ_ΔΗΜΟΤΙΚΟΥ/glossa/`) where available.
+13 of the 24 letters qualify (Α,Β,Γ,Δ,Κ,Λ,Μ,Ο,Σ,Τ,Φ,Χ,Ψ); the rest are simply
+never picked as a starts-with target.
+
+##### Step B.2b.2 — Add `'starts-with'` to `HearVariant` + `startsWithTokens` to `HearRound`
+
+```typescript
+export type HearVariant = 'single' | 'multi-target' | 'starts-with';
+export interface HearRound {
+  // ... existing fields
+  startsWithTokens?: string[]; // synthetic extra tokens that also count as correct
+}
+```
+
+##### Step B.2b.3 — Generate Starts-With Rounds in `hearRound()`
+
+- Eligible targets are pool letters with both a `LETTER_VOCAB` and a
+  `LETTER_VOCAB_EXTRA` icon (`eligibleStartsWithTargets`) — letters track only,
+  gated behind the same harder-tier check as multi-target
+  (renamed `isMultiTargetHear` → `isHarderHearTier` since it now gates both).
+- When eligible, a 50/50 roll (`rng() < 0.5`) picks starts-with over
+  multi-target. The extra word gets a synthetic token (`${token}#starts-with`,
+  same glyph as the real letter, its own icon) so it can ride alongside the
+  real deck token in `choices`/`icons` without colliding with it.
+- 2 other-letter distractors (each with their own real icon) fill out the pool.
+
+##### Step B.2b.4 — Generalize `HearIt.tsx` Tap/Miss/Highlight Logic
+
+The existing multi-target logic hardcoded `hit.token === round.target.token`
+in four places (resolve/tick/draw/onTap). Generalized all four to a
+`targetTokens = new Set([target.token, ...startsWithTokens])` check
+(`isGroupTarget = variant === 'multi-target' || variant === 'starts-with'`) so
+both variants share one code path — including the miss case (any required
+token, not just the literal target, hitting the floor is a miss).
+
+##### Step B.2b.5 — Add Tests
+
+- `learnEngine.test.ts`: starts-with round has 2 distinct icons + is letters-only
+- `learnPlayers.test.tsx`: mirrors the multi-target describe block — needs both
+  the target and the extra word tapped; a same-letter distractor pick resolves wrong
+
+**Verified live** (temporarily forcing the harder-tier gate on): the multi-target
+render/miss path was unaffected by the generalization, and the starts-with
+variant renders its `×2` badge and correct miss messaging as expected. Tapping
+a moving canvas target via browser automation was too slow/flaky to catch a
+live correct-tap; that path is covered deterministically by the component tests
+instead (mocked `Math.random` fixes faller layout).
+
+**Total impact:** ~110 lines across 4 files (`letterVocab.ts`, `learnEngine.ts`, `HearIt.tsx`, plus tests).
+
+---
+
+#### Sub-feature B.3: Spell-Word Mode — Implemented
+
+**Goal:** A fourth Hear It variant where the kid taps a *sequence* of fallers in
+order, one dictation prompt per step: letters spells a curated short word
+("Βρες το γράμμα γάμμα." → tap Γ → "Βρες το γράμμα άλφα." → tap Α → ...);
+numbers counts up from one ("Βρες τον αριθμό ένα." → tap 1 → "Βρες τον αριθμό
+δύο." → tap 2 → ...).
+
+**Why the original "reverse vocab map" plan was replaced:** the deferred
+approach called for deriving a word's letters generically (stripping tonos
+accents from arbitrary `LETTER_VOCAB` words, which run up to 10 letters and
+aren't length-bounded for playability). Instead, `SPELL_WORDS` in
+`letterVocab.ts` is a small **curated** list of short (3-5 letter) Greek
+words, each hand-mapped letter-by-letter to deck tokens — no generic
+accent-stripping code, consistent with how `LETTER_VOCAB_EXTRA` (B.2b) is
+already curated rather than derived. A word is only offered once every one of
+its tokens is unlocked in the kid's current tier pool
+(`eligibleSpellWords`), so easier tiers only ever see the earlier, shorter
+entries (e.g. `ιδέα`/`θεά` at tier 1).
+
+**Why per-letter dictation instead of "show the word as text":** re-prompting
+with the existing "find X" phrase for whichever letter/number is next reuses
+`find_tts` as-is (no new backend TTS phrases, per the original non-goal) and
+turns spelling into a genuine listen-then-tap dictation exercise rather than
+a copy-the-glyphs-you-can-see task.
+
+##### Step B.3.1 — Add `SPELL_WORDS` in `letterVocab.ts`
+
+`{ word: string; tokens: string[] }[]` — 14 curated words spanning all four
+letter tiers (Α-Ι through Α-Ω), including one with a repeated letter
+("μαμά") to exercise duplicate-token handling.
+
+##### Step B.3.2 — Add `'spell'` to `HearVariant` + `spellSequence` to `HearRound`
+
+```typescript
+export type HearVariant = 'single' | 'multi-target' | 'starts-with' | 'spell';
+export interface HearRound {
+  // ... existing fields
+  spellSequence?: string[]; // ordered tokens the kid must tap in sequence
+}
+```
+
+##### Step B.3.3 — Generate Spell Rounds in `hearRound()`
+
+- `eligibleSpellWords(pool)` filters `SPELL_WORDS` to those whose every token
+  is present in the pool; `spellSequenceForTrack` picks one (letters) or
+  builds `n1..nN` for a random `N` in 3..5 (numbers — always eligible, since
+  every tier starts at n1).
+- The three "harder" variants (starts-with, spell, multi-target) share one
+  rng roll each round: starts-with gets 1/3, spell gets half of what's left
+  (another 1/3 overall), multi-target is the default fallback — mirrors the
+  original 50/50 starts-with-vs-multi-target roll from B.2b, now split three
+  ways with each check short-circuiting when its variant isn't eligible.
+- `choices` = one faller per sequence token (duplicates included, e.g. two
+  'Α' fallers for "μαμά") + 2 distractors whose tokens are constructed to be
+  disjoint from the sequence — this lets the component tell a required
+  faller apart from a distractor by token alone, even with repeated letters.
+
+##### Step B.3.4 — Add Sequential Tap Handling to `HearIt.tsx`
+
+A `nextSpellIndexRef` tracks progress through `spellSequence`. On tap: a
+token match at the current index removes that faller, advances the index,
+and re-prompts via `playFind` for the next token (or resolves correct if the
+sequence is exhausted); any other tap (wrong letter, or the right letter out
+of order) resolves wrong immediately. A required faller reaching the floor
+before its turn is also a miss. The existing group-target machinery
+(`isGroupTarget`'s freeze/highlight/pulse/remaining-badge code) is
+generalized via a new `isRequiredToken`/`isCorrectPick` pair so spell shares
+the same freeze-frame highlight and `×N` remaining badge instead of
+duplicating that UI.
+
+##### Step B.3.5 — Add Tests
+
+- `learnEngine.test.ts`: letters spell round is a curated word tapped in
+  order; numbers spell round is `n1..nN` ascending; spell never fires below
+  the harder-tier threshold.
+- `learnPlayers.test.tsx`: mirrors the multi-target/starts-with describe
+  blocks — a 4-letter word (with a repeated letter) needs all four taps in
+  the right order before resolving correct, with `playFind` re-prompting
+  after each step; an out-of-order tap resolves wrong immediately.
+
+**Total impact:** ~180 lines across 4 files (`letterVocab.ts`, `learnEngine.ts`,
+`HearIt.tsx`, plus tests) — no backend or CSS changes (reuses the existing
+`.learn-hear-remaining` badge and `find_tts`/`wrong_tts` phrases).
 
 ---
 
@@ -245,7 +388,19 @@ Phase B.2 (Multi-Target) — Depends on Phase A + B.1
 ├── B.2.3: Update HearIt tap handler
 └── Tests
 
-Phase B.3 (Spell-Word) — Deferred until reverse vocab map is built
+Phase B.2b (Starts-With) — Depends on Phase A + B.1 + B.2
+├── B.2b.1: Add LETTER_VOCAB_EXTRA (curated 2nd word/icon per eligible letter)
+├── B.2b.2: Add 'starts-with' HearVariant + startsWithTokens
+├── B.2b.3: Generate starts-with rounds at higher tiers (letters only)
+├── B.2b.4: Generalize HearIt tap/miss/highlight to a target-token set
+└── Tests
+
+Phase B.3 (Spell-Word) — Depends on Phase A + B.1 + B.2 + B.2b
+├── B.3.1: Add SPELL_WORDS (curated short word → letter-token sequence)
+├── B.3.2: Add 'spell' HearVariant + spellSequence
+├── B.3.3: Generate spell rounds at higher tiers (both tracks)
+├── B.3.4: Sequential ordered-tap handling in HearIt (nextSpellIndexRef)
+└── Tests
 ```
 
 ---
@@ -260,10 +415,9 @@ Phase B.3 (Spell-Word) — Deferred until reverse vocab map is built
 - **No backend changes** — All vocabulary data is frontend-only; API shapes unchanged.
 
 ### Non-Goals
-- Spell-word mode (B.3) deferred — requires additional data structure
 - Numbers track icon matching — numbers already have rich visual feedback via counting objects
 - Real-time difficulty adjustment beyond the 3-step slot ramp — future work if needed
-- Adding new TTS phrases for multi-target/spell modes — reuses existing "find X" prompt and praise phrases
+- Adding new TTS phrases for multi-target/starts-with/spell modes — reuses existing "find X" prompt and praise phrases
 
 ---
 
@@ -297,3 +451,21 @@ Phase B.3 (Spell-Word) — Deferred until reverse vocab map is built
 | `learnEngine.ts` | ~15 | HearVariant type, multi-target generation logic |
 | `HearIt.tsx` | ~40 | Multi-target state tracking in refs, modified tap handler |
 | `learnPlayers.test.tsx` | ~15 | Multi-target HearIt test |
+
+### Files Modified (Phase B.2b)
+| File | Lines | Change |
+|------|-------|--------|
+| `letterVocab.ts` | ~20 | `LETTER_VOCAB_EXTRA` — curated 2nd word/icon for 13 eligible letters |
+| `learnEngine.ts` | ~50 | `'starts-with'` HearVariant, `startsWithTokens`, `eligibleStartsWithTargets`, rewritten `hearRound()` |
+| `HearIt.tsx` | ~15 | Generalized target-token-set check (was hardcoded to `multi-target`) across resolve/tick/draw/onTap |
+| `learnEngine.test.ts` | ~25 | Starts-with round generation + letters-only assertions |
+| `learnPlayers.test.tsx` | ~55 | Starts-with HearIt describe block mirroring multi-target's |
+
+### Files Modified (Phase B.3)
+| File | Lines | Change |
+|------|-------|--------|
+| `letterVocab.ts` | ~35 | `SpellWordEntry` type + `SPELL_WORDS` — 14 curated short words, hand-mapped to letter tokens |
+| `learnEngine.ts` | ~50 | `'spell'` HearVariant, `spellSequence`, `eligibleSpellWords`, `spellSequenceForTrack`, rewritten `hearRound()` 3-way variant roll, signature update |
+| `HearIt.tsx` | ~40 | `nextSpellIndexRef`, `isRequiredToken`/`isCorrectPick` helpers generalizing the freeze/highlight logic, ordered tap handling, re-prompting `playFind` per step |
+| `learnEngine.test.ts` | ~40 | Letters spell round is a curated word in order; numbers spell round counts up; threshold gating |
+| `learnPlayers.test.tsx` | ~65 | Spell HearIt describe block — in-order taps with re-prompts, out-of-order tap fails immediately |

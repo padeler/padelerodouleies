@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LETTER_VOCAB } from './letterVocab';
+import { LETTER_VOCAB, LETTER_VOCAB_EXTRA, SPELL_WORDS } from './letterVocab';
 import {
   CHOICES,
   LIVES_START,
@@ -239,6 +239,81 @@ describe('learnEngine round generation', () => {
     const targetCount = round.choices.filter((c) => c.token === round.target.token).length;
     expect(targetCount).toBeGreaterThanOrEqual(3); // the original + 2..3 extra copies
     expect(targetCount).toBeLessThanOrEqual(4);
+  });
+
+  it('hear round can generate a "starts-with" variant for letters with a curated second word', () => {
+    const g = createGame('letters', lettersDeck());
+    // rng() < 0.5 always steers hearRound into the starts-with branch once eligible.
+    const round = nextRound({ ...g, tierIndex: 2, slot: 1, roundInSlot: 1 }, () => 0.1);
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.variant).toBe('starts-with');
+    expect(round.startsWithTokens).toHaveLength(1);
+    const extraToken = round.startsWithTokens![0]!;
+    const tokens = round.choices.map((c) => c.token);
+    expect(tokens).toContain(round.target.token);
+    expect(tokens).toContain(extraToken);
+    // Both the primary and the curated extra word get their own, distinct icon.
+    expect(round.icons!.get(round.target.token)).toBe(LETTER_VOCAB[round.target.token]!.emoji);
+    expect(round.icons!.get(extraToken)).toBe(LETTER_VOCAB_EXTRA[round.target.token]!.emoji);
+    expect(round.icons!.get(extraToken)).not.toBe(round.icons!.get(round.target.token));
+    // Every faller that isn't a required target is a distractor from another letter.
+    for (const item of round.choices) {
+      if (item.token !== round.target.token && item.token !== extraToken) {
+        expect(item.token).not.toBe(round.target.token);
+      }
+    }
+  });
+
+  it('hear round never generates "starts-with" for the numbers track', () => {
+    const g = createGame('numbers', numbersDeck());
+    const round = nextRound({ ...g, tierIndex: 5, slot: 1, roundInSlot: 2 }, () => 0.1);
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.variant).not.toBe('starts-with');
+    expect(round.startsWithTokens).toBeUndefined();
+  });
+
+  it('hear round can generate a "spell" variant for letters — a curated word, tapped in order', () => {
+    const g = createGame('letters', lettersDeck());
+    // First rng() call is the starts-with roll (>= 1/3 skips it); the second is
+    // the spell roll (< 0.5 picks it).
+    const round = nextRound({ ...g, tierIndex: 2, slot: 1, roundInSlot: 1 }, seqRng([0.9, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]));
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.variant).toBe('spell');
+    const seq = round.spellSequence;
+    expect(seq).toBeDefined();
+    expect(seq!.length).toBeGreaterThanOrEqual(3);
+    // The sequence must be exactly one of the curated words.
+    expect(SPELL_WORDS.some((w) => w.tokens.join(',') === seq!.join(','))).toBe(true);
+    expect(round.target.token).toBe(seq![0]);
+    // Every sequence token (including repeats) has at least one matching faller,
+    // plus exactly 2 distractor fallers whose tokens never collide with it.
+    for (const tok of seq!) {
+      expect(round.choices.filter((c) => c.token === tok).length).toBeGreaterThanOrEqual(1);
+    }
+    expect(round.choices.length).toBe(seq!.length + 2);
+  });
+
+  it('hear round can generate a "spell" variant for numbers — count up from one, in order', () => {
+    const g = createGame('numbers', numbersDeck());
+    // Numbers never qualify for starts-with, so the very first rng() call is
+    // the spell roll (< 0.5 picks it).
+    const round = nextRound({ ...g, tierIndex: 2, slot: 1, roundInSlot: 1 }, seqRng([0.1, 0.5, 0.2, 0.3]));
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.variant).toBe('spell');
+    const seq = round.spellSequence;
+    expect(seq).toBeDefined();
+    expect(seq!.length).toBeGreaterThanOrEqual(3);
+    expect(seq!.length).toBeLessThanOrEqual(5);
+    expect(seq).toEqual(Array.from({ length: seq!.length }, (_, i) => `n${i + 1}`));
+    expect(round.target.token).toBe('n1');
+  });
+
+  it('hear round never generates "spell" below the harder-tier threshold', () => {
+    const g = createGame('letters', lettersDeck());
+    const round = nextRound({ ...g, tierIndex: 0, slot: 1, roundInSlot: 0 }, () => 0.1);
+    if (round.kind !== 'hear') throw new Error('wrong kind');
+    expect(round.variant).not.toBe('spell');
+    expect(round.spellSequence).toBeUndefined();
   });
 
   it('order: the correct sequence is in deck order; shown holds the same items', () => {

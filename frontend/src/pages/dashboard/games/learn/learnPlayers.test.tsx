@@ -264,4 +264,163 @@ describe('HearIt (canvas action level)', () => {
       );
     });
   });
+
+  describe('starts-with variant', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    // Mirrors hearEngine's private shuffleColumns(n, () => 0) + column layout
+    // formula so the test can compute exactly where each faller starts.
+    function fallerPosition(n: number, index: number): { x: number; y: number } {
+      const cols = Array.from({ length: n }, (_, i) => i);
+      for (let i = cols.length - 1; i > 0; i -= 1) {
+        const tmp = cols[i]!;
+        cols[i] = cols[0]!; // rng() === 0 → j is always 0
+        cols[0] = tmp;
+      }
+      return { x: HEAR_W * ((cols[index]! + 0.5) / n), y: -FALLER_R - index * 90 };
+    }
+
+    function renderStartsWith(choices: DeckItem[], target: DeckItem, startsWithTokens: string[], onAnswer = vi.fn()) {
+      const { container } = render(
+        <HearIt
+          round={{ kind: 'hear', target, choices, variant: 'starts-with', startsWithTokens }}
+          onAnswer={onAnswer}
+          playFind={vi.fn()}
+        />,
+      );
+      const canvas = container.querySelector('canvas')!;
+      canvas.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, width: HEAR_W, height: HEAR_H, right: HEAR_W, bottom: HEAR_H, x: 0, y: 0, toJSON() {} }) as DOMRect;
+      return { canvas, onAnswer };
+    }
+
+    it('needs both the target and the curated extra word tapped before it resolves as correct', () => {
+      const target = letter('l02', 'Β', 'β'); // βιβλίο
+      const extra = letter('l02#starts-with', 'Β', 'β'); // βάρκα
+      const distractor = letter('l10', 'Κ', 'κ'); // κήπος — a different letter
+      const choices = [target, extra, distractor];
+      const { canvas, onAnswer } = renderStartsWith(choices, target, [extra.token]);
+
+      const first = fallerPosition(choices.length, 0);
+      fireEvent.pointerDown(canvas, { clientX: first.x, clientY: first.y });
+      expect(onAnswer).not.toHaveBeenCalled(); // the other curated word is still out there
+
+      const second = fallerPosition(choices.length, 1);
+      fireEvent.pointerDown(canvas, { clientX: second.x, clientY: second.y });
+      act(() => void vi.advanceTimersByTime(900)); // freeze beat before reporting
+      expect(onAnswer).toHaveBeenCalledWith(true, expect.objectContaining({ correctToken: 'l02' }));
+    });
+
+    it('resolves as wrong immediately on an other-letter distractor tap', () => {
+      const target = letter('l02', 'Β', 'β');
+      const extra = letter('l02#starts-with', 'Β', 'β');
+      const distractor = letter('l10', 'Κ', 'κ');
+      const choices = [target, extra, distractor];
+      const { canvas, onAnswer } = renderStartsWith(choices, target, [extra.token]);
+
+      const wrong = fallerPosition(choices.length, 2);
+      fireEvent.pointerDown(canvas, { clientX: wrong.x, clientY: wrong.y });
+      act(() => void vi.advanceTimersByTime(900));
+      expect(onAnswer).toHaveBeenCalledWith(
+        false,
+        expect.objectContaining({ pickedToken: 'l10', correctToken: 'l02' }),
+      );
+    });
+  });
+
+  describe('spell variant', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.spyOn(Math, 'random').mockReturnValue(0);
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
+
+    // Mirrors hearEngine's private shuffleColumns(n, () => 0) + column layout
+    // formula so the test can compute exactly where each faller starts.
+    function fallerPosition(n: number, index: number): { x: number; y: number } {
+      const cols = Array.from({ length: n }, (_, i) => i);
+      for (let i = cols.length - 1; i > 0; i -= 1) {
+        const tmp = cols[i]!;
+        cols[i] = cols[0]!; // rng() === 0 → j is always 0
+        cols[0] = tmp;
+      }
+      return { x: HEAR_W * ((cols[index]! + 0.5) / n), y: -FALLER_R - index * 90 };
+    }
+
+    function renderSpell(choices: DeckItem[], target: DeckItem, spellSequence: string[], playFind = vi.fn(), onAnswer = vi.fn()) {
+      const { container } = render(
+        <HearIt
+          round={{ kind: 'hear', target, choices, variant: 'spell', spellSequence }}
+          onAnswer={onAnswer}
+          playFind={playFind}
+        />,
+      );
+      const canvas = container.querySelector('canvas')!;
+      canvas.getBoundingClientRect = () =>
+        ({ left: 0, top: 0, width: HEAR_W, height: HEAR_H, right: HEAR_W, bottom: HEAR_H, x: 0, y: 0, toJSON() {} }) as DOMRect;
+      return { canvas, onAnswer, playFind };
+    }
+
+    it('needs every letter tapped in order before it resolves as correct', () => {
+      const g = letter('l03', 'Γ', 'γ');
+      const a = letter('l01', 'Α', 'α');
+      const t2 = letter('l19', 'Τ', 'τ');
+      const distractor = letter('l10', 'Κ', 'κ');
+      const spellSequence = ['l03', 'l01', 'l19', 'l01']; // γάτα
+      // Two 'Α' fallers, one per occurrence in the word.
+      const choices = [g, a, t2, letter('l01', 'Α', 'α'), distractor];
+      const { canvas, onAnswer, playFind } = renderSpell(choices, g, spellSequence);
+
+      // Tap Γ (index 0) — correct, prompts the next letter (Α).
+      let p = fallerPosition(choices.length, 0);
+      fireEvent.pointerDown(canvas, { clientX: p.x, clientY: p.y });
+      expect(onAnswer).not.toHaveBeenCalled();
+      expect(playFind).toHaveBeenLastCalledWith('l01');
+
+      // Tap the first Α (index 1) — correct, prompts Τ.
+      p = fallerPosition(choices.length, 1);
+      fireEvent.pointerDown(canvas, { clientX: p.x, clientY: p.y });
+      expect(onAnswer).not.toHaveBeenCalled();
+      expect(playFind).toHaveBeenLastCalledWith('l19');
+
+      // Tap Τ (index 2) — correct, prompts Α again.
+      p = fallerPosition(choices.length, 2);
+      fireEvent.pointerDown(canvas, { clientX: p.x, clientY: p.y });
+      expect(onAnswer).not.toHaveBeenCalled();
+      expect(playFind).toHaveBeenLastCalledWith('l01');
+
+      // Tap the second Α (index 3) — final letter, sequence complete.
+      p = fallerPosition(choices.length, 3);
+      fireEvent.pointerDown(canvas, { clientX: p.x, clientY: p.y });
+      act(() => void vi.advanceTimersByTime(900)); // freeze beat before reporting
+      expect(onAnswer).toHaveBeenCalledWith(true, expect.objectContaining({ correctToken: 'l03' }));
+    });
+
+    it('resolves as wrong immediately on an out-of-order tap', () => {
+      const g = letter('l03', 'Γ', 'γ');
+      const a = letter('l01', 'Α', 'α');
+      const spellSequence = ['l03', 'l01']; // just the first two letters of γάτα
+      const choices = [g, a];
+      const { canvas, onAnswer } = renderSpell(choices, g, spellSequence);
+
+      // Tap Α before Γ — wrong order.
+      const p = fallerPosition(choices.length, 1);
+      fireEvent.pointerDown(canvas, { clientX: p.x, clientY: p.y });
+      act(() => void vi.advanceTimersByTime(900));
+      expect(onAnswer).toHaveBeenCalledWith(
+        false,
+        expect.objectContaining({ pickedToken: 'l01', correctToken: 'l03' }),
+      );
+    });
+  });
 });

@@ -15,7 +15,7 @@
  * (the component compares locally) — there is no server grading to protect.
  */
 
-import { LETTER_VOCAB } from './letterVocab';
+import { LETTER_VOCAB, LETTER_VOCAB_EXTRA, SPELL_WORDS, type SpellWordEntry } from './letterVocab';
 
 export type Track = 'numbers' | 'letters';
 
@@ -80,7 +80,14 @@ export interface MatchRound {
 }
 // 'multi-target' spawns 2-3 extra fallers sharing the target's token — the kid
 // must tap every one before the round resolves (HearIt.tsx owns that tracking).
-export type HearVariant = 'single' | 'multi-target';
+// 'starts-with' (letters only) asks the kid to find every falling icon whose
+// word begins with the target letter: the primary vocab icon plus a second
+// curated word/icon for that same letter (`startsWithTokens`, synthetic tokens
+// not present in the deck), mixed in among other-letter distractors.
+// 'spell' asks the kid to tap a sequence of fallers *in order* as each is
+// named ("Βρες το γράμμα ..." / "Βρες τον αριθμό ..."), one prompt per step —
+// letters spells a curated short word, numbers counts up from one.
+export type HearVariant = 'single' | 'multi-target' | 'starts-with' | 'spell';
 
 export interface HearRound {
   kind: 'hear';
@@ -90,6 +97,13 @@ export interface HearRound {
   fallSpeedMult?: number; // multiplier for hearEngine base speed; undefined = 1.0
   icons?: Map<string, string>; // token → emoji for falling-target visual hints
   variant?: HearVariant; // undefined/'single' = one target faller to find
+  // 'starts-with' only: extra synthetic tokens that also count as a correct tap
+  // alongside `target.token` (each maps to its own icon in `icons`).
+  startsWithTokens?: string[];
+  // 'spell' only: the ordered tokens the kid must tap in sequence. `choices`
+  // contains one faller per entry (duplicates included) plus 1-2 distractors
+  // whose tokens are guaranteed disjoint from this sequence.
+  spellSequence?: string[];
 }
 export interface OrderRound {
   kind: 'order';
@@ -285,7 +299,9 @@ export function roundSignature(round: Round): string {
     case 'match':
       return `match:${round.left.map((it) => it.token).sort().join(',')}`;
     case 'hear':
-      return `hear:${round.target.token}`;
+      return round.variant === 'spell' && round.spellSequence
+        ? `hear:spell:${round.spellSequence.join(',')}`
+        : `hear:${round.target.token}`;
     case 'order':
       return `order:${round.sequence.map((it) => it.token).join(',')}`;
     case 'whats_next':
@@ -361,19 +377,91 @@ function matchRound(state: GameState, pool: DeckItem[], rng: () => number): Matc
   return round;
 }
 
-// Multi-target ("find all the Α's") only kicks in once the kid has cleared a
-// full tier and is on a harder step within the current slot — it needs the
-// extra screen real estate/pressure to feel like a step up, not a trap early on.
-function isMultiTargetHear(state: GameState): boolean {
+// Both group-target variants (multi-target, starts-with) only kick in once the
+// kid has cleared a full tier and is on a harder step within the current slot —
+// they need the extra screen real estate/pressure to feel like a step up, not a
+// trap early on.
+function isHarderHearTier(state: GameState): boolean {
   return state.tierIndex >= 2 && diffStep(state) >= 1;
 }
 
+// "Starts-with" targets require two distinct vocab icons for the same letter
+// (the primary LETTER_VOCAB word + a curated LETTER_VOCAB_EXTRA word) so there
+// are genuinely different pictures to find for one initial letter — numbers
+// never qualify, and letters without a curated second word never qualify.
+function eligibleStartsWithTargets(state: GameState, pool: DeckItem[]): DeckItem[] {
+  if (state.track !== 'letters') return [];
+  return pool.filter((it) => LETTER_VOCAB[it.token]?.emoji && LETTER_VOCAB_EXTRA[it.token]?.emoji);
+}
+
+// "Spell the word" targets: letters offers a curated word whose entire letter
+// sequence is already unlocked in the current tier pool; numbers always
+// qualifies ("count to N", N chosen by rng) since every tier starts at n1.
+function eligibleSpellWords(pool: DeckItem[]): SpellWordEntry[] {
+  const poolTokens = new Set(pool.map((it) => it.token));
+  return SPELL_WORDS.filter((entry) => entry.tokens.every((tok) => poolTokens.has(tok)));
+}
+
+function spellSequenceForTrack(state: GameState, spellWords: SpellWordEntry[], rng: () => number): string[] {
+  if (state.track === 'letters') return pickOne(spellWords, rng).tokens;
+  const n = 3 + Math.floor(rng() * 3); // "count to" 3..5, ascending from one
+  return Array.from({ length: n }, (_, i) => `n${i + 1}`);
+}
+
 function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearRound {
-  const target = pickOne(pool, rng);
+  const harder = isHarderHearTier(state);
+  // `startsWithPool`/`spellWords` are only ever non-empty for the letters
+  // track (spell additionally always qualifies for numbers), so `rng()` below
+  // is not consumed deciding between options that don't exist for this round.
+  const startsWithPool = harder ? eligibleStartsWithTargets(state, pool) : [];
+  const spellWords = harder && state.track === 'letters' ? eligibleSpellWords(pool) : [];
+  const spellEligible = harder && (state.track === 'numbers' || spellWords.length > 0);
+
+  // Three "harder" variants compete for the round: starts-with (1/3 chance),
+  // then spell (1/2 of what's left, i.e. another 1/3 overall), else
+  // multi-target as the default harder fallback.
+  const useStartsWith = startsWithPool.length > 0 && rng() < 1 / 3;
+  const useSpell = !useStartsWith && spellEligible && rng() < 0.5;
+
+  let target: DeckItem;
   let choices: DeckItem[];
   let variant: HearVariant | undefined;
+  let startsWithTokens: string[] | undefined;
+  let spellSequence: string[] | undefined;
+  let extraIcon: { token: string; emoji: string } | undefined;
 
-  if (isMultiTargetHear(state)) {
+  if (useStartsWith) {
+    target = pickOne(startsWithPool, rng);
+    const extraEntry = LETTER_VOCAB_EXTRA[target.token]!; // guaranteed by eligibleStartsWithTargets
+    const extraToken = `${target.token}#starts-with`;
+    const extraItem: DeckItem = {
+      token: extraToken,
+      glyph: target.glyph,
+      glyph_alt: target.glyph_alt,
+      audio_url: target.audio_url,
+    };
+    const distractors = sample(
+      pool.filter((it) => it.token !== target.token && LETTER_VOCAB[it.token]?.emoji),
+      2,
+      rng,
+    );
+    choices = shuffleWith([target, extraItem, ...distractors], rng);
+    variant = 'starts-with';
+    startsWithTokens = [extraToken];
+    extraIcon = { token: extraToken, emoji: extraEntry.emoji! };
+  } else if (useSpell) {
+    spellSequence = spellSequenceForTrack(state, spellWords, rng);
+    const sequenceItems = spellSequence.map((tok) => state.itemsByToken[tok]!);
+    const distractors = sample(
+      pool.filter((it) => !spellSequence!.includes(it.token)),
+      2,
+      rng,
+    );
+    target = sequenceItems[0]!;
+    choices = shuffleWith([...sequenceItems, ...distractors], rng);
+    variant = 'spell';
+  } else if (harder) {
+    target = pickOne(pool, rng);
     const extraCopies = 2 + Math.floor(rng() * 2); // 2 or 3 additional target fallers
     const distractor = sample(
       pool.filter((it) => it.token !== target.token),
@@ -383,6 +471,7 @@ function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearR
     choices = shuffleWith([target, ...(Array(extraCopies).fill(target) as DeckItem[]), ...distractor], rng);
     variant = 'multi-target';
   } else {
+    target = pickOne(pool, rng);
     choices = withDistractors(target, pool, rng);
   }
 
@@ -391,6 +480,8 @@ function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearR
     target,
     choices,
     variant,
+    startsWithTokens,
+    spellSequence,
     timeLimit: timeLimitForState(state),
     fallSpeedMult: fallSpeedMultiplier(state),
   };
@@ -402,6 +493,7 @@ function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearR
       const entry = LETTER_VOCAB[item.token];
       if (entry?.emoji) icons.set(item.token, entry.emoji);
     }
+    if (extraIcon) icons.set(extraIcon.token, extraIcon.emoji);
     round.icons = icons;
   }
 

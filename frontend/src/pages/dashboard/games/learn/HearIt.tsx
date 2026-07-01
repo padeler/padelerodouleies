@@ -14,7 +14,7 @@ import {
 } from './hearEngine';
 import type { HearRound, RoundFeedback } from './learnEngine';
 
-// How long a correctly-tapped (but not final) multi-target faller flashes
+// How long a correctly-tapped (but not final) group-target faller flashes
 // green before the pulse fades, giving the kid a "got it, keep going" beat
 // without freezing the still-running simulation.
 const PULSE_MS = 300;
@@ -44,7 +44,22 @@ export function HearIt({
   playFind: (token: string) => void;
 }) {
   const t = useT();
-  const isMultiTarget = round.variant === 'multi-target';
+  // Both "multi-target" (find every faller repeating the target's glyph) and
+  // "starts-with" (find every faller whose word begins with the target letter)
+  // require tapping a whole group of fallers before the round resolves — the
+  // set of tokens that count as a hit is target.token plus any extra tokens the
+  // engine attached (starts-with's second curated word; empty otherwise).
+  const isGroupTarget = round.variant === 'multi-target' || round.variant === 'starts-with';
+  // "spell" requires tapping an ordered sequence of fallers, one dictation
+  // prompt per step (distinct from the unordered group-target variants above).
+  const isSpell = round.variant === 'spell';
+  const spellSequence = round.spellSequence ?? [];
+  const targetTokens = useRef(new Set([round.target.token, ...(round.startsWithTokens ?? [])])).current;
+  // Distractor tokens are guaranteed disjoint from spellSequence (see
+  // spellSequenceForTrack in learnEngine.ts), so token membership alone tells
+  // a faller apart from a distractor even with repeated letters in the word.
+  const spellTokenSet = useRef(new Set(spellSequence)).current;
+  const nextSpellIndexRef = useRef(0);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const worldRef = useRef<HearWorld>(createHearWorld(round.choices, Math.random, round.fallSpeedMult ?? 1.0, round.icons));
   const rafRef = useRef<number | null>(null);
@@ -54,13 +69,22 @@ export function HearIt({
   // faller the kid picked, or null on a miss) until `finish` reports it.
   const resultRef = useRef<{ picked: Faller | null; correct: boolean } | null>(null);
   const finishTimer = useRef<number | undefined>(undefined);
-  // Multi-target only: brief green flashes at the tap spot of already-cleared
-  // target fallers, so the still-running simulation gives "got it" feedback
-  // without freezing on every intermediate tap.
+  // Group-target/spell only: brief green flashes at the tap spot of an
+  // already-cleared faller, so the still-running simulation gives "got it"
+  // feedback without freezing on every intermediate tap.
   const pulsesRef = useRef<{ x: number; y: number; until: number }[]>([]);
   const [remaining, setRemaining] = useState<number>(() =>
-    isMultiTarget ? round.choices.filter((c) => c.token === round.target.token).length : 0,
+    isSpell
+      ? spellSequence.length
+      : isGroupTarget
+        ? round.choices.filter((c) => targetTokens.has(c.token)).length
+        : 0,
   );
+
+  /** Whether a still-on-screen faller is still needed for the round to resolve. */
+  function isRequiredToken(token: string): boolean {
+    return isSpell ? token === spellSequence[nextSpellIndexRef.current] : targetTokens.has(token);
+  }
 
   useEffect(() => {
     playFind(round.target.token); // speak the "find X" prompt once on entry
@@ -75,18 +99,36 @@ export function HearIt({
   function finish(correct: boolean, picked: Faller | null): void {
     if (answeredRef.current) return;
     answeredRef.current = true;
+    // Spell: explain the mistake against whichever letter/number was next due
+    // (not always the first one) — falls back to the round target once the
+    // whole sequence is done (a correct finish never reads this fallback).
+    const correctChoice = isSpell
+      ? (round.choices.find((c) => c.token === spellSequence[nextSpellIndexRef.current]) ?? round.target)
+      : round.target;
     onAnswer(correct, {
       pickedToken: picked ? picked.token : null,
       pickedGlyph: picked ? picked.glyph : null,
-      correctToken: round.target.token,
-      correctGlyph: round.target.glyph,
+      correctToken: correctChoice.token,
+      correctGlyph: correctChoice.glyph,
     });
+  }
+
+  /**
+   * Correctness of a tap/miss being resolved. Spell has no fixed "target
+   * token" to check against — it's correct exactly when the sequence has just
+   * been fully consumed (the caller only reaches `resolve` here after either
+   * advancing past the last required tap or hitting a wrong/out-of-order one).
+   */
+  function isCorrectPick(picked: Faller | null): boolean {
+    if (picked === null) return false;
+    if (isSpell) return nextSpellIndexRef.current >= spellSequence.length;
+    return targetTokens.has(picked.token);
   }
 
   /** Freeze on the resolved outcome, draw the highlighted frame, then report. */
   function resolve(picked: Faller | null): void {
     if (answeredRef.current || resultRef.current) return;
-    const correct = picked?.token === round.target.token;
+    const correct = isCorrectPick(picked);
     resultRef.current = { picked, correct };
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     draw();
@@ -101,8 +143,9 @@ export function HearIt({
     worldRef.current = world;
     if (pulsesRef.current.length > 0) pulsesRef.current = pulsesRef.current.filter((p) => p.until > ts);
     draw();
-    if (fallen.includes(round.target.token)) {
-      resolve(null); // missed the target — it hit the floor
+    const missed = isSpell ? fallen.some((token) => spellTokenSet.has(token)) : fallen.some((token) => targetTokens.has(token));
+    if (missed) {
+      resolve(null); // a still-needed faller hit the floor
       return;
     }
     if (!answeredRef.current && !resultRef.current) rafRef.current = requestAnimationFrame(tick);
@@ -117,10 +160,10 @@ export function HearIt({
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const faller of worldRef.current.fallers) {
-      // While frozen, recolour: the target green, the wrong pick red.
+      // While frozen, recolour: every still-required faller green, the wrong pick red.
       let fill = '#6c5ce7';
       if (result) {
-        if (faller.token === round.target.token) fill = '#16a34a';
+        if (isRequiredToken(faller.token)) fill = '#16a34a';
         else if (result.picked && faller.id === result.picked.id) fill = '#ef4444';
       }
       ctx.fillStyle = fill;
@@ -137,7 +180,7 @@ export function HearIt({
       ctx.font = 'bold 36px sans-serif';
       ctx.fillText(faller.glyph, faller.x, faller.y + 2);
     }
-    // Multi-target: a fading green pulse where an already-cleared target was tapped.
+    // Group-target: a fading green pulse where an already-cleared target was tapped.
     for (const pulse of pulsesRef.current) {
       ctx.fillStyle = '#16a34a';
       ctx.beginPath();
@@ -155,10 +198,28 @@ export function HearIt({
     const hit = fallerAt(worldRef.current, x, y);
     if (!hit) return;
 
-    if (isMultiTarget && hit.token === round.target.token) {
+    if (isSpell) {
+      if (hit.token !== spellSequence[nextSpellIndexRef.current]) {
+        resolve(hit); // wrong letter/number, or the right one out of order
+        return;
+      }
       const world = removeFaller(worldRef.current, hit.id);
       worldRef.current = world;
-      const left = world.fallers.filter((f) => f.token === round.target.token).length;
+      nextSpellIndexRef.current += 1;
+      setRemaining(spellSequence.length - nextSpellIndexRef.current);
+      if (nextSpellIndexRef.current >= spellSequence.length) {
+        resolve(hit); // sequence complete — freeze and report as correct
+        return;
+      }
+      pulsesRef.current.push({ x: hit.x, y: hit.y, until: performance.now() + PULSE_MS });
+      playFind(spellSequence[nextSpellIndexRef.current]!); // prompt the next step
+      return;
+    }
+
+    if (isGroupTarget && targetTokens.has(hit.token)) {
+      const world = removeFaller(worldRef.current, hit.id);
+      worldRef.current = world;
+      const left = world.fallers.filter((f) => targetTokens.has(f.token)).length;
       setRemaining(left);
       if (left === 0) {
         resolve(hit); // last one found — freeze and report as correct
@@ -179,13 +240,13 @@ export function HearIt({
         className="learn-hear-canvas"
         onPointerDown={(e) => onTap(e.clientX, e.clientY)}
       />
-      {/* Multi-target: how many more of the target the kid still needs to tap. */}
-      {isMultiTarget && <div className="learn-hear-remaining">×{remaining}</div>}
+      {/* Group-target/spell: how many more taps the kid still needs to make. */}
+      {(isGroupTarget || isSpell) && <div className="learn-hear-remaining">×{remaining}</div>}
       {/* Subtle replay tucked into the canvas's top-right corner. */}
       <button
         type="button"
         className="learn-replay"
-        onClick={() => playFind(round.target.token)}
+        onClick={() => playFind(isSpell ? (spellSequence[nextSpellIndexRef.current] ?? round.target.token) : round.target.token)}
         aria-label={t('games.learn.replay')}
       >
         <Volume2 size={22} />

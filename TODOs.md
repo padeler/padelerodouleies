@@ -15,8 +15,8 @@ Still open (need a curated Greek word→icon vocabulary dataset + a design decis
 - [x] matching letters (lower-case with capital) is too simple it needs to be more engaging. For example it could be match the icons with the first letter of the word.
 - [ ] the falling letters need to be more engaging.
       - [x] Add falling icons with the letters/numbers
-      - [ ] add variations like
+      - [x] add variations like
             - [x] "click on all letter A" (multiple letters) or
-            - [ ] "click on all items that start with B" or
-            - [ ] spell the word (i.e spell "γάτα" -> press letters in the correct order, or count to 5 -> press numbers in the correct order)
+            - [x] "click on all items that start with B" (letters only; needs a curated 2nd word/icon per letter — see LETTER_VOCAB_EXTRA)
+            - [x] spell the word (i.e spell "γάτα" -> press letters in the correct order, or count to 5 -> press numbers in the correct order)
 - [x] progressive intra-tier difficulty: less time in timed rounds (12→11→10s), faster falling targets (1.0×→1.5×), wider count ranges, shorter→longer ordering sequences
