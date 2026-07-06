@@ -37,6 +37,11 @@ The goal is to produce exercise bundles for each course with:
   available to exercises, with English/Greek keywords by category.
 - `tools/pdf_crop.py` — PyMuPDF helper that crops a page (or region) of a book PDF
   into a web-optimized PNG asset (`pip install pymupdf`).
+- **ComfyUI MCP service** — a remote ComfyUI server exposed as an MCP server
+  (configured in the repo-root `.mcp.json`, the `comfyui` entry). It generates clean,
+  legible scene illustrations from a text prompt for the `"image"` field — an
+  alternative to a book crop that reads no PDF and is legible by construction. See the
+  **Content guidelines** below for when and how to use it.
 
 ## Bundle field conventions
 
@@ -175,10 +180,27 @@ conventions, and every bundle-generating subagent must be given them.
     (same-origin). You may also use an icon URL anywhere an image ref is accepted
     (e.g. a `multiple_choice` option's `"image"`), but prefer `"icon"` for the
     inline-accent role.
-  - **Generate an image** → the `"image"` field. Draw or illustrate a clean scene (a
-    number line, shapes to count, labelled objects) when a question genuinely
-    benefits from a full-size visual the icon library can't provide. Generated art is
-    legible by construction, unlike a book crop.
+  - **Generate an image with ComfyUI** → the `"image"` field. When a question
+    genuinely benefits from a full-size scene the icon library can't provide (a
+    counting scene, a labelled illustration, a themed backdrop), generate one with the
+    **ComfyUI MCP service** (`.mcp.json` → `comfyui`). Generated art is legible by
+    construction, unlike a book crop, and reads no PDF pages. Flow:
+
+    1. `mcp__comfyui__generate_image` with a `prompt` (and `width`/`height` — a
+       16:9-ish scene such as 768×512 fits the `"image"` box). The call returns
+       immediately; the finished `asset_id` arrives in a later completion
+       notification.
+    2. `mcp__comfyui__view_image(asset_id)` to inspect the result, and regenerate with
+       a refined prompt/seed until it is clean.
+    3. `mcp__comfyui__get_image(filename, save_dir=<bundle>/assets/)` to save the PNG
+       into the bundle (get `filename` from the notification / `get_history` /
+       `list_output_images`), then **downscale to a few hundred px on the long edge and
+       web-optimize** it for the old LAN tablets (Samsung Tab 4) — e.g. with Pillow.
+       Reference it as `"image": "scene.png"` (a bare filename, relative to `assets/`).
+
+    Prompt for a **simple, flat, kid-friendly illustration**, and **do not** rely on
+    any text rendered inside the image — diffusion mangles text, and the visual is
+    decoration only (same rule as every other source: it never carries the answer).
   - **Re-use art from the book → the `"image"` field, sparingly, for styling only.**
     Crop a real page illustration, diagram, map, or photo referenced in the chapter
     notes **only when it meaningfully ties a specific exercise to material the kid has
@@ -266,8 +288,10 @@ Producing exercise bundles is a multi-step process. For each course:
        icon by URL (`"/api/icons/svg/<name>"`) — **no copy into `assets/`, no
        tokens**. The validator verifies the name against the catalog. Use an icon on
        most questions.
-     - **Scene images** (`"image"`): generate a clean illustration, or — **sparingly,
-       for styling only** — crop real page art with `tools/pdf_crop.py` into
+     - **Scene images** (`"image"`): generate a clean illustration with the **ComfyUI
+       MCP service** (see the generate → view → save → optimize flow in **Content
+       guidelines**), or — **sparingly, for styling only** — crop real page art with
+       `tools/pdf_crop.py` into
        `<bundle>/assets/`. Cropping reads the PDF (token-heavy) and crops can be hard
        to read on the old tablets, so use book crops only where they meaningfully tie
        a specific exercise to material the kid has seen, not on every question. Keep
@@ -311,9 +335,9 @@ Producing exercise bundles is a multi-step process. For each course:
        recall-by-heart of book text; fold any needed context into the question) that
        are solvable without the visual, and a visual on most questions: prefer a
        topical `"icon"` referenced by URL (`"/api/icons/svg/<name>"`, no copy, no
-       tokens) as the default, a generated `"image"` where a full-size visual helps,
-       and a cropped book `"image"` only sparingly for styling (it never carries the
-       answer);
+       tokens) as the default, a generated `"image"` (via the ComfyUI MCP service)
+       where a full-size visual helps, and a cropped book `"image"` only sparingly for
+       styling (it never carries the answer);
      - the exact output dir `bundles/<grade>/<course>/<id>-v<version>/`;
      - the mandate to **run the same validator the container uses on its own bundle
        and iterate until it exits 0 before returning** — so defects are fixed in the
