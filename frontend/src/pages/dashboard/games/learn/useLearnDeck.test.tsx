@@ -9,6 +9,9 @@ vi.mock('../../../../api/client', () => ({
   getLearnDeck: (track: 'numbers' | 'letters') => getLearnDeck(track),
   learnSayUrl: (level: string) => `/api/games/learn/say/${level}.mp3`,
   learnFindUrl: (track: string, token: string) => `/api/games/learn/${track}/find/${token}.mp3`,
+  learnFindAllUrl: (track: string, token: string) => `/api/games/learn/${track}/find-all/${token}.mp3`,
+  learnFindStartsWithUrl: (token: string) => `/api/games/learn/letters/find-starts-with/${token}.mp3`,
+  learnVocabUrl: (id: string) => `/api/games/learn/letters/vocab/${id}.mp3`,
   learnSuccessUrl: () => '/api/games/learn/feedback/success.mp3',
   learnWrongUrl: (track: string, correct: string, picked: string | null) =>
     `/api/games/learn/${track}/wrong/${correct}/${picked ?? '_none'}.mp3`,

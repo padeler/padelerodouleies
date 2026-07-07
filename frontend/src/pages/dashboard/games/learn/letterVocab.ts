@@ -1,73 +1,64 @@
 /**
  * Vocabulary dataset for Greek letter icon matching.
  *
- * Maps each of the 24 letter tokens (l01..l24) to a Greek word starting with
- * that letter and an optional emoji representation. ~15 letters carry a safe
- * emoji (Unicode <=6.0, verified on Android 4.4 KitKat); the rest fall back
- * gracefully to lowercase glyph rendering.
+ * The raw data — a per-letter *pool* of ≈10 word+icon entries — lives in the
+ * generated `letterVocabData.ts` (authored in `exercise_lab/tools/gen_learn_icons.py`,
+ * regenerate with `python exercise_lab/tools/gen_learn_icons.py emit`). Each
+ * entry has a stable `id` (spoken-word TTS key + PNG filename stem), a Greek
+ * `word` starting with that letter, and an icon: either an old-tablet-safe emoji
+ * (Unicode ≤6.1, renders on Android 4.4 KitKat) or a generated PNG under
+ * `/learn-icons/`. The many entries per letter give the matching game its
+ * variety/replayability (the engine picks a random one per round).
  *
- * Used by the match-level engine (Item A) to populate icon hints and by the
- * falling-targets level (Item B) to draw icons alongside glyphs.
+ * The spoken words are mirrored server-side in `LETTER_VOCAB_WORDS`
+ * (backend/app/services/learn_vocab.py, also generated) which drives the per-word
+ * TTS endpoint — both files come from the same master table, so regenerate both.
+ *
+ * `LETTER_VOCAB` / `LETTER_VOCAB_EXTRA` are derived views (pool index 0 / 1) kept
+ * for the spell + starts-with falling-targets variants.
  */
 
-interface LetterVocabEntry {
+import { LETTER_VOCAB_POOL } from './letterVocabData';
+
+export interface LetterVocabEntry {
+  id: string; // stable slug: TTS key + PNG filename stem
   word: string; // Greek word starting with this letter
-  emoji?: string; // Unicode <=6.0 emoji representing the word; optional fallback
+  emoji?: string; // Unicode <=6.1 emoji representing the word
+  image?: string; // bundled PNG icon URL (used where no safe emoji exists)
+}
+
+/** The icon for a vocab entry — emoji if present, else the bundled image URL. */
+export function vocabIcon(entry: LetterVocabEntry | undefined): string | undefined {
+  return entry?.emoji ?? entry?.image;
+}
+
+export { LETTER_VOCAB_POOL };
+
+/** Pick a random pool entry for a letter token (rng injectable for tests). */
+export function randomVocab(token: string, rng: () => number): LetterVocabEntry | undefined {
+  const pool = LETTER_VOCAB_POOL[token];
+  if (!pool || pool.length === 0) return undefined;
+  return pool[Math.floor(rng() * pool.length)]!;
 }
 
 /**
- * Vocabulary lookup keyed by deck token (l01..l24).
- * Derived from textbook notes under exercise_lab/notes/A_TACHY_DIMOTIKOU/glossa/.
+ * Canonical (primary) entry per letter — pool index 0. Drives the spell variant
+ * and the starts-with primary picture; a derived map kept for back-compat.
  */
-export const LETTER_VOCAB: Record<string, LetterVocabEntry> = {
-  l01: { emoji: '\u{1F41A}', word: 'αχινός' },         // 🐚 sea urchin (6.0)
-  l02: { emoji: '\u{1F4D6}', word: 'βιβλίο' },        // 📕 book (6.0)
-  l03: { emoji: '\u{1F431}', word: 'γάτα' },          // 🐱 cat (5.0)
-  l04: { emoji: '\u{1F48D}', word: 'δαχτυλίδι' },     // 💍 ring (6.0)
-  l05: { emoji: '\u{1F418}', word: 'ελέφαντας' },     // 🐘 elephant (6.0)
-  l06: { emoji: '☀', word: 'ζέστα' },            // ☀ sun (base ≤4.0)
-  l07: { word: 'ήτα' },                               // Η — no icon fallback
-  l08: { word: 'θήτα' },                              // Θ — no icon fallback
-  l09: { word: 'γιώτα' },                             // Ι — no icon fallback
-  l10: { emoji: '\u{1F333}', word: 'κήπος' },         // 🌳 tree (6.0)
-  l11: { emoji: '\u{1F430}', word: 'λαγός' },         // 🐰 rabbit (6.0)
-  l12: { emoji: '⚽', word: 'μπάλα' },           // ⚽ ball (in safe pool)
-  l13: { word: 'νι' },                                // Ν — no icon fallback
-  l14: { word: 'ξι' },                                // Ξ — no icon fallback
-  l15: { emoji: '\u{1F40D}', word: 'οχιά' },          // 🐍 snake (6.0)
-  l16: { word: 'πι' },                                // Π — no icon fallback
-  l17: { word: 'ρο' },                                // Ρ — no icon fallback
-  l18: { emoji: '\u{1F415}', word: 'σκύλος' },        // 🐕 dog (6.0)
-  l19: { emoji: '\u{1F682}', word: 'τρένο' },         // 🚂 train (6.0)
-  l20: { word: 'ύψιλον' },                            // Υ — no icon fallback
-  l21: { emoji: '\u{1F353}', word: 'φράουλα' },       // 🍓 strawberry (6.0)
-  l22: { emoji: '\u{1F990}', word: 'χαρίδα' },        // 🦐 shrimp (6.0)
-  l23: { emoji: '\u{1F41F}', word: 'ψάρι' },          // 🐟 fish (6.0)
-  l24: { word: 'ωμέγα' },                             // Ω — no icon fallback
-};
+export const LETTER_VOCAB: Record<string, LetterVocabEntry> = Object.fromEntries(
+  Object.entries(LETTER_VOCAB_POOL).map(([token, entries]) => [token, entries[0]!]),
+);
 
 /**
- * A second curated word (+ icon) for letters where a second safe, age-
- * appropriate emoji exists — only these letters can be the target of the
- * "starts-with" falling-targets variant (Item B), which needs two genuinely
- * different pictures sharing one initial letter, not a repeated one. Words are
- * drawn from the same textbook notes as LETTER_VOCAB where available.
+ * Second curated entry per letter — pool index 1 — the "starts-with" second
+ * picture (a genuinely different word sharing the same initial letter). Absent
+ * for a letter whose pool has a single entry.
  */
-export const LETTER_VOCAB_EXTRA: Record<string, LetterVocabEntry> = {
-  l01: { emoji: '\u{1F43B}', word: 'αρκούδα' },        // 🐻 bear (6.0)
-  l02: { emoji: '\u{26F5}', word: 'βάρκα' },           // ⛵ boat (5.2)
-  l03: { emoji: '\u{1F437}', word: 'γουρούνι' },       // 🐷 pig (6.0)
-  l04: { emoji: '\u{1F409}', word: 'δράκος' },         // 🐉 dragon (6.0)
-  l10: { emoji: '\u{1F414}', word: 'κότα' },           // 🐔 chicken (6.0)
-  l11: { emoji: '\u{1F338}', word: 'λουλούδι' },       // 🌸 flower (6.0)
-  l12: { emoji: '\u{1F34C}', word: 'μπανάνα' },        // 🍌 banana (6.0)
-  l15: { emoji: '\u{2602}', word: 'ομπρέλα' },         // ☂ umbrella (1.1)
-  l18: { emoji: '\u{1F3E0}', word: 'σπίτι' },          // 🏠 house (6.0)
-  l19: { emoji: '\u{260E}', word: 'τηλέφωνο' },        // ☎ telephone (1.1)
-  l21: { emoji: '\u{1F319}', word: 'φεγγάρι' },        // 🌙 moon (6.0)
-  l22: { emoji: '\u{1F422}', word: 'χελώνα' },         // 🐢 turtle (6.0)
-  l23: { emoji: '\u{2702}', word: 'ψαλίδι' },          // ✂ scissors (1.1)
-};
+export const LETTER_VOCAB_EXTRA: Record<string, LetterVocabEntry> = Object.fromEntries(
+  Object.entries(LETTER_VOCAB_POOL)
+    .filter(([, entries]) => entries.length > 1)
+    .map(([token, entries]) => [token, entries[1]!]),
+);
 
 export interface SpellWordEntry {
   word: string; // Greek word, shown/spoken whole and spelled letter-by-letter

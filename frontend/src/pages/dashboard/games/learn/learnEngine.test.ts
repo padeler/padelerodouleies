@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { LETTER_VOCAB, LETTER_VOCAB_EXTRA, SPELL_WORDS } from './letterVocab';
+import { LETTER_VOCAB, LETTER_VOCAB_EXTRA, LETTER_VOCAB_POOL, SPELL_WORDS } from './letterVocab';
 import {
   CHOICES,
   LIVES_START,
+  MAX_HEAR_FALLERS,
   ROUNDS_PER_SLOT,
   SLOTS_PER_TIER,
   applyAnswer,
@@ -176,21 +177,54 @@ describe('learnEngine round generation', () => {
     expect(round.left.every((i) => i.glyph_alt !== null)).toBe(true);
   });
 
-  it('match (letters): populates icons from vocab for tokens that have entries', () => {
+  it('match (letters): picks a real pool entry per letter (icon + audio id agree)', () => {
     const g = createGame('letters', lettersDeck());
     const round = nextRound({ ...g, slot: 0 }, () => 0.3);
     if (round.kind !== 'match') throw new Error('wrong kind');
     expect(round.icons).toBeDefined();
+    expect(round.vocabIds).toBeDefined();
     for (const item of round.left) {
-      const vocabEntry = LETTER_VOCAB[item.token];
-      if (vocabEntry?.emoji) {
-        expect(round.icons!.get(item.token)).toBe(vocabEntry.emoji);
-      } else {
-        // Tokens without a vocab emoji entry are not in the icons map;
-        // the component falls back to glyph_alt rendering.
-        expect(round.icons!.has(item.token)).toBe(false);
-      }
+      const pool = LETTER_VOCAB_POOL[item.token]!;
+      const id = round.vocabIds!.get(item.token)!;
+      const entry = pool.find((en) => en.id === id);
+      // The chosen entry belongs to this letter's pool and its icon is shown.
+      expect(entry).toBeDefined();
+      expect(round.icons!.get(item.token)).toBe(entry!.emoji ?? entry!.image);
     }
+  });
+
+  it('match: the recent-token window rotates through the whole tier slice without repeats', () => {
+    const g = createGame('letters', lettersDeck()); // tier 0 pool = 9 letters
+    const recent: string[] = [];
+    const seen = new Set<string>();
+    let prev: Round | undefined;
+    // 9 letters / 3 per round → three rounds should cover the slice exactly once.
+    for (let r = 0; r < 3; r += 1) {
+      const round = nextRound({ ...g, slot: 0 }, Math.random, prev, recent);
+      if (round.kind !== 'match') throw new Error('wrong kind');
+      for (const it of round.left) seen.add(it.token);
+      recent.push(...round.left.map((it) => it.token));
+      prev = round;
+    }
+    expect(seen.size).toBe(9); // every letter shown once, none repeated
+  });
+
+  it('match: once the slice is exhausted, the least-recently-used letters come back first', () => {
+    const g = createGame('letters', lettersDeck()); // 9 letters
+    const recent: string[] = [];
+    const rounds: string[][] = [];
+    let prev: Round | undefined;
+    for (let r = 0; r < 4; r += 1) {
+      const round = nextRound({ ...g, slot: 0 }, Math.random, prev, recent);
+      if (round.kind !== 'match') throw new Error('wrong kind');
+      const tokens = round.left.map((it) => it.token);
+      rounds.push(tokens);
+      recent.push(...tokens);
+      prev = round;
+    }
+    // Round 4 (pool exhausted after 3 rounds) reuses round 1's letters — the
+    // oldest — not round 2's or 3's.
+    expect(new Set(rounds[3])).toEqual(new Set(rounds[0]));
   });
 
   it('hear: the target is one of the choices', () => {
@@ -337,6 +371,37 @@ describe('learnEngine round generation', () => {
     expect(round.choices.map((c) => c.token)).toContain(round.answer.token);
   });
 
+  it('whats_next distractors stay near the answer in deck order', () => {
+    // A 20-item tier used to hand out far-off distractors (e.g. 19 after
+    // "2 3 4"), making the round trivially easy. They must now come from a
+    // near window around the answer.
+    const g = createGame('numbers', numbersDeck());
+    const tier2 = { ...g, tierIndex: 1, slot: 3 };
+    for (let i = 0; i < 50; i += 1) {
+      const r = nextRound(tier2, seqRng([i / 50, 0.3, 0.7, 0.1, 0.9]));
+      if (r.kind !== 'whats_next') throw new Error('wrong kind');
+      const answerValue = Number(r.answer.token.slice(1));
+      expect(r.choices.length).toBe(CHOICES);
+      for (const choice of r.choices) {
+        // Window: prefix length (3) + CHOICES - 1 = 6 around the answer.
+        expect(Math.abs(Number(choice.token.slice(1)) - answerValue)).toBeLessThanOrEqual(6);
+      }
+    }
+  });
+
+  it('whats_next still fills all choices when the pool is tiny', () => {
+    // 4-item pool: the near window alone cannot fill 3 distractors once the
+    // prefix is excluded — the fallback must top the choices up pool-wide.
+    const deck = numbersDeck(4);
+    const smallDeck: Deck = { items: deck.items, tiers: [{ level: 1, tokens: deck.items.map((it) => it.token) }] };
+    const state = { ...createGame('numbers', smallDeck), slot: 3 };
+    const r = nextRound(state, () => 0);
+    if (r.kind !== 'whats_next') throw new Error('wrong kind');
+    // prefix 1,2,3 → answer 4; only 3 remaining non-prefix items at most.
+    expect(r.choices.map((c) => c.token)).toContain(r.answer.token);
+    expect(new Set(r.choices.map((c) => c.token)).size).toBe(r.choices.length);
+  });
+
   it('keeps generating rounds when the tier loops past the deck (content plateaus)', () => {
     const g = createGame('numbers', numbersDeck());
     const deep = { ...g, tierIndex: 9 }; // far past the 2 defined tiers
@@ -411,6 +476,36 @@ describe('learnEngine round generation', () => {
       }
     }
     expect(foundAbove).toBe(true);
+  });
+
+  it('count round distractors stay within ±3 of the real count', () => {
+    const g = createGame('numbers', numbersDeck());
+    // A large tier pool used to hand out far-off distractors (e.g. 17 next to
+    // 2), turning the round into "spot the small number" instead of counting.
+    const tier2 = { ...g, tierIndex: 1 };
+    for (let i = 0; i < 50; i += 1) {
+      const r = nextRound({ ...tier2, slot: 0, roundInSlot: 0 }, seqRng([i / 50, 0.3, 0.7, 0.1]));
+      if (r.kind !== 'count') throw new Error('wrong kind');
+      expect(r.choices.length).toBe(CHOICES);
+      for (const choice of r.choices) {
+        expect(Math.abs(Number(choice.token.slice(1)) - r.count)).toBeLessThanOrEqual(3);
+      }
+    }
+  });
+
+  it('spell rounds never spawn more fallers than fit the canvas columns', () => {
+    const g = createGame('letters', lettersDeck());
+    // Force the spell variant across many rng streams and check every choice
+    // list (sequence + distractors) respects MAX_HEAR_FALLERS.
+    for (let i = 0; i < 100; i += 1) {
+      const round = nextRound(
+        { ...g, tierIndex: 2, slot: 1, roundInSlot: 1 },
+        seqRng([0.9, 0.1, i / 100, (i * 7) % 100 / 100, 0.5]),
+      );
+      if (round.kind !== 'hear' || round.variant !== 'spell') continue;
+      expect(round.choices.length).toBeLessThanOrEqual(MAX_HEAR_FALLERS);
+      expect(round.choices.length).toBeGreaterThan(round.spellSequence!.length); // ≥1 distractor
+    }
   });
 });
 

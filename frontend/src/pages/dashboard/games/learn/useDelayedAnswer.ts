@@ -16,12 +16,17 @@ export function useDelayedAnswer(
 } {
   const [picked, setPicked] = useState<string | null>(null);
   const timer = useRef<number | undefined>(undefined);
+  // Guards a second tap landing before React re-renders the disabled grid —
+  // without it two answers get scheduled and the round is graded twice.
+  const submitted = useRef(false);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
   const submit = useCallback(
     (token: string, correct: boolean, feedback: RoundFeedback): void => {
-      setPicked((prev) => (prev === null ? token : prev)); // ignore double taps
+      if (submitted.current) return;
+      submitted.current = true;
+      setPicked(token);
       timer.current = window.setTimeout(() => onAnswer(correct, feedback), delayMs);
     },
     [onAnswer, delayMs],

@@ -27,8 +27,10 @@ export function CountThem({
   return (
     <div className="learn-count">
       <div className="learn-objects">
+        {/* Staggered pop-in cascade — the objects appear one after another,
+            which invites counting them in order. */}
         {Array.from({ length: round.count }, (_, i) => (
-          <span key={i} className="learn-object">
+          <span key={i} className="learn-object" style={{ animationDelay: `${i * 70}ms` }}>
             {round.objectGlyph}
           </span>
         ))}

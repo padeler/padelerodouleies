@@ -40,7 +40,32 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent);
-  margin: 0 0 4px;
+  background: var(--accent-bg);
+  border-radius: 999px;
+  padding: 4px 14px;
+  margin: 0 0 6px;
+}
+
+/* Playful rotating border colours for the tappable tiles — a rainbow of frames
+   instead of a uniform accent wall. Declared before the state rules (correct /
+   wrong / placed) so those still win at equal specificity. The match tiles are
+   deliberately excluded: there colour *means* "linked pair", so a positional
+   rainbow would falsely suggest same-coloured tiles belong together. */
+.learn-choice:nth-child(4n + 1),
+.learn-order-tile:nth-child(4n + 1) {
+  border-color: #e0559b; /* pink */
+}
+.learn-choice:nth-child(4n + 2),
+.learn-order-tile:nth-child(4n + 2) {
+  border-color: #7c5ce0; /* purple */
+}
+.learn-choice:nth-child(4n + 3),
+.learn-order-tile:nth-child(4n + 3) {
+  border-color: #3f8ef3; /* blue */
+}
+.learn-choice:nth-child(4n + 4),
+.learn-order-tile:nth-child(4n + 4) {
+  border-color: #f2913d; /* orange */
 }
 
 .learn-prompt {
@@ -117,6 +142,9 @@
   font-size: 44px;
   margin: 4px;
   animation: learn-pop 0.25s ease;
+  /* Each object gets a per-index animation-delay inline; `backwards` keeps it
+     invisible until its turn so the cascade invites counting in order. */
+  animation-fill-mode: backwards;
 }
 @keyframes learn-pop {
   from {
@@ -193,6 +221,14 @@
 .learn-match-tile.has-icon {
   font-size: 32px;
 }
+/* Image-file icons (letters with no old-tablet-safe emoji) fill the tile the
+   same way an emoji glyph does; max-* keeps wide icons (submarine) unsquashed. */
+.learn-match-img {
+  max-width: 54px;
+  max-height: 48px;
+  vertical-align: middle;
+  pointer-events: none; /* the button handles the tap */
+}
 
 /* Listen */
 .learn-hear {
@@ -249,7 +285,9 @@
   max-width: 360px;
   height: auto;
   border-radius: 16px;
-  background: var(--accent-bg);
+  /* A static sky-like fade behind the falling bubbles (GPU-cheap — no
+     animation, just a painted gradient). */
+  background: linear-gradient(180deg, var(--accent-bg), var(--bg));
   border: 2px solid var(--accent-border);
   touch-action: none; /* taps shouldn't scroll the page while playing */
 }
@@ -385,9 +423,18 @@
 /* Round intro: spoken description pause + 3·2·1 countdown */
 .learn-intro {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 200px;
+}
+
+/* The star mascot greeting the kid on the intro pause and the game-over panel. */
+.learn-mascot {
+  width: 96px;
+  height: auto;
+  margin-bottom: 10px;
+  animation: learn-pop 0.3s ease;
 }
 .learn-countdown {
   font-size: 96px;

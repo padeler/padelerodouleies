@@ -45,18 +45,41 @@ def test_iter_find_texts_collects_find_prompts() -> None:
     )
 
 
+def test_iter_find_all_texts_collects_multi_target_prompts() -> None:
+    texts = set(learn_tts.iter_find_all_texts())
+    # One "find them all" prompt per deck token, both tracks.
+    assert "Βρες όλα τα πέντε!" in texts
+    assert "Βρες όλα τα άλφα!" in texts
+    assert len(texts) == sum(
+        len(learn_decks.build_deck(track).items) for track in learn_decks.TRACKS
+    )
+
+
+def test_iter_find_starts_with_texts_collects_starts_with_prompts() -> None:
+    texts = set(learn_tts.iter_find_starts_with_texts())
+    # One prompt per letter token (letters only — the variant never applies to numbers).
+    assert "Βρες κάτι που αρχίζει από το γράμμα άλφα." in texts
+    assert len(texts) == len(learn_decks.build_deck("letters").items)
+
+
 def test_iter_all_texts_is_union_of_warmed_strings() -> None:
     all_texts = set(learn_tts.iter_all_texts())
     expected = (
         set(learn_tts.iter_deck_tts_texts())
         | set(learn_tts.iter_intro_texts())
         | set(learn_tts.iter_find_texts())
+        | set(learn_tts.iter_find_all_texts())
+        | set(learn_tts.iter_find_starts_with_texts())
+        | set(learn_tts.iter_word_texts())
         | {learn_decks.SUCCESS_PHRASE}
     )
     assert all_texts == expected
-    # Intro sentences, find prompts and the praise phrase are all warmed too.
+    # Intro sentences, find prompts, icon-tile vocab words and the praise
+    # phrase are all warmed too.
     assert any("Μέτρησε" in s for s in all_texts)
     assert any("Βρες" in s for s in all_texts)
+    assert "Βρες κάτι που αρχίζει από το γράμμα άλφα." in all_texts
+    assert "γάτα" in all_texts  # icon-tile vocabulary word
     assert learn_decks.SUCCESS_PHRASE in all_texts
 
 

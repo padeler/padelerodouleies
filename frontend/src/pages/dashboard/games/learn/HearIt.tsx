@@ -23,6 +23,11 @@ const PULSE_MS = 300;
 // sees which faller was right (and which they picked) before the result panel.
 const FREEZE_MS = 900;
 
+// Cheerful bubble colours, one per faller (by id) so the sky isn't a wall of
+// identical purple. Kept away from the result greens/reds; white glyphs read
+// on all of them.
+const FALLER_COLORS = ['#7c5ce0', '#e0559b', '#3f8ef3', '#f2913d', '#12a5b8', '#a34fd6'];
+
 /**
  * Listen (slot 1) — the action level. The target word is spoken on entry (via
  * the "find X" prompt) and replayable; the choices drift down the canvas and the
@@ -38,10 +43,19 @@ export function HearIt({
   round,
   onAnswer,
   playFind,
+  playFindAll,
+  playFindStartsWith,
 }: {
   round: HearRound;
   onAnswer: (correct: boolean, feedback: RoundFeedback) => void;
   playFind: (token: string) => void;
+  // 'multi-target' cues that several fallers share the answer ("Βρες όλα τα ...");
+  // optional so existing single/spell call sites (and tests) are unaffected.
+  playFindAll?: (token: string) => void;
+  // 'starts-with' asks the kid to find an *object* rather than a letter, so it
+  // speaks a distinct prompt ("Βρες κάτι που αρχίζει από ..."); optional so
+  // existing single/multi-target/spell call sites (and tests) are unaffected.
+  playFindStartsWith?: (token: string) => void;
 }) {
   const t = useT();
   // Both "multi-target" (find every faller repeating the target's glyph) and
@@ -50,6 +64,16 @@ export function HearIt({
   // set of tokens that count as a hit is target.token plus any extra tokens the
   // engine attached (starts-with's second curated word; empty otherwise).
   const isGroupTarget = round.variant === 'multi-target' || round.variant === 'starts-with';
+  const isStartsWith = round.variant === 'starts-with';
+  // Starts-with speaks a distinct "find an object" prompt and multi-target a
+  // "find them all" one (each falls back to the plain find prompt if a caller
+  // doesn't pass it — defensive, not expected).
+  const speakTarget =
+    isStartsWith && playFindStartsWith
+      ? playFindStartsWith
+      : round.variant === 'multi-target' && playFindAll
+        ? playFindAll
+        : playFind;
   // "spell" requires tapping an ordered sequence of fallers, one dictation
   // prompt per step (distinct from the unordered group-target variants above).
   const isSpell = round.variant === 'spell';
@@ -62,6 +86,20 @@ export function HearIt({
   const nextSpellIndexRef = useRef(0);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const worldRef = useRef<HearWorld>(createHearWorld(round.choices, Math.random, round.fallSpeedMult ?? 1.0, round.icons));
+  // Image-file icons (vocab entries with no old-tablet-safe emoji) are drawn
+  // via drawImage — decode them once per round; the rAF loop picks each up on
+  // the first frame after it finishes loading.
+  const iconImages = useRef<Map<string, HTMLImageElement>>(new Map());
+  useEffect(() => {
+    for (const icon of round.icons?.values() ?? []) {
+      if (icon.startsWith('/') && !iconImages.current.has(icon)) {
+        const img = new Image();
+        img.src = icon;
+        iconImages.current.set(icon, img);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const answeredRef = useRef(false);
@@ -87,7 +125,7 @@ export function HearIt({
   }
 
   useEffect(() => {
-    playFind(round.target.token); // speak the "find X" prompt once on entry
+    speakTarget(round.target.token); // speak the "find X" prompt once on entry
     rafRef.current = requestAnimationFrame(tick);
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
@@ -139,15 +177,20 @@ export function HearIt({
     const last = lastTsRef.current;
     lastTsRef.current = ts;
     const dt = last === null ? 0 : Math.min((ts - last) / 1000, 0.05);
-    const { world, fallen } = stepHear(worldRef.current, dt);
+    const prevWorld = worldRef.current;
+    const { world, fallen } = stepHear(prevWorld, dt);
     worldRef.current = world;
     if (pulsesRef.current.length > 0) pulsesRef.current = pulsesRef.current.filter((p) => p.until > ts);
-    draw();
     const missed = isSpell ? fallen.some((token) => spellTokenSet.has(token)) : fallen.some((token) => targetTokens.has(token));
     if (missed) {
-      resolve(null); // a still-needed faller hit the floor
+      // A still-needed faller hit the floor. Freeze on the pre-step world so
+      // the missed faller is still on-screen (at the bottom edge) and gets the
+      // green highlight — otherwise the kid never sees what the right one was.
+      worldRef.current = prevWorld;
+      resolve(null);
       return;
     }
+    draw();
     if (!answeredRef.current && !resultRef.current) rafRef.current = requestAnimationFrame(tick);
   }
 
@@ -161,24 +204,57 @@ export function HearIt({
     ctx.textBaseline = 'middle';
     for (const faller of worldRef.current.fallers) {
       // While frozen, recolour: every still-required faller green, the wrong pick red.
-      let fill = '#6c5ce7';
+      let fill = FALLER_COLORS[(faller.id - 1) % FALLER_COLORS.length]!;
       if (result) {
         if (isRequiredToken(faller.token)) fill = '#16a34a';
         else if (result.picked && faller.id === result.picked.id) fill = '#ef4444';
+        else fill = '#9aa0a6'; // dim the bystanders so the highlight pair pops
       }
       ctx.fillStyle = fill;
       ctx.beginPath();
       ctx.arc(faller.x, faller.y, FALLER_R, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#fff';
-      // If this faller carries an emoji icon, draw it above the circle.
-      if (faller.icon) {
-        ctx.font = '24px sans-serif';
-        ctx.fillText(faller.icon, faller.x, faller.y - FALLER_R - 14);
+      if (isStartsWith) {
+        // Starts-with asks the kid to find an *object*, not a letter — showing
+        // the letter glyph alongside (two fallers share the same glyph here,
+        // one per curated word) is confusing, so only the icon renders,
+        // centered and enlarged to fill the tile.
+        const img = faller.icon?.startsWith('/') ? iconImages.current.get(faller.icon) : undefined;
+        if (img) {
+          if (img.complete && img.naturalWidth > 0) {
+            const scale = (FALLER_R * 1.6) / Math.max(img.naturalWidth, img.naturalHeight);
+            const w = img.naturalWidth * scale;
+            const h = img.naturalHeight * scale;
+            ctx.drawImage(img, faller.x - w / 2, faller.y - h / 2, w, h);
+          }
+        } else if (faller.icon) {
+          ctx.font = '32px sans-serif';
+          ctx.fillText(faller.icon, faller.x, faller.y + 2);
+        }
+      } else {
+        // If this faller carries an icon (emoji, or a bundled image URL for
+        // letters with no old-tablet-safe emoji), draw it above the circle.
+        if (faller.icon) {
+          const img = faller.icon.startsWith('/') ? iconImages.current.get(faller.icon) : undefined;
+          if (img) {
+            if (img.complete && img.naturalWidth > 0) {
+              // Fit into a 44px box preserving aspect (some icons are wide).
+              const scale = 44 / Math.max(img.naturalWidth, img.naturalHeight);
+              const w = img.naturalWidth * scale;
+              const h = img.naturalHeight * scale;
+              ctx.drawImage(img, faller.x - w / 2, faller.y - FALLER_R - 4 - h, w, h);
+            }
+          } else {
+            ctx.font = '24px sans-serif';
+            ctx.fillText(faller.icon, faller.x, faller.y - FALLER_R - 14);
+          }
+        }
+        // Glyph inside the circle — multi-digit numbers need a smaller font to
+        // stay inside the 30px-radius tile ("100" overflows at 36px).
+        ctx.font = `bold ${faller.glyph.length >= 3 ? 22 : faller.glyph.length === 2 ? 30 : 36}px sans-serif`;
+        ctx.fillText(faller.glyph, faller.x, faller.y + 2);
       }
-      // Glyph inside the circle.
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillText(faller.glyph, faller.x, faller.y + 2);
     }
     // Group-target: a fading green pulse where an already-cleared target was tapped.
     for (const pulse of pulsesRef.current) {
@@ -246,7 +322,11 @@ export function HearIt({
       <button
         type="button"
         className="learn-replay"
-        onClick={() => playFind(isSpell ? (spellSequence[nextSpellIndexRef.current] ?? round.target.token) : round.target.token)}
+        onClick={() =>
+          isSpell
+            ? playFind(spellSequence[nextSpellIndexRef.current] ?? round.target.token)
+            : speakTarget(round.target.token)
+        }
         aria-label={t('games.learn.replay')}
       >
         <Volume2 size={22} />

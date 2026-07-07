@@ -601,6 +601,27 @@ export function learnFindUrl(track: 'numbers' | 'letters', token: string): strin
   return `${BASE}/games/learn/${track}/find/${token}.mp3`;
 }
 
+/** Spoken "find them all" prompt for the multi-target falling variant. */
+export function learnFindAllUrl(track: 'numbers' | 'letters', token: string): string {
+  return `${BASE}/games/learn/${track}/find-all/${token}.mp3`;
+}
+
+/** Spoken "find an object that starts with this letter" prompt (starts-with variant). */
+export function learnFindStartsWithUrl(token: string): string {
+  return `${BASE}/games/learn/letters/find-starts-with/${token}.mp3`;
+}
+
+/** Spoken vocabulary word for a letter token (icon tiles: "γάτα" for 🐱). */
+export function learnWordUrl(token: string): string {
+  return `${BASE}/games/learn/letters/word/${token}.mp3`;
+}
+
+/** Spoken word for a specific vocab pool entry, keyed by its stable id — the
+ * matching game shows a random picture per letter, so the word varies. */
+export function learnVocabUrl(id: string): string {
+  return `${BASE}/games/learn/letters/vocab/${id}.mp3`;
+}
+
 /** Spoken praise played on a correct answer (track-agnostic, fixed phrase). */
 export function learnSuccessUrl(): string {
   return `${BASE}/games/learn/feedback/success.mp3`;

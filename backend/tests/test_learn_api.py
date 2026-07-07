@@ -157,6 +157,48 @@ async def test_find_prompt_unknown_token_404(kid_client):
     assert (await kid_client.get("/api/games/learn/numbers/find/n999.mp3")).status_code == 404
 
 
+async def test_find_all_prompt_cues_multiple_targets(kid_client, monkeypatch, tmp_path):
+    captured: list[str] = []
+
+    def fake_synth(text: str) -> Path:
+        captured.append(text)
+        out = tmp_path / "find-all.mp3"
+        out.write_bytes(b"id3-stub")
+        return out
+
+    monkeypatch.setattr(tts, "get_or_synthesize", fake_synth)
+    resp = await kid_client.get("/api/games/learn/numbers/find-all/n5.mp3")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "audio/mpeg"
+    assert captured == ["Βρες όλα τα πέντε!"]
+
+
+async def test_find_all_prompt_unknown_token_404(kid_client):
+    assert (await kid_client.get("/api/games/learn/letters/find-all/l999.mp3")).status_code == 404
+
+
+async def test_find_starts_with_prompt_asks_for_an_object(kid_client, monkeypatch, tmp_path):
+    captured: list[str] = []
+
+    def fake_synth(text: str) -> Path:
+        captured.append(text)
+        out = tmp_path / "find-starts-with.mp3"
+        out.write_bytes(b"id3-stub")
+        return out
+
+    monkeypatch.setattr(tts, "get_or_synthesize", fake_synth)
+    resp = await kid_client.get("/api/games/learn/letters/find-starts-with/l01.mp3")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "audio/mpeg"
+    assert captured == ["Βρες κάτι που αρχίζει από το γράμμα άλφα."]
+
+
+async def test_find_starts_with_prompt_unknown_token_404(kid_client):
+    assert (
+        await kid_client.get("/api/games/learn/letters/find-starts-with/l999.mp3")
+    ).status_code == 404
+
+
 async def test_success_phrase(kid_client, monkeypatch, tmp_path):
     captured: list[str] = []
 
@@ -193,6 +235,75 @@ async def test_wrong_explanation_with_and_without_pick(kid_client, monkeypatch, 
 async def test_wrong_explanation_unknown_token_404(kid_client):
     assert (await kid_client.get("/api/games/learn/numbers/wrong/n8/n999.mp3")).status_code == 404
     assert (await kid_client.get("/api/games/learn/numbers/wrong/n999/n3.mp3")).status_code == 404
+
+
+async def test_word_tts_synthesizes_vocab_word(kid_client, monkeypatch, tmp_path):
+    captured: list[str] = []
+
+    def fake_synth(text: str) -> Path:
+        captured.append(text)
+        out = tmp_path / "word.mp3"
+        out.write_bytes(b"id3-stub")
+        return out
+
+    monkeypatch.setattr(tts, "get_or_synthesize", fake_synth)
+    resp = await kid_client.get("/api/games/learn/letters/word/l03.mp3")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "audio/mpeg"
+    assert captured == ["γάτα"]  # the vocab word, not the letter name
+
+
+async def test_word_tts_unknown_token_404(kid_client):
+    assert (await kid_client.get("/api/games/learn/letters/word/l99.mp3")).status_code == 404
+    assert (await kid_client.get("/api/games/learn/letters/word/n5.mp3")).status_code == 404
+
+
+async def test_vocab_tts_synthesizes_pool_word(kid_client, monkeypatch, tmp_path):
+    """The per-entry vocab endpoint speaks the exact pool word for the id."""
+    captured: list[str] = []
+
+    def fake_synth(text: str) -> Path:
+        captured.append(text)
+        out = tmp_path / "vocab.mp3"
+        out.write_bytes(b"id3-stub")
+        return out
+
+    monkeypatch.setattr(tts, "get_or_synthesize", fake_synth)
+    resp = await kid_client.get("/api/games/learn/letters/vocab/gata.mp3")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "audio/mpeg"
+    assert captured == ["γάτα"]  # the pool entry's word for id "gata"
+
+
+async def test_vocab_tts_unknown_id_404(kid_client):
+    assert (await kid_client.get("/api/games/learn/letters/vocab/nope.mp3")).status_code == 404
+
+
+def test_vocab_words_are_nonempty_and_cover_the_pool():
+    from app.services import learn_vocab
+
+    assert len(learn_vocab.LETTER_VOCAB_WORDS) > 100  # ≈10 per letter
+    assert all(w.strip() for w in learn_vocab.LETTER_VOCAB_WORDS.values())
+
+
+def test_letter_words_cover_every_letter_and_start_with_it():
+    """Every deck letter has a vocab word, and each word starts with its letter.
+
+    Accent-insensitive comparison (ή → η) since Greek vocabulary words carry
+    accents the bare letters don't.
+    """
+    import unicodedata
+
+    def fold(ch: str) -> str:
+        return "".join(
+            c for c in unicodedata.normalize("NFD", ch.lower()) if not unicodedata.combining(c)
+        )
+
+    deck = learn_decks.build_deck("letters")
+    assert set(learn_decks.LETTER_WORDS) == {it.token for it in deck.items}
+    for item in deck.items:
+        word = learn_decks.LETTER_WORDS[item.token]
+        assert fold(word[0]) == fold(item.glyph), f"{item.token}: {word} vs {item.glyph}"
 
 
 def test_score_keys_registered():

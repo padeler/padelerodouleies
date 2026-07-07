@@ -47,12 +47,22 @@ describe('hearEngine', () => {
   });
 
   it('hit-tests a tap to the nearest faller within touch radius', () => {
-    const world = createHearWorld(CHOICES, () => 0);
-    const target = world.fallers[0]!;
+    // Step the fresh world forward so the first faller is actually on-screen —
+    // invisible fallers (still staggered above the canvas) are not tappable.
+    let world = createHearWorld(CHOICES, () => 0);
+    for (let i = 0; i < 40; i += 1) world = stepHear(world, 0.05).world;
+    const target = [...world.fallers].sort((a, b) => b.y - a.y)[0]!;
+    expect(target.y).toBeGreaterThan(0); // sanity: it descended into view
     const hit = fallerAt(world, target.x, target.y);
     expect(hit?.token).toBe(target.token);
     // A tap far from every faller misses.
     expect(fallerAt(world, -500, HEAR_H * 2)).toBeNull();
+  });
+
+  it('does not hit-test fallers still invisible above the canvas', () => {
+    const world = createHearWorld(CHOICES, () => 0); // fresh: everything above screen
+    const target = world.fallers[0]!;
+    expect(fallerAt(world, target.x, target.y)).toBeNull();
   });
 
   it('fallSpeed applies multiplier before capping', () => {

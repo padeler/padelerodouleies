@@ -325,7 +325,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "games.learn.whats_next": {"el": "Τι ακολουθεί", "en": "What comes next"},
     # Per-level prompts
     "games.learn.count_prompt": {"el": "Πόσα είναι;", "en": "How many?"},
-    "games.learn.match_prompt": {"el": "Ταίριαξε τα γράμματα", "en": "Match the letters"},
+    "games.learn.match_prompt": {"el": "Ταίριαξε γράμμα και εικόνα", "en": "Match letter and picture"},
     "games.learn.hear_prompt": {"el": "Άκου και διάλεξε", "en": "Listen and tap"},
     "games.learn.order_prompt": {"el": "Βάλε τα σε σειρά", "en": "Put them in order"},
     "games.learn.whats_next_prompt": {"el": "Τι ακολουθεί;", "en": "What comes next?"},
@@ -339,7 +339,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "games.learn.wrong_title": {"el": "Δεν πειράζει!", "en": "Never mind!"},
     "games.learn.fb_you_picked": {"el": "Διάλεξες το {glyph}.", "en": "You picked {glyph}."},
     "games.learn.fb_correct_was": {"el": "Το σωστό ήταν το {glyph}.", "en": "The right one was {glyph}."},
-    "games.learn.fb_count_was": {"el": "Τα αστεράκια είναι {count}.", "en": "There are {count} stars."},
+    "games.learn.fb_count_was": {"el": "Ήταν {count}!", "en": "There were {count}!"},
     "games.learn.fb_time_up": {"el": "Δεν πρόλαβες!", "en": "Out of time!"},
     # Exercises
     "nav.exercises": {"el": "Ασκήσεις", "en": "Exercises"},

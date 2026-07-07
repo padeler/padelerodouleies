@@ -11,6 +11,9 @@ const NO_FEEDBACK: RoundFeedback = {
 // Hold the completed sequence on screen for a beat so the last letter/number name
 // finishes speaking and the kid sees the filled-in answer before the result panel.
 const FINAL_DELAY_MS = 900;
+// Hold a wrong tap on screen (tile flashing red) for a beat before reporting —
+// reporting immediately swapped in the result panel so the red was never seen.
+const WRONG_DELAY_MS = 900;
 
 /**
  * Put In Order (slot 2): tap the shuffled tiles in the correct order. Tapping
@@ -28,12 +31,15 @@ export function PutInOrder({
 }) {
   const [placed, setPlaced] = useState<string[]>([]);
   const [wrong, setWrong] = useState<string | null>(null);
-  const finalTimer = useRef<number | undefined>(undefined);
+  // Set once the round is decided — input is locked while the final/wrong beat
+  // plays out on screen before the result panel takes over.
+  const [locked, setLocked] = useState(false);
+  const reportTimer = useRef<number | undefined>(undefined);
 
-  useEffect(() => () => window.clearTimeout(finalTimer.current), []);
+  useEffect(() => () => window.clearTimeout(reportTimer.current), []);
 
   function pick(token: string): void {
-    if (placed.includes(token)) return;
+    if (locked || placed.includes(token)) return;
     playToken(token);
     const expected = round.sequence[placed.length]!;
     if (token === expected.token) {
@@ -41,17 +47,20 @@ export function PutInOrder({
       setPlaced(next);
       setWrong(null);
       if (next.length === round.sequence.length) {
-        finalTimer.current = window.setTimeout(() => onAnswer(true, NO_FEEDBACK), FINAL_DELAY_MS);
+        setLocked(true);
+        reportTimer.current = window.setTimeout(() => onAnswer(true, NO_FEEDBACK), FINAL_DELAY_MS);
       }
     } else {
       setWrong(token);
+      setLocked(true);
       const picked = round.shown.find((it) => it.token === token);
-      onAnswer(false, {
+      const feedback: RoundFeedback = {
         pickedToken: token,
         pickedGlyph: picked?.glyph ?? null,
         correctToken: expected.token,
         correctGlyph: expected.glyph,
-      });
+      };
+      reportTimer.current = window.setTimeout(() => onAnswer(false, feedback), WRONG_DELAY_MS);
     }
   }
 

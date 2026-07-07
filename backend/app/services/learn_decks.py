@@ -132,6 +132,48 @@ _TRACK_NOUN: dict[Track, str] = {"numbers": "τον αριθμό", "letters": "�
 # Praise spoken on a correct answer.
 SUCCESS_PHRASE = "Μπράβο!"
 
+# Vocabulary word behind each letter's icon tile (spoken when the kid taps the
+# picture in the match level — "γάτα" for the cat icon). Mirrors the frontend
+# dataset in frontend/src/pages/dashboard/games/learn/letterVocab.ts — keep the
+# two tables in sync when editing words.
+LETTER_WORDS: dict[str, str] = {
+    "l01": "αεροπλάνο",
+    "l02": "βιβλίο",
+    "l03": "γάτα",
+    "l04": "δαχτυλίδι",
+    "l05": "ελέφαντας",
+    "l06": "ζάρι",
+    "l07": "ήλιος",
+    "l08": "θάλασσα",
+    "l09": "ιπποπόταμος",
+    "l10": "κήπος",
+    "l11": "λαγός",
+    "l12": "μπάλα",
+    "l13": "νερό",
+    "l14": "ξυλόφωνο",
+    "l15": "οχιά",
+    "l16": "παγωτό",
+    "l17": "ρολόι",
+    "l18": "σκύλος",
+    "l19": "τρένο",
+    "l20": "υποβρύχιο",
+    "l21": "φράουλα",
+    "l22": "χταπόδι",
+    "l23": "ψάρι",
+    "l24": "ωκεανός",
+}
+
+
+def word_tts(token: str) -> str:
+    """The spoken vocabulary word for a letter token.
+
+    Raises ValueError for a token without a vocab word — no silent default.
+    """
+    word = LETTER_WORDS.get(token)
+    if word is None:
+        raise ValueError(f"word_tts: no vocabulary word for token {token!r}")
+    return word
+
 
 def _word_for_token(track: Track, token: str) -> str:
     """Return the bare spoken word for a deck token (no carrier phrase).
@@ -158,6 +200,25 @@ def find_tts(track: Track, token: str) -> str:
     return f"Βρες {_TRACK_NOUN[track]} {_word_for_token(track, token)}."
 
 
+def find_starts_with_tts(token: str) -> str:
+    """Spoken prompt for the starts-with falling-targets variant (letters only).
+
+    Asks the kid to find an *object* whose word begins with the letter, not the
+    letter itself — e.g. ``"Βρες κάτι που αρχίζει από το γράμμα άλφα."``.
+    """
+    return f"Βρες κάτι που αρχίζει από το γράμμα {_word_for_token('letters', token)}."
+
+
+def find_all_tts(track: Track, token: str) -> str:
+    """Spoken prompt for the multi-target falling-targets variant.
+
+    Tells the kid there are *several* to find, not just one — e.g.
+    ``"Βρες όλα τα πέντε!"`` / ``"Βρες όλα τα άλφα!"`` (the colloquial neuter
+    plural article reads naturally for both numbers and letters).
+    """
+    return f"Βρες όλα τα {_word_for_token(track, token)}!"
+
+
 def wrong_tts(track: Track, correct_token: str, picked_token: str | None) -> str:
     """Spoken explanation of a mistake.
 
@@ -181,7 +242,7 @@ LevelType = Literal["count", "match", "hear", "order", "whats_next"]
 
 LEVEL_INTROS: dict[LevelType, str] = {
     "count": "Μέτρησε πόσα είναι και διάλεξε τον σωστό αριθμό.",
-    "match": "Ταίριαξε τα κεφαλαία με τα μικρά γράμματα.",
+    "match": "Ταίριαξε το γράμμα με τη σωστή εικόνα.",
     "hear": "Άκουσε τη λέξη και διάλεξε τη σωστή. Γρήγορα!",
     "order": "Βάλε τα στη σωστή σειρά.",
     "whats_next": "Βρες τι ακολουθεί. Γρήγορα!",

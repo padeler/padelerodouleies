@@ -18,9 +18,12 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   getLearnDeck,
+  learnFindAllUrl,
+  learnFindStartsWithUrl,
   learnFindUrl,
   learnSayUrl,
   learnSuccessUrl,
+  learnVocabUrl,
   learnWrongUrl,
 } from '../../../../api/client';
 import type { Deck, DeckItem, LevelType, Track } from './learnEngine';
@@ -38,6 +41,13 @@ interface UseLearnDeck {
   playPhrase: (level: LevelType) => Promise<void>;
   /** Speak the "find this one" prompt for the falling-targets level. */
   playFind: (token: string) => void;
+  /** Speak the "find them all" prompt (multi-target variant). */
+  playFindAll: (token: string) => void;
+  /** Speak the "find an object that starts with this letter" prompt (starts-with variant). */
+  playFindStartsWith: (token: string) => void;
+  /** Speak the vocabulary word behind a letter's icon tile ("γάτα" for 🐱),
+   * keyed by the shown entry's id (the picture is random per round). */
+  playVocab: (id: string) => void;
   /** Speak the praise played on a correct answer. */
   playSuccessPhrase: () => void;
   /** Speak the explanation of a mistake (picked vs. correct; picked null = timed out). */
@@ -61,6 +71,7 @@ export function useLearnDeck(track: Track): UseLearnDeck {
   const cache = useRef<Map<string, HTMLAudioElement>>(new Map());
   const phraseCache = useRef<Map<string, HTMLAudioElement>>(new Map());
   const findCache = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const findStartsWithCache = useRef<Map<string, HTMLAudioElement>>(new Map());
   const successRef = useRef<HTMLAudioElement | null>(null);
   const playingRef = useRef<HTMLAudioElement | null>(null);
 
@@ -193,6 +204,50 @@ export function useLearnDeck(track: Track): UseLearnDeck {
     [track, playAudio],
   );
 
+  // "Find them all" prompt for the multi-target variant — cached per token (finite set).
+  const findAllCache = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const playFindAll = useCallback(
+    (token: string): void => {
+      let audio = findAllCache.current.get(token);
+      if (!audio) {
+        audio = new Audio(learnFindAllUrl(track, token));
+        audio.preload = 'auto';
+        findAllCache.current.set(token, audio);
+      }
+      playAudio(audio);
+    },
+    [track, playAudio],
+  );
+
+  // "Find an object starting with X" prompt — cached per token (letters only, finite set).
+  const playFindStartsWith = useCallback(
+    (token: string): void => {
+      let audio = findStartsWithCache.current.get(token);
+      if (!audio) {
+        audio = new Audio(learnFindStartsWithUrl(token));
+        audio.preload = 'auto';
+        findStartsWithCache.current.set(token, audio);
+      }
+      playAudio(audio);
+    },
+    [playAudio],
+  );
+
+  // Vocabulary word behind an icon tile — cached per entry id (finite set).
+  const vocabCache = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const playVocab = useCallback(
+    (id: string): void => {
+      let audio = vocabCache.current.get(id);
+      if (!audio) {
+        audio = new Audio(learnVocabUrl(id));
+        audio.preload = 'auto';
+        vocabCache.current.set(id, audio);
+      }
+      playAudio(audio);
+    },
+    [playAudio],
+  );
+
   const playSuccessPhrase = useCallback((): void => {
     let audio = successRef.current;
     if (!audio) {
@@ -219,6 +274,9 @@ export function useLearnDeck(track: Track): UseLearnDeck {
     playToken,
     playPhrase,
     playFind,
+    playFindAll,
+    playFindStartsWith,
+    playVocab,
     playSuccessPhrase,
     playWrongPhrase,
     stopAudio,

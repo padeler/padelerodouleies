@@ -106,6 +106,9 @@ export function fallerAt(world: HearWorld, x: number, y: number): Faller | null 
   let best: Faller | null = null;
   let bestDist = FALLER_R * FALLER_R * 2.25; // generous touch radius (1.5×)
   for (const faller of world.fallers) {
+    // Fallers staggered above the canvas are invisible — a tap near the top
+    // edge must not hit one the kid cannot see.
+    if (faller.y + FALLER_R <= 0) continue;
     const dx = faller.x - x;
     const dy = faller.y - y;
     const dist = dx * dx + dy * dy;

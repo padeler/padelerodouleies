@@ -14,6 +14,8 @@ from app.services.learn_decks import (
     SUCCESS_PHRASE,
     TRACKS,
     build_deck,
+    find_all_tts,
+    find_starts_with_tts,
     find_tts,
     greek_number_word,
     intro_text,
@@ -159,6 +161,19 @@ def test_find_tts_uses_track_noun():
     assert find_tts("letters", "l01") == "Βρες το γράμμα άλφα."
     with pytest.raises(ValueError):
         find_tts("numbers", "l01")  # token does not belong to the track
+
+
+def test_find_all_tts_cues_multiple_targets():
+    assert find_all_tts("numbers", "n5") == "Βρες όλα τα πέντε!"
+    assert find_all_tts("letters", "l01") == "Βρες όλα τα άλφα!"
+    with pytest.raises(ValueError):
+        find_all_tts("numbers", "l01")  # token does not belong to the track
+
+
+def test_find_starts_with_tts_asks_for_an_object_not_the_letter():
+    assert find_starts_with_tts("l01") == "Βρες κάτι που αρχίζει από το γράμμα άλφα."
+    with pytest.raises(ValueError):
+        find_starts_with_tts("l999")  # out-of-range letter index
 
 
 def test_wrong_tts_explains_pick_and_correct():

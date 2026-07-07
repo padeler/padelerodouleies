@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Heart } from 'lucide-react';
 import { useT } from '../../../../i18n/store';
 import { notifyCelebration } from '../../../../lib/notify';
@@ -14,6 +14,7 @@ import { RoundIntro } from './RoundIntro';
 import { useLearnDeck } from './useLearnDeck';
 import {
   LIVES_START,
+  MATCH_HISTORY_WINDOW,
   applyAnswer,
   createGame,
   currentLevelType,
@@ -76,8 +77,18 @@ interface Pending {
 /** The Learning Adventure shell: one component, rendered per track. */
 export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }) {
   const t = useT();
-  const { deck, prefetch, playToken, playPhrase, playFind, playWrongPhrase, stopAudio } =
-    useLearnDeck(track);
+  const {
+    deck,
+    prefetch,
+    playToken,
+    playPhrase,
+    playFind,
+    playFindAll,
+    playFindStartsWith,
+    playVocab,
+    playWrongPhrase,
+    stopAudio,
+  } = useLearnDeck(track);
   const best = useGameBest(SCORE_KEY[track]);
   const submitScore = useSubmitScore();
 
@@ -89,6 +100,23 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
   const [phase, setPhase] = useState<'intro' | 'play' | 'feedback'>('play');
   const [pending, setPending] = useState<Pending | null>(null);
   const [newBest, setNewBest] = useState(false);
+
+  // Rolling window of recently-matched letters (oldest→newest) so Match Case
+  // rounds rotate through the alphabet slice instead of repeating the same pairs.
+  const recentMatchTokens = useRef<string[]>([]);
+
+  // Generate the next round, feeding the match-history window to the engine and
+  // recording a match round's letters back into it (capped to the window).
+  const genRound = useCallback((state: GameState, prev?: Round): Round => {
+    const generated = nextRound(state, Math.random, prev, recentMatchTokens.current);
+    if (generated.kind === 'match') {
+      recentMatchTokens.current = [
+        ...recentMatchTokens.current,
+        ...generated.left.map((it) => it.token),
+      ].slice(-MATCH_HISTORY_WINDOW);
+    }
+    return generated;
+  }, []);
 
   // Pre-fetch the first tier's clips so the very first tap is instant.
   useEffect(() => {
@@ -107,10 +135,11 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
     const g = createGame(track, deck);
     setNewBest(false);
     setPending(null);
+    recentMatchTokens.current = [];
     setGame(g);
-    setRound({ data: nextRound(g), id: 0, newLevel: true });
+    setRound({ data: genRound(g), id: 0, newLevel: true });
     setPhase('intro'); // first level → speak its description before play
-  }, [deck, track]);
+  }, [deck, track, genRound]);
 
   // Grade the round, but hold on the result panel rather than advancing — the
   // kid taps Continue (see handleContinue) to commit and move on. Plays the sound
@@ -144,13 +173,13 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
         // Pass the round just played so the next one is never an exact repeat
         // (only meaningful when the slot stays the same — across a slot/level
         // change the round kind differs, so the signature can't collide).
-        nextRound: next.status === 'playing' ? nextRound(next, Math.random, round?.data) : null,
+        nextRound: next.status === 'playing' ? genRound(next, round?.data) : null,
         newLevel,
         tierJustCleared: events.includes('tier_cleared') ? tierNumber(game) : null,
       });
       setPhase('feedback');
     },
-    [game, round, deck, prefetch, playWrongPhrase, t],
+    [game, round, deck, prefetch, playWrongPhrase, t, genRound],
   );
 
   // Commit the held result and move on: end the run (submit the score) or start
@@ -238,12 +267,16 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
                       onAnswer={handleAnswer}
                       playToken={playToken}
                       playFind={playFind}
+                      playFindAll={playFindAll}
+                      playFindStartsWith={playFindStartsWith}
+                      playVocab={playVocab}
                     />
                   )}
                 </div>
               ) : null
             ) : game && game.status === 'over' ? (
               <div className="learn-overlay">
+                <img className="learn-mascot" src="/learn-icons/mascot.png" alt="" draggable={false} />
                 <p className="game-overlay-title">{t('games.game_over')}</p>
                 <p className="game-overlay-text">
                   {t('games.score')}: {game.points}
@@ -296,7 +329,7 @@ function ResultPanel({ pending, onContinue }: { pending: Pending; onContinue: ()
     emoji = '⭐';
     title = t('games.learn.correct_title');
   } else {
-    emoji = '';
+    emoji = '🙈'; // see-no-evil monkey (Unicode 6.0) — a gentle "oops", not a sad face
     title = t('games.learn.wrong_title');
   }
 
@@ -340,19 +373,33 @@ function PlayerSwitch({
   onAnswer,
   playToken,
   playFind,
+  playFindAll,
+  playFindStartsWith,
+  playVocab,
 }: {
   round: Round;
   onAnswer: (correct: boolean, feedback: RoundFeedback) => void;
   playToken: (token: string) => void;
   playFind: (token: string) => void;
+  playFindAll: (token: string) => void;
+  playFindStartsWith: (token: string) => void;
+  playVocab: (id: string) => void;
 }) {
   switch (round.kind) {
     case 'count':
       return <CountThem round={round} onAnswer={onAnswer} playToken={playToken} />;
     case 'match':
-      return <MatchCase round={round} onAnswer={onAnswer} playToken={playToken} />;
+      return <MatchCase round={round} onAnswer={onAnswer} playToken={playToken} playVocab={playVocab} />;
     case 'hear':
-      return <HearIt round={round} onAnswer={onAnswer} playFind={playFind} />;
+      return (
+        <HearIt
+          round={round}
+          onAnswer={onAnswer}
+          playFind={playFind}
+          playFindAll={playFindAll}
+          playFindStartsWith={playFindStartsWith}
+        />
+      );
     case 'order':
       return <PutInOrder round={round} onAnswer={onAnswer} playToken={playToken} />;
     case 'whats_next':

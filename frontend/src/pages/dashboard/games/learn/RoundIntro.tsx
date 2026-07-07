@@ -90,7 +90,12 @@ export function RoundIntro({
           {label}
         </div>
       ) : (
-        <div className="learn-intro-ready">{label}</div>
+        <>
+          {/* The star mascot keeps the spoken-intro pause friendly instead of
+              a bare text screen (ComfyUI-generated, same set as the letter icons). */}
+          <img className="learn-mascot" src="/learn-icons/mascot.png" alt="" draggable={false} />
+          <div className="learn-intro-ready">{label}</div>
+        </>
       )}
     </div>
   );

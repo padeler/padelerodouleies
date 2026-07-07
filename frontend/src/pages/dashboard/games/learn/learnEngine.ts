@@ -15,7 +15,14 @@
  * (the component compares locally) — there is no server grading to protect.
  */
 
-import { LETTER_VOCAB, LETTER_VOCAB_EXTRA, SPELL_WORDS, type SpellWordEntry } from './letterVocab';
+import {
+  LETTER_VOCAB,
+  LETTER_VOCAB_EXTRA,
+  SPELL_WORDS,
+  randomVocab,
+  vocabIcon,
+  type SpellWordEntry,
+} from './letterVocab';
 
 export type Track = 'numbers' | 'letters';
 
@@ -49,10 +56,20 @@ const LEVEL_TYPES: Record<Track, readonly LevelType[]> = {
 export const SLOTS_PER_TIER = 4;
 export const ROUNDS_PER_SLOT = 3;
 export const LIVES_START = 3;
-export const COUNT_MAX = 10; // Count Them never shows more than this many objects
+export const COUNT_MAX = 10; // Count Them base object cap (the intra-slot ramp may add up to +2)
 export const SEQUENCE_LEN = 3; // items shown in order / match / before "what's next"
+// How many recently-matched letters the caller remembers to keep Match Case
+// pairs from repeating. Sized to the largest letters tier slice (24) so, once
+// the whole slice has been shown, selection falls into a clean round-robin.
+export const MATCH_HISTORY_WINDOW = 24;
 export const CHOICES = 4; // tappable choices in single-answer levels
-export const COUNT_OBJECT = '⭐'; // ≤ Unicode 6.1 — safe on the old tablets
+// The falling-targets canvas is 360px wide with 30px-radius fallers laid out one
+// per column — more than this many columns and the circles overlap and taps get
+// ambiguous, so every hear variant caps its total faller count here.
+export const MAX_HEAR_FALLERS = 6;
+// Objects the counting level renders — varied per round so counting stays fun.
+// Every glyph is ≤ Unicode 6.1, safe on the old tablets.
+export const COUNT_OBJECTS: readonly string[] = ['⭐', '🍎', '🌸', '🎈', '🍓', '🐠', '🐤', '🎀'];
 export const TIME_LIMIT_SECONDS = 12; // time-trial rounds (component runs the clock)
 
 // Time-trial slots: Hear It (1) and What Comes Next (3). The component reads
@@ -76,7 +93,8 @@ export interface MatchRound {
   kind: 'match';
   left: DeckItem[]; // shown via glyph (uppercase)
   right: DeckItem[]; // shown via glyph_alt (lowercase), shuffled; pair by token
-  icons?: Map<string, string>; // token → emoji for visual icon matching; undefined = no icons
+  icons?: Map<string, string>; // token → icon (emoji or image URL); undefined = no icons
+  vocabIds?: Map<string, string>; // token → chosen vocab entry id (audio key for the shown picture)
 }
 // 'multi-target' spawns 2-3 extra fallers sharing the target's token — the kid
 // must tap every one before the round resolves (HearIt.tsx owns that tracking).
@@ -163,6 +181,34 @@ function shuffleWith<T>(items: T[], rng: () => number): T[] {
 
 function sample<T>(items: T[], n: number, rng: () => number): T[] {
   return shuffleWith(items, rng).slice(0, Math.min(n, items.length));
+}
+
+/**
+ * Like `sample`, but biases the draw away from keys the kid has seen recently so
+ * repeated draws cycle through the whole pool before any key comes back. Items
+ * whose key is not in `recent` ("fresh") are preferred, shuffled; when there
+ * aren't enough fresh items to fill `n` (small pool), the remainder is filled
+ * with the least-recently-used seen items (`recent` is oldest→newest, so a
+ * smaller `lastIndexOf` = used longer ago = picked first). This gives a clean
+ * round-robin even once the pool is exhausted.
+ */
+function sampleAvoiding<T>(
+  items: T[],
+  n: number,
+  rng: () => number,
+  recent: readonly string[],
+  keyOf: (it: T) => string,
+): T[] {
+  const recentSet = new Set(recent);
+  const fresh = items.filter((it) => !recentSet.has(keyOf(it)));
+  const picked = shuffleWith(fresh, rng).slice(0, n);
+  if (picked.length < n) {
+    const stale = items
+      .filter((it) => recentSet.has(keyOf(it)))
+      .sort((a, b) => recent.lastIndexOf(keyOf(a)) - recent.lastIndexOf(keyOf(b)));
+    picked.push(...stale.slice(0, n - picked.length));
+  }
+  return picked;
 }
 
 function pickOne<T>(items: T[], rng: () => number): T {
@@ -309,12 +355,17 @@ export function roundSignature(round: Round): string {
   }
 }
 
-function generateRound(state: GameState, pool: DeckItem[], rng: () => number): Round {
+function generateRound(
+  state: GameState,
+  pool: DeckItem[],
+  rng: () => number,
+  recentMatchTokens: readonly string[],
+): Round {
   switch (currentLevelType(state)) {
     case 'count':
       return countRound(state, pool, rng);
     case 'match':
-      return matchRound(state, pool, rng);
+      return matchRound(state, pool, rng, recentMatchTokens);
     case 'hear':
       return hearRound(state, pool, rng);
     case 'order':
@@ -328,13 +379,23 @@ function generateRound(state: GameState, pool: DeckItem[], rng: () => number): R
  * Generate the round for the current slot/tier. Pure; rng injectable. Pass the
  * previous round so the same question is not repeated back-to-back — we
  * regenerate up to MAX_REGEN_TRIES times to land on a different signature.
+ *
+ * `recentMatchTokens` (oldest→newest, letters the kid has matched recently)
+ * lets the Match Case level rotate through the alphabet slice instead of
+ * re-drawing the same few letters — the caller keeps the rolling window (see
+ * MATCH_HISTORY_WINDOW). It is ignored by the other level types.
  */
-export function nextRound(state: GameState, rng: () => number = Math.random, prev?: Round): Round {
+export function nextRound(
+  state: GameState,
+  rng: () => number = Math.random,
+  prev?: Round,
+  recentMatchTokens: readonly string[] = [],
+): Round {
   const pool = poolForState(state);
   const avoid = prev ? roundSignature(prev) : null;
-  let round = generateRound(state, pool, rng);
+  let round = generateRound(state, pool, rng, recentMatchTokens);
   for (let i = 0; avoid !== null && i < MAX_REGEN_TRIES && roundSignature(round) === avoid; i += 1) {
-    round = generateRound(state, pool, rng);
+    round = generateRound(state, pool, rng, recentMatchTokens);
   }
   return round;
 }
@@ -346,32 +407,53 @@ function withDistractors(answer: DeckItem, pool: DeckItem[], rng: () => number):
 }
 
 function countRound(state: GameState, pool: DeckItem[], rng: () => number): CountRound {
-  // Count is numbers-only; objects are capped regardless of tier.
+  // Count is numbers-only; objects are capped regardless of tier (the intra-slot
+  // difficulty ramp may push the cap up by at most +2).
   const maxValue = Math.min(COUNT_MAX + diffStep(state), pool.length);
   const count = 1 + Math.floor(rng() * maxValue);
   const answer = state.itemsByToken[`n${count}`]!;
+  // Distractors close to the real count — a far-off numeral (e.g. 87 next to 5)
+  // is trivially wrong and turns the round into "spot the small number" instead
+  // of counting. ±3 around the answer always yields ≥3 candidates for count ≥ 1.
+  const near = pool.filter((it) => {
+    const value = Number(it.token.slice(1));
+    return value !== count && Math.abs(value - count) <= 3;
+  });
   return {
     kind: 'count',
     count,
-    objectGlyph: COUNT_OBJECT,
+    objectGlyph: pickOne([...COUNT_OBJECTS], rng),
     answer,
-    choices: withDistractors(answer, pool, rng),
+    choices: shuffleWith([answer, ...sample(near, CHOICES - 1, rng)], rng),
   };
 }
 
-function matchRound(state: GameState, pool: DeckItem[], rng: () => number): MatchRound {
-  const left = sample(pool, SEQUENCE_LEN, rng);
+function matchRound(
+  state: GameState,
+  pool: DeckItem[],
+  rng: () => number,
+  recentMatchTokens: readonly string[],
+): MatchRound {
+  // Prefer letters not shown in the recent match rounds so pairs cycle through
+  // the tier slice instead of the same few repeating.
+  const left = sampleAvoiding(pool, SEQUENCE_LEN, rng, recentMatchTokens, (it) => it.token);
   const round: MatchRound = { kind: 'match', left, right: shuffleWith(left, rng) };
 
-  // Letters track: populate icon hints from the vocabulary dataset.
-  // Numbers track (count slot) uses glyph-only matching — skip icons.
+  // Letters track: pick a *random* vocabulary entry per letter (variety across
+  // replays) and record its icon + audio id. Numbers track is glyph-only.
   if (state.track === 'letters') {
     const icons = new Map<string, string>();
+    const vocabIds = new Map<string, string>();
     for (const item of left) {
-      const entry = LETTER_VOCAB[item.token];
-      if (entry?.emoji) icons.set(item.token, entry.emoji);
+      const entry = randomVocab(item.token, rng);
+      const icon = vocabIcon(entry);
+      if (entry && icon) {
+        icons.set(item.token, icon);
+        vocabIds.set(item.token, entry.id);
+      }
     }
     round.icons = icons;
+    round.vocabIds = vocabIds;
   }
 
   return round;
@@ -391,7 +473,9 @@ function isHarderHearTier(state: GameState): boolean {
 // never qualify, and letters without a curated second word never qualify.
 function eligibleStartsWithTargets(state: GameState, pool: DeckItem[]): DeckItem[] {
   if (state.track !== 'letters') return [];
-  return pool.filter((it) => LETTER_VOCAB[it.token]?.emoji && LETTER_VOCAB_EXTRA[it.token]?.emoji);
+  return pool.filter(
+    (it) => vocabIcon(LETTER_VOCAB[it.token]) && vocabIcon(LETTER_VOCAB_EXTRA[it.token]),
+  );
 }
 
 // "Spell the word" targets: letters offers a curated word whose entire letter
@@ -441,20 +525,22 @@ function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearR
       audio_url: target.audio_url,
     };
     const distractors = sample(
-      pool.filter((it) => it.token !== target.token && LETTER_VOCAB[it.token]?.emoji),
+      pool.filter((it) => it.token !== target.token && vocabIcon(LETTER_VOCAB[it.token])),
       2,
       rng,
     );
     choices = shuffleWith([target, extraItem, ...distractors], rng);
     variant = 'starts-with';
     startsWithTokens = [extraToken];
-    extraIcon = { token: extraToken, emoji: extraEntry.emoji! };
+    extraIcon = { token: extraToken, emoji: vocabIcon(extraEntry)! };
   } else if (useSpell) {
     spellSequence = spellSequenceForTrack(state, spellWords, rng);
     const sequenceItems = spellSequence.map((tok) => state.itemsByToken[tok]!);
+    // A 4-5 step sequence plus two distractors would overflow the canvas
+    // columns (see MAX_HEAR_FALLERS) — long words drop to a single distractor.
     const distractors = sample(
       pool.filter((it) => !spellSequence!.includes(it.token)),
-      2,
+      Math.max(1, Math.min(2, MAX_HEAR_FALLERS - spellSequence.length)),
       rng,
     );
     target = sequenceItems[0]!;
@@ -486,12 +572,12 @@ function hearRound(state: GameState, pool: DeckItem[], rng: () => number): HearR
     fallSpeedMult: fallSpeedMultiplier(state),
   };
 
-  // Letters track: attach emoji icon hints from vocab for visible choices.
+  // Letters track: attach icon hints (emoji or image URL) for visible choices.
   if (state.track === 'letters') {
     const icons = new Map<string, string>();
     for (const item of round.choices) {
-      const entry = LETTER_VOCAB[item.token];
-      if (entry?.emoji) icons.set(item.token, entry.emoji);
+      const icon = vocabIcon(LETTER_VOCAB[item.token]);
+      if (icon) icons.set(item.token, icon);
     }
     if (extraIcon) icons.set(extraIcon.token, extraIcon.emoji);
     round.icons = icons;
@@ -521,8 +607,25 @@ function whatsNextRound(state: GameState, pool: DeckItem[], rng: () => number): 
   const maxStart = pool.length - prefixLen - 1;
   const start = Math.floor(rng() * (maxStart + 1));
   const prefix = pool.slice(start, start + prefixLen);
-  const answer = pool[start + prefixLen]!;
-  const others = pool.filter((it) => !prefix.includes(it) && it.token !== answer.token);
-  const choices = shuffleWith([answer, ...sample(others, CHOICES - 1, rng)], rng);
+  const answerIndex = start + prefixLen;
+  const answer = pool[answerIndex]!;
+  // Distractors near the answer in deck order — a far-off item (e.g. 87 after
+  // "5 6 7") is trivially wrong, so the round stops testing the sequence. The
+  // window is sized so it still fills all choices when the answer sits at the
+  // pool's edge with the prefix eating one side; the pool-wide fallback below
+  // only kicks in for genuinely tiny pools.
+  const nearWindow = prefixLen + CHOICES - 1;
+  const isNear = (index: number): boolean => Math.abs(index - answerIndex) <= nearWindow;
+  const others = pool.filter(
+    (it, i) => !prefix.includes(it) && it.token !== answer.token && isNear(i),
+  );
+  const fallback = pool.filter(
+    (it, i) => !prefix.includes(it) && it.token !== answer.token && !isNear(i),
+  );
+  const distractors = [...sample(others, CHOICES - 1, rng)];
+  if (distractors.length < CHOICES - 1) {
+    distractors.push(...sample(fallback, CHOICES - 1 - distractors.length, rng));
+  }
+  const choices = shuffleWith([answer, ...distractors], rng);
   return { kind: 'whats_next', prefix, answer, choices, timeLimit: timeLimitForState(state) };
 }

@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 import threading
 
-from app.services import learn_decks, tts
+from app.services import learn_decks, learn_vocab, tts
 
 logger = logging.getLogger(__name__)
 
@@ -61,13 +61,58 @@ def iter_find_texts() -> list[str]:
     return list(seen)
 
 
+def iter_find_all_texts() -> list[str]:
+    """The spoken "find them all" prompts (one per deck token, both tracks).
+
+    Finite, same rationale as `iter_find_texts` — kept instant for the
+    falling-targets multi-target variant.
+    """
+    seen: dict[str, None] = {}
+    for track in learn_decks.TRACKS:
+        for item in learn_decks.build_deck(track).items:
+            seen.setdefault(learn_decks.find_all_tts(track, item.token), None)
+    return list(seen)
+
+
+def iter_find_starts_with_texts() -> list[str]:
+    """The spoken starts-with prompts (one per letter token, deduped).
+
+    Finite (24 letters), same rationale as `iter_find_texts` — kept instant for
+    the falling-targets starts-with variant.
+    """
+    seen: dict[str, None] = {}
+    for item in learn_decks.build_deck("letters").items:
+        seen.setdefault(learn_decks.find_starts_with_tts(item.token), None)
+    return list(seen)
+
+
+def iter_word_texts() -> list[str]:
+    """Every spoken vocabulary word behind a letter icon tile (deduped).
+
+    Sourced from the full per-letter pool (``LETTER_VOCAB_WORDS``, ≈10 words per
+    letter) so the matching game's first tap on any random picture is instant —
+    a superset of the canonical ``LETTER_WORDS`` the ``/word/{token}`` endpoint
+    serves, so those are warmed too.
+    """
+    seen: dict[str, None] = {}
+    for word in learn_vocab.LETTER_VOCAB_WORDS.values():
+        text = word.strip()
+        if text:
+            seen.setdefault(text, None)
+    return list(seen)
+
+
 def iter_all_texts() -> list[str]:
-    """Every spoken string the games warm: deck words + intros + find prompts + praise."""
+    """Every spoken string the games warm: deck words + intros + find prompts +
+    vocabulary words + praise."""
     seen: dict[str, None] = {}
     for text in (
         *iter_deck_tts_texts(),
         *iter_intro_texts(),
         *iter_find_texts(),
+        *iter_find_all_texts(),
+        *iter_find_starts_with_texts(),
+        *iter_word_texts(),
         learn_decks.SUCCESS_PHRASE,
     ):
         text = text.strip()

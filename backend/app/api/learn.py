@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from app.db.models import User
 from app.security.session import get_current_user
-from app.services import learn_decks, tts
+from app.services import learn_decks, learn_vocab, tts
 from app.services.learn_decks import Tier, Track, build_deck
 
 logger = logging.getLogger(__name__)
@@ -107,6 +107,96 @@ def get_find_tts(
         path = tts.get_or_synthesize(learn_decks.find_tts(valid_track, token))
     except tts.TTSUnavailableError as exc:
         logger.warning("TTS unavailable for learn find %s/%s: %s", valid_track, token, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
+@router.get("/{track}/find-all/{token}.mp3")
+def get_find_all_tts(
+    track: str,
+    token: str,
+    _current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken "find them all" prompt for the multi-target falling variant.
+
+    The plain find prompt implied a single target; this one cues the kid that
+    several fallers share the answer.
+    """
+    valid_track = _validate_track(track)
+    _require_token(valid_track, token)
+    try:
+        path = tts.get_or_synthesize(learn_decks.find_all_tts(valid_track, token))
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for learn find-all %s/%s: %s", valid_track, token, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
+@router.get("/letters/find-starts-with/{token}.mp3")
+def get_find_starts_with_tts(
+    token: str,
+    _current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken "find an object that starts with this letter" prompt.
+
+    Used by the starts-with falling-targets variant, which asks the kid to tap
+    an object icon rather than the letter itself.
+    """
+    _require_token("letters", token)
+    try:
+        path = tts.get_or_synthesize(learn_decks.find_starts_with_tts(token))
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for learn find-starts-with %s: %s", token, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
+@router.get("/letters/word/{token}.mp3")
+def get_word_tts(
+    token: str,
+    _current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken vocabulary word behind a letter's icon tile ("γάτα" for the cat).
+
+    The token is resolved against the in-code word table — never a filesystem
+    path — so there is no traversal surface; an unknown token is a plain 404.
+    """
+    if token not in learn_decks.LETTER_WORDS:
+        raise HTTPException(404, f"Unknown token: {token}")
+    try:
+        path = tts.get_or_synthesize(learn_decks.word_tts(token))
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for learn word %s: %s", token, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
+@router.get("/letters/vocab/{entry_id}.mp3")
+def get_vocab_tts(
+    entry_id: str,
+    _current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken vocabulary word for a specific pool entry, keyed by its stable id.
+
+    The letter-matching game shows a *random* picture per letter each round (for
+    variety), so the tapped word varies — this resolves the exact entry's word
+    from the in-code pool table (never a filesystem path; unknown id → 404).
+    """
+    word = learn_vocab.LETTER_VOCAB_WORDS.get(entry_id)
+    if word is None:
+        raise HTTPException(404, f"Unknown vocab id: {entry_id}")
+    try:
+        path = tts.get_or_synthesize(word)
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for vocab %s: %s", entry_id, exc)
         raise HTTPException(503, "TTS unavailable") from exc
     return FileResponse(
         path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
