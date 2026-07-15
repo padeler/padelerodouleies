@@ -10,10 +10,12 @@ import pytest
 
 from app.services.learn_decks import (
     LEVEL_INTROS,
+    LEVEL_TITLES,
     LETTER_COUNT,
     SUCCESS_PHRASE,
     TRACKS,
     build_deck,
+    card_tts,
     find_all_tts,
     find_starts_with_tts,
     find_tts,
@@ -142,6 +144,18 @@ def test_intro_text_returns_sentence_and_rejects_unknown():
     assert intro_text("hear") == LEVEL_INTROS["hear"]
     with pytest.raises(ValueError):
         intro_text("bogus")
+
+
+def test_level_titles_cover_every_level_type():
+    assert set(LEVEL_TITLES) == set(LEVEL_INTROS)
+    assert all(title.strip() for title in LEVEL_TITLES.values())
+
+
+def test_card_tts_is_title_then_description_and_rejects_unknown():
+    # The spoken card reads the mini-game title, then its short description.
+    assert card_tts("count") == f"{LEVEL_TITLES['count']}. {LEVEL_INTROS['count']}"
+    with pytest.raises(ValueError):
+        card_tts("bogus")
 
 
 def test_deck_tts_is_bare_spoken_word():

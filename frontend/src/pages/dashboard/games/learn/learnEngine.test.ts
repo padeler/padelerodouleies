@@ -2,20 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { LETTER_VOCAB, LETTER_VOCAB_EXTRA, LETTER_VOCAB_POOL, SPELL_WORDS } from './letterVocab';
 import {
   CHOICES,
+  LEVEL_WEIGHT,
   LIVES_START,
   MAX_HEAR_FALLERS,
-  ROUNDS_PER_SLOT,
-  SLOTS_PER_TIER,
+  ROUNDS_PER_LEVEL,
   applyAnswer,
-  createGame,
+  createMiniGame,
   currentLevelType,
-  finalScore,
   isTimeTrial,
+  levelNumber,
+  levelTypesFor,
   nextRound,
   roundSignature,
-  tierNumber,
+  runScore,
   type Deck,
   type GameState,
+  type LevelType,
+  type Round,
 } from './learnEngine';
 
 /** A deterministic rng that walks a fixed list of values (cycling). */
@@ -58,6 +61,16 @@ function lettersDeck(): Deck {
   };
 }
 
+/** Start a mini-game, optionally forcing a difficulty level / other overrides. */
+function mini(
+  track: 'numbers' | 'letters',
+  deck: Deck,
+  levelType: LevelType,
+  extra: Partial<GameState> = {},
+): GameState {
+  return { ...createMiniGame(track, deck, levelType), ...extra };
+}
+
 /** Apply N correct answers in a row, returning the resulting state. */
 function correctTimes(state: GameState, n: number): GameState {
   let s = state;
@@ -66,43 +79,54 @@ function correctTimes(state: GameState, n: number): GameState {
 }
 
 describe('learnEngine progression', () => {
-  it('starts at tier 1, slot 0, full lives', () => {
-    const g = createGame('numbers', numbersDeck());
+  it('starts at level 1, full lives, zero score', () => {
+    const g = createMiniGame('numbers', numbersDeck(), 'count');
     expect(g.status).toBe('playing');
     expect(g.lives).toBe(LIVES_START);
-    expect(tierNumber(g)).toBe(1);
-    expect(g.slot).toBe(0);
-    expect(finalScore(g)).toBe(1000); // tier 1 * 1000 + 0 points
+    expect(g.levelType).toBe('count');
+    expect(g.level).toBe(0);
+    expect(levelNumber(g)).toBe(1);
+    expect(runScore(g)).toBe(0);
   });
 
-  it('maps slots to the right level types per track', () => {
-    const nums = createGame('numbers', numbersDeck());
-    const lets = createGame('letters', lettersDeck());
-    expect(currentLevelType({ ...nums, slot: 0 })).toBe('count');
-    expect(currentLevelType({ ...lets, slot: 0 })).toBe('match');
-    expect(currentLevelType({ ...nums, slot: 1 })).toBe('hear');
-    expect(currentLevelType({ ...nums, slot: 2 })).toBe('order');
-    expect(currentLevelType({ ...nums, slot: 3 })).toBe('whats_next');
+  it('lists the mini-games each track offers', () => {
+    expect(levelTypesFor('numbers')).toEqual(['count', 'hear', 'order', 'whats_next']);
+    expect(levelTypesFor('letters')).toEqual(['match', 'hear', 'order', 'whats_next']);
+  });
+
+  it('reports the fixed mini-game as the current level type', () => {
+    expect(currentLevelType(createMiniGame('numbers', numbersDeck(), 'count'))).toBe('count');
+    expect(currentLevelType(createMiniGame('letters', lettersDeck(), 'match'))).toBe('match');
+    expect(currentLevelType(createMiniGame('numbers', numbersDeck(), 'hear'))).toBe('hear');
   });
 
   it('marks Hear It and What Comes Next as time trials', () => {
-    const g = createGame('numbers', numbersDeck());
-    expect(isTimeTrial({ ...g, slot: 0 })).toBe(false);
-    expect(isTimeTrial({ ...g, slot: 1 })).toBe(true);
-    expect(isTimeTrial({ ...g, slot: 2 })).toBe(false);
-    expect(isTimeTrial({ ...g, slot: 3 })).toBe(true);
+    expect(isTimeTrial('count')).toBe(false);
+    expect(isTimeTrial('match')).toBe(false);
+    expect(isTimeTrial('hear')).toBe(true);
+    expect(isTimeTrial('order')).toBe(false);
+    expect(isTimeTrial('whats_next')).toBe(true);
   });
 
   it('a correct answer adds points and grows the streak', () => {
-    const g = createGame('numbers', numbersDeck());
+    const g = createMiniGame('numbers', numbersDeck(), 'count');
     const { state, events } = applyAnswer(g, true);
     expect(events).toContain('correct');
     expect(state.points).toBeGreaterThan(0);
     expect(state.streak).toBe(1);
   });
 
+  it('scales points by the mini-game weight (harder = more points)', () => {
+    const count = applyAnswer(createMiniGame('numbers', numbersDeck(), 'count'), true).state;
+    const hear = applyAnswer(createMiniGame('numbers', numbersDeck(), 'hear'), true).state;
+    // First correct answer: no streak bonus yet, so points == 10 * weight.
+    expect(count.points).toBe(10 * LEVEL_WEIGHT.count);
+    expect(hear.points).toBe(10 * LEVEL_WEIGHT.hear);
+    expect(hear.points).toBeGreaterThan(count.points);
+  });
+
   it('a wrong answer costs a life, resets the streak, adds no points', () => {
-    const g = correctTimes(createGame('numbers', numbersDeck()), 1);
+    const g = correctTimes(createMiniGame('numbers', numbersDeck(), 'count'), 1);
     const { state, events } = applyAnswer(g, false);
     expect(events).toEqual(['wrong']);
     expect(state.lives).toBe(LIVES_START - 1);
@@ -110,28 +134,25 @@ describe('learnEngine progression', () => {
     expect(state.points).toBe(g.points); // unchanged
   });
 
-  it('clears a slot after ROUNDS_PER_SLOT correct answers', () => {
-    const g = createGame('numbers', numbersDeck());
-    const before = correctTimes(g, ROUNDS_PER_SLOT - 1);
-    expect(before.slot).toBe(0);
+  it('levels up after ROUNDS_PER_LEVEL correct answers', () => {
+    const g = createMiniGame('numbers', numbersDeck(), 'count');
+    const before = correctTimes(g, ROUNDS_PER_LEVEL - 1);
+    expect(before.level).toBe(0);
     const { state, events } = applyAnswer(before, true);
-    expect(events).toContain('slot_cleared');
-    expect(state.slot).toBe(1);
-    expect(state.roundInSlot).toBe(0);
+    expect(events).toContain('level_up');
+    expect(state.level).toBe(1);
+    expect(state.roundInLevel).toBe(0);
+    expect(levelNumber(state)).toBe(2);
   });
 
-  it('clears a tier after all slots and loops to the next, harder tier', () => {
-    const g = createGame('numbers', numbersDeck());
-    const perTier = ROUNDS_PER_SLOT * SLOTS_PER_TIER;
-    const justBefore = correctTimes(g, perTier - 1);
-    const { state, events } = applyAnswer(justBefore, true);
-    expect(events).toContain('tier_cleared');
-    expect(tierNumber(state)).toBe(2);
-    expect(state.slot).toBe(0);
+  it('keeps climbing levels endlessly (no cap)', () => {
+    const deep = correctTimes(createMiniGame('numbers', numbersDeck(), 'count'), ROUNDS_PER_LEVEL * 12);
+    expect(deep.level).toBe(12);
+    expect(deep.status).toBe('playing');
   });
 
   it('ends the game when lives reach zero', () => {
-    let g = createGame('numbers', numbersDeck());
+    let g = createMiniGame('numbers', numbersDeck(), 'count');
     let lastEvents: string[] = [];
     for (let i = 0; i < LIVES_START; i += 1) {
       const r = applyAnswer(g, false);
@@ -146,18 +167,18 @@ describe('learnEngine progression', () => {
     expect(after.state).toBe(g);
   });
 
-  it('final score combines tier and points', () => {
-    const g = createGame('numbers', numbersDeck());
-    const cleared = correctTimes(g, ROUNDS_PER_SLOT * SLOTS_PER_TIER); // → tier 2
-    expect(tierNumber(cleared)).toBe(2);
-    expect(finalScore(cleared)).toBe(2000 + cleared.points);
+  it('runScore is the accumulated run points', () => {
+    const g = createMiniGame('numbers', numbersDeck(), 'count');
+    const played = correctTimes(g, 5);
+    expect(played.points).toBeGreaterThan(0);
+    expect(runScore(played)).toBe(played.points);
   });
 });
 
 describe('learnEngine round generation', () => {
   it('count: answer glyph matches the object count and is among the choices', () => {
-    const g = createGame('numbers', numbersDeck());
-    const round = nextRound({ ...g, slot: 0 }, () => 0.5);
+    const g = createMiniGame('numbers', numbersDeck(), 'count');
+    const round = nextRound(g, () => 0.5);
     expect(round.kind).toBe('count');
     if (round.kind !== 'count') throw new Error('wrong kind');
     expect(round.count).toBeGreaterThanOrEqual(1);
@@ -168,8 +189,8 @@ describe('learnEngine round generation', () => {
   });
 
   it('match: left and right hold the same letters (pairable by token)', () => {
-    const g = createGame('letters', lettersDeck());
-    const round = nextRound({ ...g, slot: 0 }, () => 0.3);
+    const g = createMiniGame('letters', lettersDeck(), 'match');
+    const round = nextRound(g, () => 0.3);
     if (round.kind !== 'match') throw new Error('wrong kind');
     expect(new Set(round.left.map((i) => i.token))).toEqual(
       new Set(round.right.map((i) => i.token)),
@@ -178,8 +199,8 @@ describe('learnEngine round generation', () => {
   });
 
   it('match (letters): picks a real pool entry per letter (icon + audio id agree)', () => {
-    const g = createGame('letters', lettersDeck());
-    const round = nextRound({ ...g, slot: 0 }, () => 0.3);
+    const g = createMiniGame('letters', lettersDeck(), 'match');
+    const round = nextRound(g, () => 0.3);
     if (round.kind !== 'match') throw new Error('wrong kind');
     expect(round.icons).toBeDefined();
     expect(round.vocabIds).toBeDefined();
@@ -194,13 +215,13 @@ describe('learnEngine round generation', () => {
   });
 
   it('match: the recent-token window rotates through the whole tier slice without repeats', () => {
-    const g = createGame('letters', lettersDeck()); // tier 0 pool = 9 letters
+    const g = createMiniGame('letters', lettersDeck(), 'match'); // level-0 pool = 9 letters
     const recent: string[] = [];
     const seen = new Set<string>();
     let prev: Round | undefined;
     // 9 letters / 3 per round → three rounds should cover the slice exactly once.
     for (let r = 0; r < 3; r += 1) {
-      const round = nextRound({ ...g, slot: 0 }, Math.random, prev, recent);
+      const round = nextRound(g, Math.random, prev, recent);
       if (round.kind !== 'match') throw new Error('wrong kind');
       for (const it of round.left) seen.add(it.token);
       recent.push(...round.left.map((it) => it.token));
@@ -210,12 +231,12 @@ describe('learnEngine round generation', () => {
   });
 
   it('match: once the slice is exhausted, the least-recently-used letters come back first', () => {
-    const g = createGame('letters', lettersDeck()); // 9 letters
+    const g = createMiniGame('letters', lettersDeck(), 'match'); // 9 letters
     const recent: string[] = [];
     const rounds: string[][] = [];
     let prev: Round | undefined;
     for (let r = 0; r < 4; r += 1) {
-      const round = nextRound({ ...g, slot: 0 }, Math.random, prev, recent);
+      const round = nextRound(g, Math.random, prev, recent);
       if (round.kind !== 'match') throw new Error('wrong kind');
       const tokens = round.left.map((it) => it.token);
       rounds.push(tokens);
@@ -228,15 +249,15 @@ describe('learnEngine round generation', () => {
   });
 
   it('hear: the target is one of the choices', () => {
-    const g = createGame('numbers', numbersDeck());
-    const round = nextRound({ ...g, slot: 1 }, () => 0.2);
+    const g = createMiniGame('numbers', numbersDeck(), 'hear');
+    const round = nextRound(g, () => 0.2);
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.choices.map((c) => c.token)).toContain(round.target.token);
   });
 
   it('hear (letters): populates icons from vocab for choice tokens', () => {
-    const g = createGame('letters', lettersDeck());
-    const round = nextRound({ ...g, slot: 1 }, () => 0.3);
+    const g = createMiniGame('letters', lettersDeck(), 'hear');
+    const round = nextRound(g, () => 0.3);
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.icons).toBeDefined();
     // Every choice with a vocab emoji should appear in the icons map.
@@ -251,23 +272,22 @@ describe('learnEngine round generation', () => {
   });
 
   it('hear (numbers): does not populate icons for numbers track', () => {
-    const g = createGame('numbers', numbersDeck());
-    const round = nextRound({ ...g, slot: 1 }, () => 0.2);
+    const g = createMiniGame('numbers', numbersDeck(), 'hear');
+    const round = nextRound(g, () => 0.2);
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.icons).toBeUndefined();
   });
 
   it('hear round is single-target below the multi-target threshold', () => {
-    const g = createGame('numbers', numbersDeck());
-    const round = nextRound({ ...g, tierIndex: 0, slot: 1, roundInSlot: 0 }, () => 0.5);
+    const g = createMiniGame('numbers', numbersDeck(), 'hear'); // level 0
+    const round = nextRound(g, () => 0.5);
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.variant).toBeUndefined();
     expect(round.choices.filter((c) => c.token === round.target.token)).toHaveLength(1);
   });
 
-  it('hear round spawns 2-3 extra target fallers once tier/difficulty is high enough', () => {
-    const g = createGame('numbers', numbersDeck());
-    const round = nextRound({ ...g, tierIndex: 2, slot: 1, roundInSlot: 1 }, () => 0.5);
+  it('hear round spawns 2-3 extra target fallers once the level is high enough', () => {
+    const round = nextRound(mini('numbers', numbersDeck(), 'hear', { level: 2 }), () => 0.5);
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.variant).toBe('multi-target');
     const targetCount = round.choices.filter((c) => c.token === round.target.token).length;
@@ -276,9 +296,8 @@ describe('learnEngine round generation', () => {
   });
 
   it('hear round can generate a "starts-with" variant for letters with a curated second word', () => {
-    const g = createGame('letters', lettersDeck());
-    // rng() < 0.5 always steers hearRound into the starts-with branch once eligible.
-    const round = nextRound({ ...g, tierIndex: 2, slot: 1, roundInSlot: 1 }, () => 0.1);
+    // rng() < 1/3 always steers hearRound into the starts-with branch once eligible.
+    const round = nextRound(mini('letters', lettersDeck(), 'hear', { level: 2 }), () => 0.1);
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.variant).toBe('starts-with');
     expect(round.startsWithTokens).toHaveLength(1);
@@ -290,27 +309,22 @@ describe('learnEngine round generation', () => {
     expect(round.icons!.get(round.target.token)).toBe(LETTER_VOCAB[round.target.token]!.emoji);
     expect(round.icons!.get(extraToken)).toBe(LETTER_VOCAB_EXTRA[round.target.token]!.emoji);
     expect(round.icons!.get(extraToken)).not.toBe(round.icons!.get(round.target.token));
-    // Every faller that isn't a required target is a distractor from another letter.
-    for (const item of round.choices) {
-      if (item.token !== round.target.token && item.token !== extraToken) {
-        expect(item.token).not.toBe(round.target.token);
-      }
-    }
   });
 
   it('hear round never generates "starts-with" for the numbers track', () => {
-    const g = createGame('numbers', numbersDeck());
-    const round = nextRound({ ...g, tierIndex: 5, slot: 1, roundInSlot: 2 }, () => 0.1);
+    const round = nextRound(mini('numbers', numbersDeck(), 'hear', { level: 5 }), () => 0.1);
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.variant).not.toBe('starts-with');
     expect(round.startsWithTokens).toBeUndefined();
   });
 
   it('hear round can generate a "spell" variant for letters — a curated word, tapped in order', () => {
-    const g = createGame('letters', lettersDeck());
     // First rng() call is the starts-with roll (>= 1/3 skips it); the second is
     // the spell roll (< 0.5 picks it).
-    const round = nextRound({ ...g, tierIndex: 2, slot: 1, roundInSlot: 1 }, seqRng([0.9, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]));
+    const round = nextRound(
+      mini('letters', lettersDeck(), 'hear', { level: 2 }),
+      seqRng([0.9, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]),
+    );
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.variant).toBe('spell');
     const seq = round.spellSequence;
@@ -328,10 +342,12 @@ describe('learnEngine round generation', () => {
   });
 
   it('hear round can generate a "spell" variant for numbers — count up from one, in order', () => {
-    const g = createGame('numbers', numbersDeck());
     // Numbers never qualify for starts-with, so the very first rng() call is
     // the spell roll (< 0.5 picks it).
-    const round = nextRound({ ...g, tierIndex: 2, slot: 1, roundInSlot: 1 }, seqRng([0.1, 0.5, 0.2, 0.3]));
+    const round = nextRound(
+      mini('numbers', numbersDeck(), 'hear', { level: 2 }),
+      seqRng([0.1, 0.5, 0.2, 0.3]),
+    );
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.variant).toBe('spell');
     const seq = round.spellSequence;
@@ -342,17 +358,16 @@ describe('learnEngine round generation', () => {
     expect(round.target.token).toBe('n1');
   });
 
-  it('hear round never generates "spell" below the harder-tier threshold', () => {
-    const g = createGame('letters', lettersDeck());
-    const round = nextRound({ ...g, tierIndex: 0, slot: 1, roundInSlot: 0 }, () => 0.1);
+  it('hear round never generates "spell" below the harder-level threshold', () => {
+    const round = nextRound(mini('letters', lettersDeck(), 'hear', { level: 0 }), () => 0.1);
     if (round.kind !== 'hear') throw new Error('wrong kind');
     expect(round.variant).not.toBe('spell');
     expect(round.spellSequence).toBeUndefined();
   });
 
   it('order: the correct sequence is in deck order; shown holds the same items', () => {
-    const g = createGame('numbers', numbersDeck());
-    const round = nextRound({ ...g, slot: 2 }, () => 0.4);
+    const g = createMiniGame('numbers', numbersDeck(), 'order');
+    const round = nextRound(g, () => 0.4);
     if (round.kind !== 'order') throw new Error('wrong kind');
     const values = round.sequence.map((i) => Number(i.glyph));
     expect([...values]).toEqual([...values].sort((a, b) => a - b));
@@ -362,8 +377,8 @@ describe('learnEngine round generation', () => {
   });
 
   it('whats_next: the answer is the successor of the shown prefix', () => {
-    const g = createGame('numbers', numbersDeck());
-    const round = nextRound({ ...g, slot: 3 }, () => 0);
+    const g = createMiniGame('numbers', numbersDeck(), 'whats_next');
+    const round = nextRound(g, () => 0);
     if (round.kind !== 'whats_next') throw new Error('wrong kind');
     // rng=0 → prefix starts at n1 → 1,2,3, next is 4.
     expect(round.prefix.map((i) => i.glyph)).toEqual(['1', '2', '3']);
@@ -372,13 +387,12 @@ describe('learnEngine round generation', () => {
   });
 
   it('whats_next distractors stay near the answer in deck order', () => {
-    // A 20-item tier used to hand out far-off distractors (e.g. 19 after
+    // A 20-item pool used to hand out far-off distractors (e.g. 19 after
     // "2 3 4"), making the round trivially easy. They must now come from a
     // near window around the answer.
-    const g = createGame('numbers', numbersDeck());
-    const tier2 = { ...g, tierIndex: 1, slot: 3 };
+    const g = mini('numbers', numbersDeck(), 'whats_next', { level: 1 }); // level-1 pool = 20
     for (let i = 0; i < 50; i += 1) {
-      const r = nextRound(tier2, seqRng([i / 50, 0.3, 0.7, 0.1, 0.9]));
+      const r = nextRound(g, seqRng([i / 50, 0.3, 0.7, 0.1, 0.9]));
       if (r.kind !== 'whats_next') throw new Error('wrong kind');
       const answerValue = Number(r.answer.token.slice(1));
       expect(r.choices.length).toBe(CHOICES);
@@ -394,18 +408,16 @@ describe('learnEngine round generation', () => {
     // prefix is excluded — the fallback must top the choices up pool-wide.
     const deck = numbersDeck(4);
     const smallDeck: Deck = { items: deck.items, tiers: [{ level: 1, tokens: deck.items.map((it) => it.token) }] };
-    const state = { ...createGame('numbers', smallDeck), slot: 3 };
-    const r = nextRound(state, () => 0);
+    const r = nextRound(createMiniGame('numbers', smallDeck, 'whats_next'), () => 0);
     if (r.kind !== 'whats_next') throw new Error('wrong kind');
     // prefix 1,2,3 → answer 4; only 3 remaining non-prefix items at most.
     expect(r.choices.map((c) => c.token)).toContain(r.answer.token);
     expect(new Set(r.choices.map((c) => c.token)).size).toBe(r.choices.length);
   });
 
-  it('keeps generating rounds when the tier loops past the deck (content plateaus)', () => {
-    const g = createGame('numbers', numbersDeck());
-    const deep = { ...g, tierIndex: 9 }; // far past the 2 defined tiers
-    const round = nextRound({ ...deep, slot: 1 }, () => 0.5);
+  it('keeps generating rounds when the level runs past the deck (content plateaus)', () => {
+    const deep = mini('numbers', numbersDeck(), 'hear', { level: 9 }); // far past the 2 tiers
+    const round = nextRound(deep, () => 0.5);
     expect(round.kind).toBe('hear');
   });
 
@@ -417,7 +429,7 @@ describe('learnEngine round generation', () => {
       { token: 'n2', glyph: '2', glyph_alt: null, audio_url: '/a/n2' },
     ];
     const deck: Deck = { items, tiers: [{ level: 1, tokens: ['n1', 'n2'] }] };
-    const state = { ...createGame('numbers', deck), slot: 1 }; // hear
+    const state = createMiniGame('numbers', deck, 'hear');
     const prev = nextRound(state, () => 0); // target n1
     expect(prev.kind === 'hear' && prev.target.token).toBe('n1');
     // First generation repeats n1 (→ regenerate), second yields n2.
@@ -434,42 +446,40 @@ describe('learnEngine round generation', () => {
     expect(roundSignature(a)).not.toBe(roundSignature(c));
   });
 
-  it('hear round carries timeLimit and fallSpeedMult that ramp with difficulty', () => {
-    const g = createGame('numbers', numbersDeck());
-    const r0 = nextRound({ ...g, slot: 1, roundInSlot: 0 }, () => 0.5);
-    const r2 = nextRound({ ...g, slot: 1, roundInSlot: 2 }, () => 0.5);
+  it('hear round carries timeLimit and fallSpeedMult that ramp with the level', () => {
+    const g0 = createMiniGame('numbers', numbersDeck(), 'hear');
+    const g2 = mini('numbers', numbersDeck(), 'hear', { level: 2 });
+    const r0 = nextRound(g0, () => 0.5);
+    const r2 = nextRound(g2, () => 0.5);
     if (r0.kind !== 'hear' || r2.kind !== 'hear') throw new Error('wrong kind');
-    expect(r0.timeLimit).toBe(12); // full time at round 0
-    expect(r2.timeLimit).toBeLessThan(r0.timeLimit!); // less time at higher difficulty
+    expect(r0.timeLimit).toBe(12); // full time at level 0
+    expect(r2.timeLimit).toBeLessThan(r0.timeLimit!); // less time at higher level
     expect(r2.fallSpeedMult ?? 1.0).toBeGreaterThan(r0.fallSpeedMult ?? 1.0); // faster drops
   });
 
-  it('whats_next carries timeLimit that ramps with difficulty', () => {
-    const g = createGame('numbers', numbersDeck());
-    const r0 = nextRound({ ...g, slot: 3, roundInSlot: 0 }, () => 0.5);
-    const r2 = nextRound({ ...g, slot: 3, roundInSlot: 2 }, () => 0.5);
+  it('whats_next carries timeLimit that ramps with the level', () => {
+    const r0 = nextRound(createMiniGame('numbers', numbersDeck(), 'whats_next'), () => 0.5);
+    const r2 = nextRound(mini('numbers', numbersDeck(), 'whats_next', { level: 2 }), () => 0.5);
     if (r0.kind !== 'whats_next' || r2.kind !== 'whats_next') throw new Error('wrong kind');
     expect(r0.timeLimit).toBe(12);
     expect(r2.timeLimit).toBeLessThan(r0.timeLimit!);
   });
 
-  it('order round sequence grows with difficulty within a slot', () => {
-    const g = createGame('numbers', numbersDeck());
-    const r0 = nextRound({ ...g, slot: 2, roundInSlot: 0 }, () => 0.5);
-    const r2 = nextRound({ ...g, slot: 2, roundInSlot: 2 }, () => 0.5);
+  it('order round sequence grows with the level', () => {
+    const r0 = nextRound(createMiniGame('numbers', numbersDeck(), 'order'), () => 0.5);
+    const r2 = nextRound(mini('numbers', numbersDeck(), 'order', { level: 2 }), () => 0.5);
     if (r0.kind !== 'order' || r2.kind !== 'order') throw new Error('wrong kind');
-    expect(r0.sequence.length).toBeLessThanOrEqual(2); // shorter at round 0
-    expect(r2.sequence.length).toBeGreaterThanOrEqual(r0.sequence.length);
+    expect(r0.sequence.length).toBeLessThanOrEqual(2); // shorter at level 0
+    expect(r2.sequence.length).toBeGreaterThan(r0.sequence.length);
   });
 
-  it('count round max count increases with difficulty within a slot', () => {
-    const g = createGame('numbers', numbersDeck());
-    // Tier 2 has a pool of 20 items. With difficulty step=2, the effective max
-    // is Math.min(COUNT_MAX + 2, 20) = 12, so we can see counts > COUNT_MAX.
-    const tier2 = { ...g, tierIndex: 1 };
+  it('count round max count increases with the level', () => {
+    // Level 2 has a pool of 20 items and difficulty step 2, so the effective
+    // max is Math.min(COUNT_MAX + 2, 20) = 12 — counts > COUNT_MAX appear.
+    const g = mini('numbers', numbersDeck(), 'count', { level: 2 });
     let foundAbove = false;
     for (let i = 0; i < 200; i += 1) {
-      const r = nextRound({ ...tier2, slot: 0, roundInSlot: 2 }, () => 0.5 + (i % 10) * 0.05);
+      const r = nextRound(g, () => 0.5 + (i % 10) * 0.05);
       if (r.kind === 'count' && r.count > 10) {
         foundAbove = true;
         break;
@@ -479,12 +489,11 @@ describe('learnEngine round generation', () => {
   });
 
   it('count round distractors stay within ±3 of the real count', () => {
-    const g = createGame('numbers', numbersDeck());
-    // A large tier pool used to hand out far-off distractors (e.g. 17 next to
-    // 2), turning the round into "spot the small number" instead of counting.
-    const tier2 = { ...g, tierIndex: 1 };
+    // A large pool used to hand out far-off distractors (e.g. 17 next to 2),
+    // turning the round into "spot the small number" instead of counting.
+    const g = mini('numbers', numbersDeck(), 'count', { level: 1 }); // level-1 pool = 20
     for (let i = 0; i < 50; i += 1) {
-      const r = nextRound({ ...tier2, slot: 0, roundInSlot: 0 }, seqRng([i / 50, 0.3, 0.7, 0.1]));
+      const r = nextRound(g, seqRng([i / 50, 0.3, 0.7, 0.1]));
       if (r.kind !== 'count') throw new Error('wrong kind');
       expect(r.choices.length).toBe(CHOICES);
       for (const choice of r.choices) {
@@ -494,14 +503,11 @@ describe('learnEngine round generation', () => {
   });
 
   it('spell rounds never spawn more fallers than fit the canvas columns', () => {
-    const g = createGame('letters', lettersDeck());
     // Force the spell variant across many rng streams and check every choice
     // list (sequence + distractors) respects MAX_HEAR_FALLERS.
+    const g = mini('letters', lettersDeck(), 'hear', { level: 2 });
     for (let i = 0; i < 100; i += 1) {
-      const round = nextRound(
-        { ...g, tierIndex: 2, slot: 1, roundInSlot: 1 },
-        seqRng([0.9, 0.1, i / 100, (i * 7) % 100 / 100, 0.5]),
-      );
+      const round = nextRound(g, seqRng([0.9, 0.1, i / 100, ((i * 7) % 100) / 100, 0.5]));
       if (round.kind !== 'hear' || round.variant !== 'spell') continue;
       expect(round.choices.length).toBeLessThanOrEqual(MAX_HEAR_FALLERS);
       expect(round.choices.length).toBeGreaterThan(round.spellSequence!.length); // ≥1 distractor

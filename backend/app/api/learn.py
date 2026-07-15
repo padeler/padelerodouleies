@@ -72,6 +72,31 @@ def get_level_intro_tts(
     )
 
 
+@router.get("/card/{level}.mp3")
+def get_card_tts(
+    level: str,
+    _current_user: User = Depends(get_current_user),
+) -> FileResponse:
+    """Spoken mini-game card (title + short description) for the picker's speaker.
+
+    The level is resolved against the in-code intro table — never a filesystem
+    path — so there is no traversal surface; an unknown level is a plain 404.
+    Served from the same warmed cache as the deck words.
+    """
+    if level not in learn_decks.LEVEL_INTROS:
+        raise HTTPException(404, f"Unknown level: {level}")
+
+    try:
+        path = tts.get_or_synthesize(learn_decks.card_tts(level))
+    except tts.TTSUnavailableError as exc:
+        logger.warning("TTS unavailable for learn card %s: %s", level, exc)
+        raise HTTPException(503, "TTS unavailable") from exc
+
+    return FileResponse(
+        path, media_type="audio/mpeg", headers={"Cache-Control": "private, max-age=3600"}
+    )
+
+
 @router.get("/feedback/success.mp3")
 def get_success_tts(
     _current_user: User = Depends(get_current_user),

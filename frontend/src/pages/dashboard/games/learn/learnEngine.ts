@@ -4,12 +4,17 @@
  * loops, audio and input; this module owns progression and round generation so
  * the rules are unit-testable in isolation.
  *
- * Shape of a run: 4 level-type slots per tier, ROUNDS_PER_SLOT correct answers
- * to clear a slot, 4 slots to clear a tier, then the tier number climbs forever
- * (content plateaus at the largest deck slice — "endless, harder"). 3 lives; a
- * wrong answer (or a missed falling target / expired time-trial, reported by the
- * component as `correct=false`) costs one. The final score submitted to the
- * server is `tier * 1000 + points`.
+ * Shape of a run (mini-game model): a single fixed `levelType` (the mini-game
+ * the kid picked) played in **endless** mode. Every ROUNDS_PER_LEVEL correct
+ * answers bumps `level` by one — the difficulty counter that widens the content
+ * pool and tightens the intra-run ramps, climbing forever ("endless, harder").
+ * 3 lives; a wrong answer (or a missed falling target / expired time-trial,
+ * reported by the component as `correct=false`) costs one, and the run ends at 0
+ * lives. `runScore` is the points accumulated this run — the shell sums the best
+ * run per mini-game into the session total it submits to the server.
+ *
+ * Points per correct answer are scaled by `LEVEL_WEIGHT[levelType]` so harder
+ * mini-games (the falling-target `hear`, the timed `whats_next`) are worth more.
  *
  * Since these games award no stars, the correct answer travels inside the Round
  * (the component compares locally) — there is no server grading to protect.
@@ -44,8 +49,9 @@ export interface Deck {
   tiers: Tier[];
 }
 
-// The four level-type slots per track, in play order. Slot 0 is track-specific
-// (Count Them for numbers, Match Case for letters); slots 1–3 are shared.
+// The mini-games each track offers. The first entry is track-specific (Count
+// Them for numbers, Match Case for letters); the rest are shared. Each is played
+// as its own endless run picked from the hub.
 export type LevelType = 'count' | 'match' | 'hear' | 'order' | 'whats_next';
 
 const LEVEL_TYPES: Record<Track, readonly LevelType[]> = {
@@ -53,8 +59,22 @@ const LEVEL_TYPES: Record<Track, readonly LevelType[]> = {
   letters: ['match', 'hear', 'order', 'whats_next'],
 };
 
-export const SLOTS_PER_TIER = 4;
-export const ROUNDS_PER_SLOT = 3;
+/** The mini-games available for a track, in picker order. */
+export function levelTypesFor(track: Track): readonly LevelType[] {
+  return LEVEL_TYPES[track];
+}
+
+// Points multiplier per mini-game — harder mini-games are worth more (see the
+// per-correct scoring in applyAnswer). Surfaced in the picker as "×N".
+export const LEVEL_WEIGHT: Record<LevelType, number> = {
+  count: 1,
+  match: 1,
+  order: 2,
+  whats_next: 2,
+  hear: 3,
+};
+
+export const ROUNDS_PER_LEVEL = 3; // correct answers to advance one difficulty level
 export const LIVES_START = 3;
 export const COUNT_MAX = 10; // Count Them base object cap (the intra-slot ramp may add up to +2)
 export const SEQUENCE_LEN = 3; // items shown in order / match / before "what's next"
@@ -72,9 +92,9 @@ export const MAX_HEAR_FALLERS = 6;
 export const COUNT_OBJECTS: readonly string[] = ['⭐', '🍎', '🌸', '🎈', '🍓', '🐠', '🐤', '🎀'];
 export const TIME_LIMIT_SECONDS = 12; // time-trial rounds (component runs the clock)
 
-// Time-trial slots: Hear It (1) and What Comes Next (3). The component reads
-// this to decide whether to run the countdown.
-const TIME_TRIAL_SLOTS = new Set([1, 3]);
+// Time-trial mini-games: Hear It and What Comes Next. The component reads this
+// to decide whether to run the countdown.
+const TIME_TRIAL_TYPES = new Set<LevelType>(['hear', 'whats_next']);
 
 const POINTS_PER_CORRECT = 10;
 const STREAK_BONUS_STEP = 2; // extra points per consecutive correct, capped
@@ -155,16 +175,16 @@ export interface GameState {
   track: Track;
   itemsByToken: Record<string, DeckItem>;
   tiers: Tier[];
-  tierIndex: number; // 0-based; score tier number = tierIndex + 1, grows unbounded
-  slot: number; // 0..SLOTS_PER_TIER-1
-  roundInSlot: number; // 0..ROUNDS_PER_SLOT-1
+  levelType: LevelType; // fixed for the run — the mini-game the kid picked
+  level: number; // 0-based difficulty counter, grows unbounded (endless)
+  roundInLevel: number; // 0..ROUNDS_PER_LEVEL-1
   lives: number;
   points: number;
   streak: number;
   status: 'playing' | 'over';
 }
 
-export type GameEvent = 'correct' | 'wrong' | 'slot_cleared' | 'tier_cleared' | 'game_over';
+export type GameEvent = 'correct' | 'wrong' | 'level_up' | 'game_over';
 
 // --- Small pure rng helpers (rng injectable for deterministic tests) ----------
 
@@ -216,47 +236,45 @@ function pickOne<T>(items: T[], rng: () => number): T {
   return items[Math.floor(rng() * items.length)]!;
 }
 
-// --- Difficulty ramping (progressive within each slot) -------------------------
+// --- Difficulty ramping (progressive, endless — keyed off `level`) -------------
 
-/** Clamp roundInSlot to 0..2 for a 3-step ramp within each slot. */
+/** The difficulty step for the intra-run ramps below — the endless level. */
 function diffStep(state: GameState): number {
-  return Math.min(state.roundInSlot, ROUNDS_PER_SLOT - 1);
+  return state.level;
 }
 
-/** Time-trial duration in seconds (decreases as rounds progress). */
+/** Time-trial duration in seconds (decreases as the level climbs, floored). */
 export function timeLimitForState(state: GameState): number {
-  const step = diffStep(state);
-  // Round 0: full time; round 1: -1s; round 2: -2s (but never < 4s).
-  return Math.max(4, TIME_LIMIT_SECONDS - step);
+  // -1s per level from the base, but never below 4s.
+  return Math.max(4, TIME_LIMIT_SECONDS - state.level);
 }
 
-/** Fall speed multiplier for Hear It (increases as rounds progress). */
+/** Fall speed multiplier for Hear It (increases with level, capped playable). */
 export function fallSpeedMultiplier(state: GameState): number {
-  const step = diffStep(state);
-  // Round 0: 1.0x; round 1: 1.25x; round 2: 1.5x
-  return 1 + step * 0.25;
+  // +0.15x per level, capped so the old tablets stay tappable in the tail.
+  return Math.min(2.5, 1 + state.level * 0.15);
 }
 
 /** Sequence length for Ordering (starts shorter, grows to SEQUENCE_LEN). */
 export function orderSequenceLength(state: GameState): number {
-  const step = diffStep(state);
-  // Round 0: 2 items; round 1+: up to SEQUENCE_LEN
-  return Math.min(2 + step, SEQUENCE_LEN);
+  // Level 0: 2 items; level 1+: up to SEQUENCE_LEN.
+  return Math.min(2 + state.level, SEQUENCE_LEN);
 }
 
 // --- Public API ---------------------------------------------------------------
 
-export function createGame(track: Track, deck: Deck): GameState {
-  if (deck.tiers.length === 0) throw new Error('createGame: deck has no tiers');
+/** Start an endless run of a single mini-game (`levelType`) for `track`. */
+export function createMiniGame(track: Track, deck: Deck, levelType: LevelType): GameState {
+  if (deck.tiers.length === 0) throw new Error('createMiniGame: deck has no tiers');
   const itemsByToken: Record<string, DeckItem> = {};
   for (const item of deck.items) itemsByToken[item.token] = item;
   return {
     track,
     itemsByToken,
     tiers: deck.tiers,
-    tierIndex: 0,
-    slot: 0,
-    roundInSlot: 0,
+    levelType,
+    level: 0,
+    roundInLevel: 0,
     lives: LIVES_START,
     points: 0,
     streak: 0,
@@ -264,29 +282,34 @@ export function createGame(track: Track, deck: Deck): GameState {
   };
 }
 
-/** Score tier number (1-based, unbounded as the game loops). */
-export function tierNumber(state: GameState): number {
-  return state.tierIndex + 1;
+/** Difficulty level number (1-based, unbounded as the run continues). */
+export function levelNumber(state: GameState): number {
+  return state.level + 1;
 }
 
-/** Final score submitted to the server: tier * 1000 + accumulated points. */
-export function finalScore(state: GameState): number {
-  return tierNumber(state) * 1000 + state.points;
+/** Points accumulated this run — the shell banks the best run per mini-game. */
+export function runScore(state: GameState): number {
+  return state.points;
 }
 
 export function currentLevelType(state: GameState): LevelType {
-  return LEVEL_TYPES[state.track][state.slot]!;
+  return state.levelType;
 }
 
-export function isTimeTrial(state: GameState): boolean {
-  return TIME_TRIAL_SLOTS.has(state.slot);
+export function isTimeTrial(levelType: LevelType): boolean {
+  return TIME_TRIAL_TYPES.has(levelType);
 }
 
-/** Deck items in play this tier (content plateaus at the largest tier slice). */
+/** Deck items in play at this level (content plateaus at the largest tier slice). */
 function poolForState(state: GameState): DeckItem[] {
-  const contentTier = Math.min(state.tierIndex, state.tiers.length - 1);
+  const contentTier = Math.min(state.level, state.tiers.length - 1);
   const tier = state.tiers[contentTier]!;
   return tier.tokens.map((t) => state.itemsByToken[t]!);
+}
+
+/** Tokens in play at a given level — for the shell's audio prefetch. */
+export function poolTokensForLevel(deck: Deck, level: number): string[] {
+  return deck.tiers[Math.min(level, deck.tiers.length - 1)]!.tokens;
 }
 
 /**
@@ -307,24 +330,21 @@ export function applyAnswer(state: GameState, correct: boolean): { state: GameSt
   const events: GameEvent[] = ['correct'];
   const streak = state.streak + 1;
   const bonus = Math.min(streak - 1, STREAK_BONUS_CAP) * STREAK_BONUS_STEP;
-  const points = state.points + POINTS_PER_CORRECT + bonus;
+  // Harder mini-games are worth more (LEVEL_WEIGHT); streak bonus is included in
+  // the weighted amount so a hot streak on `hear` pays off the most.
+  const gained = (POINTS_PER_CORRECT + bonus) * LEVEL_WEIGHT[state.levelType];
+  const points = state.points + gained;
 
-  let { slot, tierIndex } = state;
-  let roundInSlot = state.roundInSlot + 1;
-
-  if (roundInSlot >= ROUNDS_PER_SLOT) {
-    roundInSlot = 0;
-    slot += 1;
-    events.push('slot_cleared');
-    if (slot >= SLOTS_PER_TIER) {
-      slot = 0;
-      tierIndex += 1;
-      events.push('tier_cleared');
-    }
+  let { level } = state;
+  let roundInLevel = state.roundInLevel + 1;
+  if (roundInLevel >= ROUNDS_PER_LEVEL) {
+    roundInLevel = 0;
+    level += 1;
+    events.push('level_up');
   }
 
   return {
-    state: { ...state, slot, tierIndex, roundInSlot, points, streak },
+    state: { ...state, level, roundInLevel, points, streak },
     events,
   };
 }
@@ -459,12 +479,11 @@ function matchRound(
   return round;
 }
 
-// Both group-target variants (multi-target, starts-with) only kick in once the
-// kid has cleared a full tier and is on a harder step within the current slot —
-// they need the extra screen real estate/pressure to feel like a step up, not a
-// trap early on.
+// The group-target variants (multi-target, starts-with, spell) only kick in
+// after a few level-ups — they need the extra screen real estate/pressure to
+// feel like a step up, not a trap early on.
 function isHarderHearTier(state: GameState): boolean {
-  return state.tierIndex >= 2 && diffStep(state) >= 1;
+  return state.level >= 2;
 }
 
 // "Starts-with" targets require two distinct vocab icons for the same letter

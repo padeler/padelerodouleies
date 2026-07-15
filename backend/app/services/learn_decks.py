@@ -259,6 +259,28 @@ def intro_text(level: str) -> str:
     return LEVEL_INTROS[level]
 
 
+# Spoken mini-game title (mirrors the frontend ``games.learn.<type>`` name). Read
+# before the description by the picker card's speaker (``card_tts``).
+LEVEL_TITLES: dict[LevelType, str] = {
+    "count": "Μέτρα τα",
+    "match": "Ταίριαξε",
+    "hear": "Άκου",
+    "order": "Βάλε σε σειρά",
+    "whats_next": "Τι ακολουθεί",
+}
+
+
+def card_tts(level: str) -> str:
+    """Spoken mini-game card: its title then its short description.
+
+    Read by the picker card's speaker (like the chore/reward cards). Raises
+    ValueError for an unknown level — no silent default.
+    """
+    if level not in LEVEL_INTROS:
+        raise ValueError(f"card_tts: unknown level {level!r}")
+    return f"{LEVEL_TITLES[level]}. {LEVEL_INTROS[level]}"
+
+
 # --- Deck model ---------------------------------------------------------------
 
 

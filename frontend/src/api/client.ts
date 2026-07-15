@@ -596,6 +596,11 @@ export function learnSayUrl(level: string): string {
   return `${BASE}/games/learn/say/${level}.mp3`;
 }
 
+/** Spoken mini-game card (title + short description) for the picker's speaker. */
+export function learnCardUrl(level: string): string {
+  return `${BASE}/games/learn/card/${level}.mp3`;
+}
+
 /** Spoken "find this one" prompt for the falling-targets level. */
 export function learnFindUrl(track: 'numbers' | 'letters', token: string): string {
   return `${BASE}/games/learn/${track}/find/${token}.mp3`;

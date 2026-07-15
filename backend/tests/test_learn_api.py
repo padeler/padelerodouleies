@@ -129,6 +129,34 @@ async def test_unknown_level_intro_404(kid_client):
     assert (await kid_client.get("/api/games/learn/say/bogus.mp3")).status_code == 404
 
 
+async def test_card_tts_synthesizes_title_and_description(kid_client, monkeypatch, tmp_path):
+    captured: list[str] = []
+
+    def fake_synth(text: str) -> Path:
+        captured.append(text)
+        out = tmp_path / "card.mp3"
+        out.write_bytes(b"id3-stub")
+        return out
+
+    monkeypatch.setattr(tts, "get_or_synthesize", fake_synth)
+
+    resp = await kid_client.get("/api/games/learn/card/count.mp3")
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "audio/mpeg"
+    # The spoken card is the mini-game title, then its short description.
+    assert captured == [learn_decks.card_tts("count")]
+
+
+async def test_unknown_card_level_404(kid_client):
+    assert (await kid_client.get("/api/games/learn/card/bogus.mp3")).status_code == 404
+
+
+async def test_card_tts_requires_auth():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as c:
+        assert (await c.get("/api/games/learn/card/hear.mp3")).status_code == 401
+
+
 async def test_level_intro_503_when_unavailable(kid_client, monkeypatch):
     def boom(text: str) -> Path:
         raise tts.TTSUnavailableError("piper missing")

@@ -67,6 +67,7 @@ def test_iter_all_texts_is_union_of_warmed_strings() -> None:
     expected = (
         set(learn_tts.iter_deck_tts_texts())
         | set(learn_tts.iter_intro_texts())
+        | set(learn_tts.iter_card_texts())
         | set(learn_tts.iter_find_texts())
         | set(learn_tts.iter_find_all_texts())
         | set(learn_tts.iter_find_starts_with_texts())

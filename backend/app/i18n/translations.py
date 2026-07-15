@@ -313,16 +313,42 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "games.letters.title": {"el": "Ταξίδι Γραμμάτων", "en": "Letter Adventure"},
     "games.letters.desc": {"el": "Μάθε το αλφάβητο παίζοντας — ταίριαξε, άκου και βάλε σε σειρά!", "en": "Learn the alphabet by playing — match, listen and put in order!"},
     "games.learn.loading": {"el": "Φόρτωση…", "en": "Loading…"},
-    "games.learn.tier": {"el": "Πίστα {tier}", "en": "Level {tier}"},
-    "games.learn.tier_cleared": {"el": "Πίστα {tier} ολοκληρώθηκε!", "en": "Level {tier} cleared!"},
+    "games.learn.level": {"el": "Επίπεδο {level}", "en": "Level {level}"},
+    "games.learn.level_up": {"el": "Επίπεδο {level}!", "en": "Level {level}!"},
     "games.learn.time_up": {"el": "Τέλος χρόνου!", "en": "Time's up!"},
     "games.learn.lives": {"el": "Ζωές", "en": "Lives"},
+    # Mini-game picker + session scoring
+    "games.learn.choose": {"el": "Διάλεξε παιχνίδι", "en": "Choose a game"},
+    "games.learn.total": {"el": "Σύνολο", "en": "Total"},
+    "games.learn.choose_another": {"el": "Διάλεξε άλλο", "en": "Choose another"},
     # Level-type names
     "games.learn.count": {"el": "Μέτρα τα", "en": "Count them"},
     "games.learn.match": {"el": "Ταίριαξε", "en": "Match them"},
     "games.learn.hear": {"el": "Άκου", "en": "Listen"},
     "games.learn.order": {"el": "Βάλε σε σειρά", "en": "Put in order"},
     "games.learn.whats_next": {"el": "Τι ακολουθεί", "en": "What comes next"},
+    # Per-level short descriptions (shown on the picker card back; the el text
+    # mirrors learn_decks.LEVEL_INTROS so the spoken card matches what's on screen)
+    "games.learn.count_desc": {
+        "el": "Μέτρησε πόσα είναι και διάλεξε τον σωστό αριθμό.",
+        "en": "Count how many there are and pick the right number.",
+    },
+    "games.learn.match_desc": {
+        "el": "Ταίριαξε το γράμμα με τη σωστή εικόνα.",
+        "en": "Match the letter with the right picture.",
+    },
+    "games.learn.hear_desc": {
+        "el": "Άκουσε τη λέξη και διάλεξε τη σωστή. Γρήγορα!",
+        "en": "Listen to the word and pick the right one. Quick!",
+    },
+    "games.learn.order_desc": {
+        "el": "Βάλε τα στη σωστή σειρά.",
+        "en": "Put them in the right order.",
+    },
+    "games.learn.whats_next_desc": {
+        "el": "Βρες τι ακολουθεί. Γρήγορα!",
+        "en": "Find what comes next. Quick!",
+    },
     # Per-level prompts
     "games.learn.count_prompt": {"el": "Πόσα είναι;", "en": "How many?"},
     "games.learn.match_prompt": {"el": "Ταίριαξε γράμμα και εικόνα", "en": "Match letter and picture"},
@@ -332,7 +358,6 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "games.learn.replay": {"el": "Άκου ξανά", "en": "Listen again"},
     "games.learn.get_ready": {"el": "Έτοιμοι;", "en": "Get ready!"},
     "games.learn.go": {"el": "Πάμε!", "en": "Go!"},
-    "games.learn.level_cleared": {"el": "Μπράβο!", "en": "Well done!"},
     "games.learn.continue": {"el": "Συνέχεια", "en": "Continue"},
     # Per-round result panel (shown after every answer; the kid taps Continue)
     "games.learn.correct_title": {"el": "Μπράβο!", "en": "Correct!"},

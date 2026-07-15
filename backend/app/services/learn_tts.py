@@ -46,6 +46,16 @@ def iter_intro_texts() -> list[str]:
     return list(seen)
 
 
+def iter_card_texts() -> list[str]:
+    """The spoken mini-game card sentences (title + description, one per level)."""
+    seen: dict[str, None] = {}
+    for level in learn_decks.LEVEL_INTROS:
+        text = learn_decks.card_tts(level).strip()
+        if text:
+            seen.setdefault(text, None)
+    return list(seen)
+
+
 def iter_find_texts() -> list[str]:
     """The spoken "find X" prompts (one per deck token, both tracks, deduped).
 
@@ -109,6 +119,7 @@ def iter_all_texts() -> list[str]:
     for text in (
         *iter_deck_tts_texts(),
         *iter_intro_texts(),
+        *iter_card_texts(),
         *iter_find_texts(),
         *iter_find_all_texts(),
         *iter_find_starts_with_texts(),

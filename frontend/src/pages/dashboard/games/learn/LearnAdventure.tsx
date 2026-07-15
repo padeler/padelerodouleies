@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Heart } from 'lucide-react';
+import { ArrowDownUp, Ear, Hash, Heart, Lightbulb, Puzzle, type LucideIcon } from 'lucide-react';
 import { useT } from '../../../../i18n/store';
+import { learnCardUrl } from '../../../../api/client';
 import { notifyCelebration } from '../../../../lib/notify';
-import { WIN_TUNE_MAX_MS, playWinTune, playWrong } from '../../../../lib/sound';
+import { WIN_TUNE_MAX_MS, playFlip, playWinTune, playWrong } from '../../../../lib/sound';
+import { SpeakButton } from '../../../../components/SpeakButton';
 import { GamePage } from '../GamePage';
 import { useGameBest, useSubmitScore } from '../useGameScores';
 import { CountThem } from './CountThem';
@@ -13,16 +15,18 @@ import { WhatsNext } from './WhatsNext';
 import { RoundIntro } from './RoundIntro';
 import { useLearnDeck } from './useLearnDeck';
 import {
+  LEVEL_WEIGHT,
   LIVES_START,
   MATCH_HISTORY_WINDOW,
   applyAnswer,
-  createGame,
+  createMiniGame,
   currentLevelType,
-  finalScore,
   isTimeTrial,
+  levelNumber,
+  levelTypesFor,
   nextRound,
-  tierNumber,
-  type Deck,
+  poolTokensForLevel,
+  runScore,
   type GameEvent,
   type GameState,
   type LevelType,
@@ -30,6 +34,7 @@ import {
   type RoundFeedback,
   type Track,
 } from './learnEngine';
+import '../../flip-card.css';
 import './LearnAdventure.css';
 
 const SCORE_KEY: Record<Track, string> = {
@@ -53,25 +58,43 @@ const LEVEL_PROMPT_KEY: Record<LevelType, string> = {
   whats_next: 'games.learn.whats_next_prompt',
 };
 
-function tierTokens(deck: Deck, tierIndex: number): string[] {
-  return deck.tiers[Math.min(tierIndex, deck.tiers.length - 1)]!.tokens;
+// Short description shown on the picker card's back (and spoken by its speaker).
+const LEVEL_DESC_KEY: Record<LevelType, string> = {
+  count: 'games.learn.count_desc',
+  match: 'games.learn.match_desc',
+  hear: 'games.learn.hear_desc',
+  order: 'games.learn.order_desc',
+  whats_next: 'games.learn.whats_next_desc',
+};
+
+// A distinct Lucide chrome icon per mini-game (per the old-tablet emoji rule,
+// interface icons use lucide-react, not emoji).
+const LEVEL_ICON: Record<LevelType, LucideIcon> = {
+  count: Hash,
+  match: Puzzle,
+  hear: Ear,
+  order: ArrowDownUp,
+  whats_next: Lightbulb,
+};
+
+/** Sum of the best run per mini-game this session — the score we submit. */
+function sessionTotal(bestByType: Partial<Record<LevelType, number>>): number {
+  return Object.values(bestByType).reduce((a, b) => a + (b ?? 0), 0);
 }
 
 /**
  * A resolved-but-not-yet-committed answer. The game pauses on a result panel
  * after every round (success and failure alike); the kid taps Continue to
  * commit `next` and move on. Captured here so the panel can explain the outcome
- * and the celebration variant for a cleared slot/tier.
+ * and celebrate a level-up.
  */
 interface Pending {
   correct: boolean;
   events: GameEvent[];
   feedback: RoundFeedback;
-  levelType: LevelType; // the level just played (drives the count-specific text)
+  levelType: LevelType; // the mini-game being played (drives the count-specific text)
   next: GameState;
   nextRound: Round | null; // null when the run is over
-  newLevel: boolean;
-  tierJustCleared: number | null; // tier number cleared (for the 🏆 variant), else null
 }
 
 /** The Learning Adventure shell: one component, rendered per track. */
@@ -93,12 +116,16 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
   const submitScore = useSubmitScore();
 
   const [audioReady, setAudioReady] = useState(false);
+  // `game === null` means we are on the mini-game picker.
   const [game, setGame] = useState<GameState | null>(null);
-  const [round, setRound] = useState<{ data: Round; id: number; newLevel: boolean } | null>(null);
+  // `speakIntro` marks the first round of a mini-game (speak its description).
+  const [round, setRound] = useState<{ data: Round; id: number; speakIntro: boolean } | null>(null);
   // 'intro' = spoken description / countdown; 'play' = interactive round;
   // 'feedback' = per-round result panel the kid dismisses with Continue.
   const [phase, setPhase] = useState<'intro' | 'play' | 'feedback'>('play');
   const [pending, setPending] = useState<Pending | null>(null);
+  // Best run per mini-game this session; their sum is the submitted score.
+  const [bestByType, setBestByType] = useState<Partial<Record<LevelType, number>>>({});
   const [newBest, setNewBest] = useState(false);
 
   // Rolling window of recently-matched letters (oldest→newest) so Match Case
@@ -118,11 +145,12 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
     return generated;
   }, []);
 
-  // Pre-fetch the first tier's clips so the very first tap is instant.
+  // Pre-fetch the smallest tier's clips (the level-0 pool for any mini-game) so
+  // the very first tap is instant.
   useEffect(() => {
     if (!deck) return;
     let cancelled = false;
-    void prefetch(tierTokens(deck, 0)).then(() => {
+    void prefetch(poolTokensForLevel(deck, 0)).then(() => {
       if (!cancelled) setAudioReady(true);
     });
     return () => {
@@ -130,16 +158,28 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
     };
   }, [deck, prefetch]);
 
-  const start = useCallback((): void => {
-    if (!deck) return;
-    const g = createGame(track, deck);
-    setNewBest(false);
+  // Launch an endless run of one mini-game from the picker.
+  const startMiniGame = useCallback(
+    (levelType: LevelType): void => {
+      if (!deck) return;
+      const g = createMiniGame(track, deck, levelType);
+      setNewBest(false);
+      setPending(null);
+      recentMatchTokens.current = [];
+      setGame(g);
+      setRound({ data: genRound(g), id: 0, speakIntro: true });
+      setPhase('intro'); // speak the mini-game's description before the first round
+    },
+    [deck, track, genRound],
+  );
+
+  // Back to the picker (keeps the session's accumulated best-per-mini-game).
+  const backToPicker = useCallback((): void => {
+    stopAudio();
+    setGame(null);
+    setRound(null);
     setPending(null);
-    recentMatchTokens.current = [];
-    setGame(g);
-    setRound({ data: genRound(g), id: 0, newLevel: true });
-    setPhase('intro'); // first level → speak its description before play
-  }, [deck, track, genRound]);
+  }, [stopAudio]);
 
   // Grade the round, but hold on the result panel rather than advancing — the
   // kid taps Continue (see handleContinue) to commit and move on. Plays the sound
@@ -151,9 +191,9 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
       const { state: next, events } = applyAnswer(game, correct);
 
       if (events.includes('wrong')) playWrong();
-      if (events.includes('tier_cleared')) {
-        notifyCelebration(t('games.learn.tier_cleared', { tier: String(tierNumber(game)) }));
-        if (deck) void prefetch(tierTokens(deck, next.tierIndex));
+      if (events.includes('level_up')) {
+        notifyCelebration(t('games.learn.level_up', { level: String(levelNumber(next)) }));
+        if (deck) void prefetch(poolTokensForLevel(deck, next.level));
       }
 
       // Celebrate a correct answer with a random winning jingle (replaces the
@@ -162,89 +202,99 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
       if (correct) playWinTune();
       else playWrongPhrase(feedback.correctToken, feedback.pickedToken);
 
-      const newLevel =
-        next.status === 'playing' && (next.slot !== game.slot || next.tierIndex !== game.tierIndex);
       setPending({
         correct,
         events,
         feedback,
         levelType,
         next,
-        // Pass the round just played so the next one is never an exact repeat
-        // (only meaningful when the slot stays the same — across a slot/level
-        // change the round kind differs, so the signature can't collide).
+        // Pass the round just played so the next one is never an exact repeat.
         nextRound: next.status === 'playing' ? genRound(next, round?.data) : null,
-        newLevel,
-        tierJustCleared: events.includes('tier_cleared') ? tierNumber(game) : null,
       });
       setPhase('feedback');
     },
     [game, round, deck, prefetch, playWrongPhrase, t, genRound],
   );
 
-  // Commit the held result and move on: end the run (submit the score) or start
-  // the next round, re-entering the intro for a new level or a timed round.
+  // Commit the held result and move on: end the run (bank + submit the session
+  // total) or start the next round, re-entering the intro for a timed round.
   const handleContinue = useCallback((): void => {
     if (!pending) return;
     const p = pending;
     setPending(null);
     setGame(p.next);
+
     if (p.next.status !== 'playing' || !p.nextRound) {
       stopAudio();
-      submitScore(SCORE_KEY[track], finalScore(p.next), (improved) => {
-        setNewBest(improved);
-        if (improved) notifyCelebration(t('games.new_best'));
-      });
+      // Bank this run: keep the best run per mini-game this session, and submit
+      // the session total only when it grows (a worse replay changes nothing).
+      const gained = runScore(p.next);
+      setNewBest(false);
+      if (gained > (bestByType[p.levelType] ?? 0)) {
+        const nextBest = { ...bestByType, [p.levelType]: gained };
+        setBestByType(nextBest);
+        submitScore(SCORE_KEY[track], sessionTotal(nextBest), (improved) => {
+          setNewBest(improved);
+          if (improved) notifyCelebration(t('games.new_best'));
+        });
+      }
       return;
     }
-    setRound((prev) => ({ data: p.nextRound!, id: (prev?.id ?? 0) + 1, newLevel: p.newLevel }));
-    setPhase(p.newLevel || isTimeTrial(p.next) ? 'intro' : 'play');
-  }, [pending, stopAudio, submitScore, track, t]);
+
+    setRound((prev) => ({ data: p.nextRound!, id: (prev?.id ?? 0) + 1, speakIntro: false }));
+    setPhase(isTimeTrial(p.next.levelType) ? 'intro' : 'play');
+  }, [pending, bestByType, stopAudio, submitScore, track, t]);
 
   const titleKey = `games.${track}.title`;
   const loading = !deck || !audioReady;
-
-  // Start the run automatically once the deck + audio are ready — the old
-  // welcome screen with a Start button was redundant (the kid is already on the
-  // game page). A finished run still shows the game-over panel with Play again.
-  useEffect(() => {
-    if (!loading && !game) start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, game, start]);
+  const total = sessionTotal(bestByType);
 
   return (
     <GamePage emoji={emoji} title={t(titleKey)}>
       {loading ? (
         <p className="learn-loading">{t('games.learn.loading')}</p>
+      ) : !game ? (
+        <MiniGamePicker
+          track={track}
+          bestByType={bestByType}
+          sessionTotal={total}
+          serverBest={best}
+          onPick={startMiniGame}
+        />
       ) : (
         <>
-          {game && (
-            <div className="game-hud">
-              <span className="game-hud-item">{t('games.learn.tier', { tier: String(tierNumber(game)) })}</span>
+          {/* Back to the mini-game picker mid-run (the GamePage link above leaves
+              the adventure entirely; this returns to the picker within it). */}
+          <button type="button" className="learn-back" onClick={backToPicker}>
+            ← {t('games.learn.choose_another')}
+          </button>
+          <div className="game-hud">
+            <span className="game-hud-item">
+              {t('games.learn.level', { level: String(levelNumber(game)) })}
+            </span>
+            <span className="game-hud-item">
+              {t('games.score')}: {game.points}
+            </span>
+            <span className="game-hud-item learn-lives">
+              {Array.from({ length: LIVES_START }, (_, i) => (
+                <Heart
+                  key={i}
+                  size={20}
+                  className={i < game.lives ? 'learn-heart full' : 'learn-heart empty'}
+                  fill={i < game.lives ? 'currentColor' : 'none'}
+                />
+              ))}
+            </span>
+            {best !== null && (
               <span className="game-hud-item">
-                {t('games.score')}: {game.points}
+                {t('games.best')}: {best}
               </span>
-              <span className="game-hud-item learn-lives">
-                {Array.from({ length: LIVES_START }, (_, i) => (
-                  <Heart
-                    key={i}
-                    size={20}
-                    className={i < game.lives ? 'learn-heart full' : 'learn-heart empty'}
-                    fill={i < game.lives ? 'currentColor' : 'none'}
-                  />
-                ))}
-              </span>
-              {best !== null && (
-                <span className="game-hud-item">
-                  {t('games.best')}: {best}
-                </span>
-              )}
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Bordered play area, matching the other games' boards. */}
           <div className="learn-board">
-            {game && game.status === 'playing' ? (
+            {game.status === 'playing' ? (
               phase === 'feedback' && pending ? (
                 <ResultPanel pending={pending} onContinue={handleContinue} />
               ) : round ? (
@@ -255,8 +305,8 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
                     <RoundIntro
                       key={round.id}
                       levelType={currentLevelType(game)}
-                      speak={round.newLevel}
-                      countdown={isTimeTrial(game)}
+                      speak={round.speakIntro}
+                      countdown={isTimeTrial(game.levelType)}
                       playPhrase={playPhrase}
                       onReady={() => setPhase('play')}
                     />
@@ -274,19 +324,31 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
                   )}
                 </div>
               ) : null
-            ) : game && game.status === 'over' ? (
+            ) : (
               <div className="learn-overlay">
                 <img className="learn-mascot" src="/learn-icons/mascot.png" alt="" draggable={false} />
                 <p className="game-overlay-title">{t('games.game_over')}</p>
                 <p className="game-overlay-text">
                   {t('games.score')}: {game.points}
                 </p>
+                <p className="game-overlay-text">
+                  {t('games.learn.total')}: {total}
+                </p>
                 {newBest && <p className="game-overlay-best">⭐ {t('games.new_best')}</p>}
-                <button type="button" className="game-action-btn" onClick={start}>
-                  {t('games.play_again')}
-                </button>
+                <div className="learn-overlay-actions">
+                  <button
+                    type="button"
+                    className="game-action-btn"
+                    onClick={() => startMiniGame(game.levelType)}
+                  >
+                    {t('games.play_again')}
+                  </button>
+                  <button type="button" className="game-action-btn secondary" onClick={backToPicker}>
+                    {t('games.learn.choose_another')}
+                  </button>
+                </div>
               </div>
-            ) : null}
+            )}
           </div>
         </>
       )}
@@ -295,10 +357,121 @@ export function LearnAdventure({ track, emoji }: { track: Track; emoji: string }
 }
 
 /**
+ * The mini-game picker shown when a run is not in progress. One card per
+ * mini-game for the track, showing its name, points weight and this session's
+ * best; the footer shows the accumulated session total and the all-time best.
+ */
+function MiniGamePicker({
+  track,
+  bestByType,
+  sessionTotal: total,
+  serverBest,
+  onPick,
+}: {
+  track: Track;
+  bestByType: Partial<Record<LevelType, number>>;
+  sessionTotal: number;
+  serverBest: number | null;
+  onPick: (levelType: LevelType) => void;
+}) {
+  const t = useT();
+  // Easiest first: order the mini-games by their score multiplier ascending.
+  const ordered = [...levelTypesFor(track)].sort((a, b) => LEVEL_WEIGHT[a] - LEVEL_WEIGHT[b]);
+  return (
+    <div className="learn-picker">
+      <p className="learn-picker-heading">{t('games.learn.choose')}</p>
+      <div className="learn-picker-grid">
+        {ordered.map((lt) => (
+          <MiniGameCard
+            key={lt}
+            levelType={lt}
+            best={bestByType[lt] ?? null}
+            onPick={onPick}
+          />
+        ))}
+      </div>
+      <div className="learn-picker-totals">
+        <span>
+          {t('games.learn.total')}: {total}
+        </span>
+        {serverBest !== null && (
+          <span>
+            {t('games.best')}: {serverBest}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One mini-game as a flip card (like the chore/reward cards): the front shows
+ * the icon, name, points multiplier, this session's best and a Play button; the
+ * back reveals a short description. Tapping the card flips it; the speaker reads
+ * the title + description. The Play button and speaker stop propagation so they
+ * never flip the card.
+ */
+function MiniGameCard({
+  levelType,
+  best,
+  onPick,
+}: {
+  levelType: LevelType;
+  best: number | null;
+  onPick: (levelType: LevelType) => void;
+}) {
+  const t = useT();
+  const [flipped, setFlipped] = useState(false);
+  const Icon = LEVEL_ICON[levelType];
+  const name = t(LEVEL_NAME_KEY[levelType]);
+  return (
+    <div
+      className={`flip-card learn-picker-flip ${flipped ? 'flipped' : ''}`}
+      onClick={() => {
+        playFlip();
+        setFlipped((f) => !f);
+      }}
+    >
+      <div className="flip-card-inner">
+        <div className="learn-picker-card flip-card-face flip-card-front">
+          <SpeakButton src={learnCardUrl(levelType)} />
+          <Icon className="learn-picker-icon" size={34} aria-hidden="true" />
+          <span className="learn-picker-name">{name}</span>
+          <span className="learn-picker-weight">×{LEVEL_WEIGHT[levelType]}</span>
+          {best != null && (
+            <span className="learn-picker-best">
+              {t('games.best')}: {best}
+            </span>
+          )}
+          <button
+            type="button"
+            className="learn-picker-play"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPick(levelType);
+            }}
+          >
+            {t('games.play')}
+          </button>
+        </div>
+
+        <div className="learn-picker-card flip-card-face flip-card-back">
+          <div className="flip-back-header">
+            <Icon className="flip-back-icon" size={28} aria-hidden="true" />
+            <h3 className="flip-back-title">{name}</h3>
+          </div>
+          <p className="flip-back-desc">{t(LEVEL_DESC_KEY[levelType])}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
  * The per-round result panel, shown after every answer (success and failure).
  * On a mistake it explains what happened ("Διάλεξες το 8. Το σωστό ήταν το 9.");
- * on a cleared slot/tier it celebrates. The kid taps Continue to move on, so
- * they always get a beat to take in the result.
+ * on a level-up it celebrates. The kid taps Continue to move on, so they always
+ * get a beat to take in the result.
  */
 // How long the winning result screen lingers before auto-advancing — long
 // enough for the jingle to finish, plus a short beat to enjoy it.
@@ -306,7 +479,7 @@ const WIN_RESULT_MS = WIN_TUNE_MAX_MS + 500;
 
 function ResultPanel({ pending, onContinue }: { pending: Pending; onContinue: () => void }) {
   const t = useT();
-  const { correct, feedback, levelType, events, tierJustCleared, next } = pending;
+  const { correct, feedback, levelType, events, next } = pending;
 
   // A correct answer celebrates with a jingle and moves on by itself after a
   // short beat (no button). A wrong answer waits for the kid to tap Continue so
@@ -319,12 +492,9 @@ function ResultPanel({ pending, onContinue }: { pending: Pending; onContinue: ()
 
   let emoji: string;
   let title: string;
-  if (tierJustCleared !== null) {
-    emoji = '🏆';
-    title = t('games.learn.tier_cleared', { tier: String(tierJustCleared) });
-  } else if (correct && events.includes('slot_cleared')) {
+  if (correct && events.includes('level_up')) {
     emoji = '🎉';
-    title = t('games.learn.level_cleared');
+    title = t('games.learn.level_up', { level: String(levelNumber(next)) });
   } else if (correct) {
     emoji = '⭐';
     title = t('games.learn.correct_title');
