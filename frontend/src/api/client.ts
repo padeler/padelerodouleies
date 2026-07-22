@@ -567,9 +567,34 @@ export async function getAdminExerciseStats() {
 
 /** Force a fresh discovery scan (bypasses the mtime cache). Returns the counts. */
 export async function rescanExercises() {
-  return request<{ valid: number; invalid: number }>('/admin/exercises/rescan', {
+  return request<{
+    valid: number;
+    invalid: number;
+    duplicates: import('../lib/types').DuplicateBundleId[];
+  }>('/admin/exercises/rescan', {
     method: 'POST',
   });
+}
+
+/** Upload a zip of exercise bundles; extracts it into EXERCISES_DIR and rescans. */
+export async function uploadExerciseBundles(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const resp = await fetch('/api/admin/exercises/upload', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({}));
+    throw new Error(body.detail || `HTTP ${resp.status}`);
+  }
+  return resp.json() as Promise<{
+    extracted: number;
+    valid: number;
+    invalid: number;
+    duplicates: import('../lib/types').DuplicateBundleId[];
+  }>;
 }
 
 export async function getGameScores() {

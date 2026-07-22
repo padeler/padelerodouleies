@@ -524,6 +524,80 @@ def test_discover_recurses_nested_layout(tmp_path, monkeypatch) -> None:
     assert exercise_bundles.rel_path(result.invalid[0].dir) == "Γ_ΤΑΞΗ/glossa/broken-v1"
 
 
+# -- duplicate-id detection -------------------------------------------------
+
+def test_find_duplicate_ids(tmp_path, monkeypatch) -> None:
+    """Two valid bundle dirs sharing an id are surfaced as a duplicate issue."""
+    import shutil
+
+    shutil.copytree(FIXTURES / "letters-A-v1", tmp_path / "letters-A-v1")
+    # A second copy in a different dir keeps the same manifest id.
+    dup = tmp_path / "copies" / "letters-A-again"
+    shutil.copytree(FIXTURES / "letters-A-v1", dup)
+    # An unrelated valid bundle must not be flagged.
+    shutil.copytree(FIXTURES / "math-times-v1", tmp_path / "math-times-v1")
+
+    monkeypatch.setattr(exercise_bundles, "EXERCISES_DIR", tmp_path)
+    exercise_bundles.clear_cache()
+    duplicates = exercise_bundles.find_duplicate_ids(exercise_bundles.discover())
+
+    assert len(duplicates) == 1
+    assert duplicates[0].id == "letters-A"
+    assert set(duplicates[0].paths) == {"letters-A-v1", "copies/letters-A-again"}
+
+
+def test_find_duplicate_ids_none_when_unique(exercises_dir) -> None:
+    assert exercise_bundles.find_duplicate_ids(exercise_bundles.discover()) == ()
+
+
+# -- zip upload -------------------------------------------------------------
+
+def _bundle_zip_bytes(arcprefix: str = "") -> bytes:
+    """A zip carrying the letters-A fixture bundle under an optional path prefix."""
+    import io
+    import zipfile
+
+    src = FIXTURES / "letters-A-v1"
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        for path in sorted(src.rglob("*")):
+            if path.is_file():
+                arcname = f"{arcprefix}{path.relative_to(src.parent)}"
+                zf.write(path, arcname)
+    return buf.getvalue()
+
+
+def test_extract_bundles_zip_preserves_structure(tmp_path) -> None:
+    extracted = exercise_bundles.extract_bundles_zip(_bundle_zip_bytes(), root=tmp_path)
+    assert (tmp_path / "letters-A-v1" / "manifest.json").is_file()
+    assert any(name.startswith("letters-A-v1/") for name in extracted)
+    # The extracted bundle loads cleanly.
+    assert exercise_bundles.load_bundle(tmp_path / "letters-A-v1").id == "letters-A"
+
+
+def test_extract_bundles_zip_nested_prefix(tmp_path) -> None:
+    exercise_bundles.extract_bundles_zip(_bundle_zip_bytes("Γ_ΤΑΞΗ/glossa/"), root=tmp_path)
+    assert (tmp_path / "Γ_ΤΑΞΗ" / "glossa" / "letters-A-v1" / "manifest.json").is_file()
+
+
+def test_extract_bundles_zip_rejects_bad_zip(tmp_path) -> None:
+    with pytest.raises(exercise_bundles.BundleUploadError):
+        exercise_bundles.extract_bundles_zip(b"not a zip", root=tmp_path)
+
+
+def test_extract_bundles_zip_rejects_traversal(tmp_path) -> None:
+    import io
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("../escape.txt", "nope")
+    with pytest.raises(exercise_bundles.BundleUploadError):
+        exercise_bundles.extract_bundles_zip(buf.getvalue(), root=tmp_path)
+    # Nothing was written outside the root.
+    assert not (tmp_path.parent / "escape.txt").exists()
+
+
 # -- age targeting ----------------------------------------------------------
 
 def test_age_for_boundaries() -> None:
@@ -699,8 +773,46 @@ async def test_admin_rescan_requires_admin(exercises_dir) -> None:
         assert resp.status_code == 200
         body = resp.json()
         assert body["valid"] == 2 and body["invalid"] == 1
+        assert body["duplicates"] == []
     finally:
         await admin_client.aclose()
+
+
+async def test_admin_upload_bundles(tmp_path, monkeypatch) -> None:
+    """An admin uploads a zip; it is extracted into EXERCISES_DIR and rescanned."""
+    monkeypatch.setattr(exercise_bundles, "EXERCISES_DIR", tmp_path)
+    exercise_bundles.clear_cache()
+
+    kid_client, _ = await _login_kid(date(2021, 1, 1))
+    try:
+        forbidden = await kid_client.post(
+            "/api/admin/exercises/upload",
+            files={"file": ("bundles.zip", _bundle_zip_bytes(), "application/zip")},
+        )
+        assert forbidden.status_code == 403
+    finally:
+        await kid_client.aclose()
+
+    admin_client, _ = await _login_admin()
+    try:
+        resp = await admin_client.post(
+            "/api/admin/exercises/upload",
+            files={"file": ("bundles.zip", _bundle_zip_bytes(), "application/zip")},
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["extracted"] > 0 and body["valid"] == 1 and body["duplicates"] == []
+        assert (tmp_path / "letters-A-v1" / "manifest.json").is_file()
+
+        # A corrupt archive is rejected without partial writes.
+        bad = await admin_client.post(
+            "/api/admin/exercises/upload",
+            files={"file": ("bad.zip", b"not a zip", "application/zip")},
+        )
+        assert bad.status_code == 400
+    finally:
+        await admin_client.aclose()
+        exercise_bundles.clear_cache()
 
 
 async def test_api_list_and_manifest_no_answers(exercises_dir) -> None:

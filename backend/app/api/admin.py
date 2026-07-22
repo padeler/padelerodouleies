@@ -657,9 +657,10 @@ def get_exercise_stats(
     _admin: User = Depends(require_admin),
 ) -> dict[str, Any]:
     """All bundle metadata + per-kid completion counts for the admin exercises view."""
-    from app.services.exercise_bundles import discover, rel_path
+    from app.services.exercise_bundles import discover, find_duplicate_ids, rel_path
 
     discovery = discover()
+    duplicates = find_duplicate_ids(discovery)
 
     bundles_out = [
         {
@@ -701,31 +702,110 @@ def get_exercise_stats(
             "completed_bundle_ids": [c.bundle_id for c in completions],
         })
 
-    return {"bundles": bundles_out, "invalid": invalid_out, "kid_stats": kid_stats}
+    duplicates_out = [{"id": d.id, "paths": list(d.paths)} for d in duplicates]
+
+    return {
+        "bundles": bundles_out,
+        "invalid": invalid_out,
+        "duplicates": duplicates_out,
+        "kid_stats": kid_stats,
+    }
 
 
 @router.post("/exercises/rescan")
 def rescan_exercises(
     _admin: User = Depends(require_admin),
-) -> dict[str, int]:
+) -> dict[str, Any]:
     """Force a fresh discovery scan, bypassing the mtime cache.
 
     Discovery is already scan-on-request + mtime-cached (invariant #2); this just
     lets an admin refresh immediately after dropping a bundle on the NAS without
     waiting for the directory mtime to settle. Logs what was re-scanned, incl. any
-    invalid dirs (fail-explicit).
+    invalid dirs and any duplicate bundle ids (fail-explicit).
     """
-    from app.services.exercise_bundles import clear_cache, discover, rel_path
+    from app.services.exercise_bundles import (
+        clear_cache,
+        discover,
+        find_duplicate_ids,
+        rel_path,
+    )
 
     clear_cache()
     discovery = discover()
     valid, invalid = len(discovery.valid), len(discovery.invalid)
-    logger.info("admin rescan: %d valid / %d invalid bundle(s)", valid, invalid)
+    duplicates = find_duplicate_ids(discovery)
+    logger.info(
+        "admin rescan: %d valid / %d invalid / %d duplicate-id bundle(s)",
+        valid,
+        invalid,
+        len(duplicates),
+    )
     for b in discovery.invalid:
         logger.warning("admin rescan invalid bundle %s: %s", rel_path(b.dir), b.error)
+    for d in duplicates:
+        logger.warning("admin rescan duplicate bundle id %s in: %s", d.id, ", ".join(d.paths))
 
     # Pre-record TTS for any newly dropped bundle (background, never blocks).
     from app.services.exercise_tts import warm_all_in_background
 
     warm_all_in_background()
-    return {"valid": valid, "invalid": invalid}
+    return {
+        "valid": valid,
+        "invalid": invalid,
+        "duplicates": [{"id": d.id, "paths": list(d.paths)} for d in duplicates],
+    }
+
+
+@router.post("/exercises/upload")
+async def upload_exercise_bundles(
+    file: UploadFile,
+    _admin: User = Depends(require_admin),
+) -> dict[str, Any]:
+    """Upload a zip of exercise bundles; extract it into EXERCISES_DIR, then rescan.
+
+    The archive is unpacked preserving its folder structure (zip-slip guarded); a
+    corrupt or unsafe zip is rejected 400 before anything is written. After a
+    successful extraction the discovery cache is dropped and a fresh scan runs, so
+    the returned counts (and any duplicate bundle ids) reflect the new tree.
+    """
+    from app.services.exercise_bundles import (
+        BundleUploadError,
+        clear_cache,
+        discover,
+        extract_bundles_zip,
+        find_duplicate_ids,
+        rel_path,
+    )
+
+    data = await file.read()
+    try:
+        extracted = extract_bundles_zip(data)
+    except BundleUploadError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+    clear_cache()
+    discovery = discover()
+    valid, invalid = len(discovery.valid), len(discovery.invalid)
+    duplicates = find_duplicate_ids(discovery)
+    logger.info(
+        "admin upload: %d file(s) extracted; now %d valid / %d invalid / %d duplicate-id bundle(s)",
+        len(extracted),
+        valid,
+        invalid,
+        len(duplicates),
+    )
+    for b in discovery.invalid:
+        logger.warning("admin upload invalid bundle %s: %s", rel_path(b.dir), b.error)
+    for d in duplicates:
+        logger.warning("admin upload duplicate bundle id %s in: %s", d.id, ", ".join(d.paths))
+
+    # Pre-record TTS for any newly uploaded bundle (background, never blocks).
+    from app.services.exercise_tts import warm_all_in_background
+
+    warm_all_in_background()
+    return {
+        "extracted": len(extracted),
+        "valid": valid,
+        "invalid": invalid,
+        "duplicates": [{"id": d.id, "paths": list(d.paths)} for d in duplicates],
+    }

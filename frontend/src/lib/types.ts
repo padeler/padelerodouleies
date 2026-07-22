@@ -245,9 +245,15 @@ export interface AdminExerciseKidStat {
   completed_bundle_ids: string[];
 }
 
+export interface DuplicateBundleId {
+  id: string;
+  paths: string[];
+}
+
 export interface AdminExerciseStats {
   bundles: AdminExerciseBundleSummary[];
   invalid: { dir: string; error: string }[];
+  duplicates: DuplicateBundleId[];
   kid_stats: AdminExerciseKidStat[];
 }
 

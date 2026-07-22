@@ -10,9 +10,13 @@ filesystem concerns (reading the file, resolving asset references).
 
 from __future__ import annotations
 
+import io
 import json
 import logging
 import os
+import shutil
+import zipfile
+from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -238,3 +242,80 @@ def rel_path(bundle_dir: Path, root: Path | None = None) -> str:
         return str(bundle_dir.resolve().relative_to(root))
     except ValueError:
         return str(bundle_dir)
+
+
+# -- Duplicate-id detection --------------------------------------------------
+
+
+@dataclass(frozen=True)
+class DuplicateId:
+    """A bundle id that is claimed by more than one valid bundle dir (an issue)."""
+
+    id: str
+    paths: tuple[str, ...]
+
+
+def find_duplicate_ids(discovery: Discovery, root: Path | None = None) -> tuple[DuplicateId, ...]:
+    """Valid-bundle ids that occur in more than one directory.
+
+    ``get_bundle`` silently picks the highest ``version`` when an id repeats, so a
+    duplicate would otherwise go unnoticed — surface it explicitly for the admin.
+    Paths are the dirs' locations relative to the bundles root, sorted for a stable
+    order.
+    """
+    groups: dict[str, list[str]] = defaultdict(list)
+    for b in discovery.valid:
+        groups[b.manifest.id].append(rel_path(b.dir, root))
+    return tuple(
+        DuplicateId(id=bundle_id, paths=tuple(sorted(paths)))
+        for bundle_id, paths in sorted(groups.items())
+        if len(paths) > 1
+    )
+
+
+# -- Zip upload --------------------------------------------------------------
+
+
+class BundleUploadError(ValueError):
+    """A bundle-zip upload was rejected (corrupt archive or unsafe member path)."""
+
+
+def extract_bundles_zip(data: bytes, root: Path | None = None) -> list[str]:
+    """Extract a zip of exercise bundles into ``root``, preserving its structure.
+
+    Every member is validated up-front and the whole archive is rejected before a
+    single file is written if any entry is unsafe (absolute path or ``..`` escaping
+    the bundles root — the "zip-slip" attack), so a bad zip never leaves a partial,
+    half-trusted tree on disk. Returns the extracted file paths relative to ``root``.
+    """
+    root = (root or EXERCISES_DIR).resolve()
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(data))
+    except zipfile.BadZipFile as exc:
+        raise BundleUploadError(f"invalid zip file: {exc}") from exc
+
+    with zf:
+        # Pre-validate all members: reject zip-slip before writing anything.
+        targets: list[tuple[zipfile.ZipInfo, Path]] = []
+        for info in zf.infolist():
+            name = info.filename
+            if not name or name.startswith("/") or ".." in Path(name).parts:
+                raise BundleUploadError(f"unsafe path in zip: {name!r}")
+            target = (root / name).resolve()
+            if target != root and root not in target.parents:
+                raise BundleUploadError(f"path escapes exercises dir: {name!r}")
+            targets.append((info, target))
+
+        root.mkdir(parents=True, exist_ok=True)
+        extracted: list[str] = []
+        for info, target in targets:
+            if info.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with zf.open(info) as src, open(target, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+            extracted.append(str(target.relative_to(root)))
+
+    logger.info("extracted %d file(s) from bundle zip into %s", len(extracted), root)
+    return extracted
