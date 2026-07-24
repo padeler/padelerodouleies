@@ -1,15 +1,12 @@
 """Tests for the internet-exposure hardening (C1, C2, C3, H2, H3, H4, H5)."""
 
-import base64
-import hashlib
 import io
 import zipfile
-from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
 
-from app import config, main
+from app import config
 from app.security import lockout
 from app.security.ratelimit import rate_limit, reset
 from app.services.avatars import _reject_dangerous_svg
@@ -185,32 +182,3 @@ async def test_user_content_csp_locked_down(async_client: AsyncClient) -> None:
     """User-content paths get the restrictive default-src 'none' CSP."""
     resp = await async_client.get("/chore-images/nonexistent.svg")
     assert "default-src 'none'" in resp.headers["content-security-policy"]
-
-
-def test_index_inline_scripts_are_hashed_into_csp(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """The inline SystemJS bootstrap emitted by plugin-legacy must be allow-listed.
-
-    Without its hash in script-src the browser blocks it and the SPA never boots.
-    """
-    body = "System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))"
-    (tmp_path / "index.html").write_text(
-        '<html><body><script crossorigin src="/assets/polyfills-legacy.js"></script>'
-        f'<script crossorigin id="vite-legacy-entry" data-src="/assets/index-legacy.js">{body}'
-        "</script></body></html>",
-        encoding="utf-8",
-    )
-    monkeypatch.setattr(main, "STATIC_DIR", tmp_path)
-
-    expected = base64.b64encode(hashlib.sha256(body.encode()).digest()).decode()
-    # Only the inline script is hashed; the external one contributes nothing.
-    assert main._index_script_hashes() == [f"'sha256-{expected}'"]
-
-
-def test_index_script_hashes_empty_without_build(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Dev mode has no built index.html; Vite serves it and this CSP never applies."""
-    monkeypatch.setattr(main, "STATIC_DIR", tmp_path)
-    assert main._index_script_hashes() == []

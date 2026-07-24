@@ -326,23 +326,11 @@
 }
 
 /* padding-bottom square trick (no aspect-ratio on the old tablets) */
-/* The image box is a flex item (its parent .mc-option is a column flexbox).
-   Android 4.4 KitKat WebView (Chromium 30, the production LAN tablets) collapses
-   a flex item whose height comes only from percentage padding-bottom to zero
-   height, so the aspect-ratio hack used elsewhere leaves the option button empty
-   there (the .exercise-scene box works because it is a plain block, not a flex
-   item). Give a definite fallback height so the box is never zero on that engine;
-   a vw value keeps it roughly square, since that WebView also lacks object-fit
-   and would otherwise stretch the image. Modern engines override this below. */
 .mc-option-img-wrap {
   position: relative;
   width: 100%;
-  height: 40vw;
+  padding-bottom: 100%;
   margin-bottom: 8px;
-}
-
-.mc-options.mc-count-3 .mc-option-img-wrap {
-  height: 26vw;
 }
 
 .mc-option-img {
@@ -352,22 +340,6 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-/* Modern engines: restore the exact aspect-sized boxes the padding-bottom hack
-   produced. Chromium 30 lacks aspect-ratio, so it ignores this block and keeps
-   the definite fallback heights above. */
-@supports (aspect-ratio: 1) {
-  .mc-option-img-wrap,
-  .mc-options.mc-count-3 .mc-option-img-wrap,
-  .order-item-img-wrap {
-    height: auto;
-    aspect-ratio: 1 / 1;
-  }
-  .match-item-img-wrap {
-    height: auto;
-    aspect-ratio: 5 / 4; /* was padding-bottom: 80% */
-  }
 }
 
 .mc-option-text {
@@ -672,12 +644,10 @@
   border-radius: 50%;
 }
 
-/* Definite fallback height for old WebView (see .mc-option-img-wrap). The order
-   item is a fixed 80px-wide flex item, so a fixed px square works here. */
 .order-item-img-wrap {
   position: relative;
   width: 100%;
-  height: 54px;
+  padding-bottom: 100%;
   margin-bottom: 6px;
 }
 
@@ -812,11 +782,10 @@
   border-radius: 50%;
 }
 
-/* Definite fallback height for old WebView (see .mc-option-img-wrap). */
 .match-item-img-wrap {
   position: relative;
   width: 100%;
-  height: 22vw;
+  padding-bottom: 80%;
   margin-bottom: 4px;
 }
 
