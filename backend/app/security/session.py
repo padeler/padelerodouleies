@@ -1,6 +1,5 @@
 """Session cookie management with itsdangerous."""
 
-import os
 from datetime import datetime, timezone
 
 from fastapi import Cookie, Depends, HTTPException, status
@@ -8,12 +7,16 @@ from fastapi.responses import Response
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from sqlalchemy.orm import Session
 
+from app.config import cookie_secure, session_secret
 from app.db.engine import get_session
 from app.db.models import User
 
 SESSION_COOKIE_NAME = "session"
 SESSION_MAX_AGE = 86400  # 24 hours
-SECRET_KEY = os.getenv("SESSION_SECRET", "padelerodouleies-dev-secret")
+
+# Resolve the signing key once at import. In production a missing/weak secret
+# raises here (fail-explicit) rather than silently signing with a public default.
+SECRET_KEY = session_secret()
 
 serializer = Serializer(SECRET_KEY)
 
@@ -37,6 +40,7 @@ def set_session_cookie(response: Response, user_id: int) -> None:
         value=token,
         max_age=SESSION_MAX_AGE,
         httponly=True,
+        secure=cookie_secure(),
         samesite="strict",
         path="/",
     )
@@ -50,7 +54,6 @@ def get_current_user(
     session: str | None = Cookie(default=None),
     db: Session = Depends(get_session),
 ) -> User:
-    print(f'[Auth] get_current_user: session present={bool(session)}')
     if not session:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No session")
     data = _read_token(session)
@@ -60,7 +63,6 @@ def get_current_user(
     user = db.query(User).filter(User.id == uid).first()
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-    print(f'[Auth] authenticated user id={user.id} name={user.name}')
     return user
 
 

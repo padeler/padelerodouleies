@@ -7,6 +7,19 @@ from sqlalchemy.orm import Session
 
 from app.main import app
 from app.db.engine import get_session
+from app.security import ratelimit
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limit():
+    """Clear the in-process per-IP rate limiter so tests don't accumulate hits.
+
+    Every test shares one app instance and one client IP, so without this a run
+    of many logins would trip the login throttle in unrelated tests.
+    """
+    ratelimit.reset()
+    yield
+    ratelimit.reset()
 
 
 @pytest.fixture(autouse=True)

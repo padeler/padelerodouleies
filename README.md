@@ -214,8 +214,13 @@ The system is deployed as a single container orchestrated through `docker-compos
 
    | Variable | Required | Default | Purpose |
    |---|---|---|---|
-   | `SESSION_SECRET` | **yes** | — (compose refuses to start without it) | Signs the HttpOnly session cookie. Keep it stable — changing it logs everyone out. |
+   | `SESSION_SECRET` | **yes** | — (compose refuses to start without it) | Signs the HttpOnly session cookie. Keep it stable — changing it logs everyone out. With `APP_ENV=production` an unset/weak value **fails startup**. |
    | `DATA_DIR` | no | `/mnt/raid/padelerodouleies/data` | Host directory bind-mounted to `/app/data` (SQLite DB + uploaded avatars/chore images). |
+   | `APP_ENV` | no | `development` | Set to `production` (already set in `docker-compose.prod.yml`) to enable the internet-exposure hardening: fail-explicit secret, `Secure` cookie, HSTS, hidden OpenAPI. |
+   | `TRUST_PROXY` | no | `0` | Trust `X-Forwarded-For` for the client IP (per-IP login rate limiting). Set `1` **only** behind a TLS reverse proxy / tunnel that overwrites the header. |
+   | `ENABLE_HSTS` | no | on in production | Emit `Strict-Transport-Security`. Set `0` while first validating TLS. |
+   | `SESSION_COOKIE_SECURE` | no | on in production | Overrides the `Secure` cookie flag (e.g. TLS terminated upstream). |
+   | `EXPOSE_OPENAPI` | no | off in production | Set `1` to serve the raw OpenAPI schema at `/api/openapi.json`. |
    | `TZ` | no | `Europe/Athens` | Container local timezone. Chore windows and "today" are computed in this zone. Set in the compose file / image. |
    | `DB_PATH` | no | `/app/data/padelerodouleies.db` | SQLite file location inside the container. Set in the compose file. |
    | `STATIC_DIR` | no | `/app/static` | Where the built SPA is served from. Set in the image. |
@@ -231,6 +236,30 @@ The system is deployed as a single container orchestrated through `docker-compos
 
 > The steps above use `docker-compose.yml`, which **builds** the image locally. On the
 > NAS, deploy a pre-built image from GHCR instead — see below.
+
+### Exposing to the internet (HTTPS)
+
+The app was built LAN-only. Before putting it on a public URL, set
+`APP_ENV=production` (already in `docker-compose.prod.yml`) — this turns on the
+built-in hardening: fail-explicit `SESSION_SECRET`, `Secure` session cookie,
+HSTS, hidden OpenAPI, security headers (CSP / `X-Frame-Options` / `nosniff`),
+per-IP login rate limiting, and escalating account lockout. The container still
+speaks plain HTTP on `:8000`; **TLS must be terminated by something in front of
+it** (the app never serves HTTPS directly). Two paths that fit a Synology NAS —
+where DSM already holds ports 80/443:
+
+- **Cloudflare Tunnel (recommended):** no port-forwarding, origin IP stays
+  hidden. Run `cloudflared` as a container pointing your hostname at
+  `http://padelerodouleies:8000`. WebSockets work automatically.
+- **Synology reverse proxy + Let's Encrypt:** DSM → *Security → Certificate*
+  (Let's Encrypt) then *Login Portal → Reverse Proxy* mapping
+  `https://host:443` → `http://localhost:8000`; add a **WebSocket** custom
+  header so `/ws` survives the proxy. Requires forwarding router port 443.
+
+Either way, once the proxy sets `X-Forwarded-For` with the real client IP, set
+`TRUST_PROXY=1` so rate limiting keys on the visitor, not the proxy. Remaining
+follow-ups (public user roster, longer admin PINs, etc.) are tracked in
+[TODOs.md](TODOs.md).
 
 ### CI/CD: GitHub Actions → GHCR → Synology
 

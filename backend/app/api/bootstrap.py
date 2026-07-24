@@ -8,10 +8,15 @@ from app.db.engine import get_session
 from app.db.models import User
 from app.schemas.auth import BootstrapSetupRequest, LoginResponse
 from app.security import pins as pin_utils
+from app.security.ratelimit import rate_limit
 from app.security.session import set_session_cookie
 from app.services.bootstrap import is_first_run
 
 router = APIRouter(prefix="/api/bootstrap", tags=["bootstrap"])
+
+# First-run admin creation is a one-shot, but throttle it anyway so an empty-DB
+# window can't be hammered.
+_setup_rate_limit = rate_limit(max_requests=5, window_seconds=60, scope="bootstrap")
 
 
 @router.get("/status")
@@ -19,7 +24,7 @@ def bootstrap_status() -> JSONResponse:
     return JSONResponse(content={"first_run": is_first_run()})
 
 
-@router.post("/setup", status_code=201)
+@router.post("/setup", status_code=201, dependencies=[Depends(_setup_rate_limit)])
 def bootstrap_setup(req: BootstrapSetupRequest, db: Session = Depends(get_session)) -> JSONResponse:
     if not is_first_run():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="App already initialized")
@@ -54,5 +59,4 @@ def bootstrap_setup(req: BootstrapSetupRequest, db: Session = Depends(get_sessio
 
     resp = JSONResponse(status_code=201, content=data.model_dump())
     set_session_cookie(resp, uid)
-    print(f'[Bootstrap] session cookie set for user id={uid}')
     return resp

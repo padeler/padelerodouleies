@@ -770,6 +770,7 @@ async def upload_exercise_bundles(
     """
     from app.services.exercise_bundles import (
         BundleUploadError,
+        MAX_ZIP_UPLOAD_BYTES,
         clear_cache,
         discover,
         extract_bundles_zip,
@@ -777,7 +778,19 @@ async def upload_exercise_bundles(
         rel_path,
     )
 
-    data = await file.read()
+    # Read the raw upload with a hard cap so an oversized body can't be buffered
+    # into memory before the zip-content limits (member count / expansion) apply.
+    chunks: list[bytes] = []
+    total = 0
+    while chunk := await file.read(1024 * 1024):
+        total += len(chunk)
+        if total > MAX_ZIP_UPLOAD_BYTES:
+            raise HTTPException(
+                413, f"Upload too large (max {MAX_ZIP_UPLOAD_BYTES // (1024 * 1024)}MB)"
+            )
+        chunks.append(chunk)
+    data = b"".join(chunks)
+
     try:
         extracted = extract_bundles_zip(data)
     except BundleUploadError as exc:

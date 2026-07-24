@@ -2,6 +2,7 @@
 
 import io
 import logging
+import re
 import uuid
 from pathlib import Path
 
@@ -10,6 +11,28 @@ from PIL import Image, ImageOps
 from pillow_heif import register_heif_opener
 
 logger = logging.getLogger(__name__)
+
+# Active-content constructs that make an SVG a stored-XSS vector. We reject any
+# SVG containing one rather than attempt lossy sanitization (fail-explicit) —
+# valid icon/photo SVGs never need scripts, event handlers, foreign HTML, or
+# external entities. Defense-in-depth: uploads are also served with a locked-down
+# CSP + nosniff + attachment disposition (see app/main.py).
+_DANGEROUS_SVG_PATTERNS = re.compile(
+    r"<\s*script"          # inline script element
+    r"|<\s*foreignObject"  # embedded (script-capable) HTML
+    r"|<!ENTITY"           # entity declaration (XXE / billion-laughs)
+    r"|<!DOCTYPE"          # doctype often used to declare entities
+    r"|javascript:"        # javascript: URIs in href/xlink:href
+    r"|\son\w+\s*=",       # inline event handlers (onload=, onclick=, ...)
+    re.IGNORECASE,
+)
+
+
+def _reject_dangerous_svg(contents: bytes) -> None:
+    """Raise ValueError if an uploaded SVG carries active/dangerous content."""
+    text = contents.decode("utf-8", errors="replace")
+    if _DANGEROUS_SVG_PATTERNS.search(text):
+        raise ValueError("SVG contains disallowed active content (script/handlers/entities)")
 
 # Enable Pillow to decode HEIC/HEIF photos (the iOS camera default format).
 register_heif_opener()
@@ -96,6 +119,7 @@ def save_chore_image(file: UploadFile) -> str:
     dirname = _ensure_dir(CHORE_IMAGE_DIR)
 
     if file.content_type == "image/svg+xml":
+        _reject_dangerous_svg(contents)
         filename = f"{uuid.uuid4().hex}.svg"
         (dirname / filename).write_bytes(contents)
     else:

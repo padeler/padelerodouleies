@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -13,6 +13,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import Scope
 
 import app.db.models as _models  # noqa:F401 ensures models are registered with metadata
+from app.config import expose_openapi, hsts_enabled
 from app.db.engine import get_session, LocalSession
 from app.db.engine import init_db
 from app.db.models import User
@@ -38,11 +39,44 @@ app = FastAPI(
     title="padelerodouleies",
     docs_url=None,
     redoc_url=None,
-    openapi_url="/api/openapi.json",
+    # Hidden in production (recon reduction); the Swagger/ReDoc UIs stay off always.
+    openapi_url="/api/openapi.json" if expose_openapi() else None,
     lifespan=lifespan,
 )
 
 init_db()
+
+# Paths whose bodies are user-uploaded or raw SVG served inline: lock them down
+# so a hostile SVG opened directly can't execute script, and MIME sniffing is off.
+_USER_CONTENT_PREFIXES = ("/avatars/", "/chore-images/", "/api/icons/svg/")
+
+# App-wide CSP for the SPA. 'unsafe-inline' is limited to styles (React inline
+# styles / animated gradients); scripts are 'self' only. Same-origin WebSocket is
+# covered by connect-src 'self'.
+_APP_CSP = (
+    "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
+    "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; "
+    "connect-src 'self'; font-src 'self' data:; form-action 'self'"
+)
+# Neutralize any active content in a user-served document (esp. standalone SVG).
+_USER_CONTENT_CSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):  # type: ignore[no-untyped-def]
+    """Attach security headers to every response (H5 hardening)."""
+    response: Response = await call_next(request)
+    path = request.url.path
+    if path.startswith(_USER_CONTENT_PREFIXES):
+        response.headers["Content-Security-Policy"] = _USER_CONTENT_CSP
+    else:
+        response.headers["Content-Security-Policy"] = _APP_CSP
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    if hsts_enabled():
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 # Mount avatars directory (created on first upload)
 AVATAR_DIR = Path(__file__).parent.parent.parent / "data" / "avatars"

@@ -13,6 +13,7 @@ from app.db.models import User
 from app.schemas.auth import ChangePinRequest, LoginRequest, LoginResponse, UserPublic
 from app.security import pins as pin_utils
 from app.security import lockout as lockout_utils
+from app.security.ratelimit import rate_limit
 from app.security.session import (
     clear_session_cookie,
     get_current_user,
@@ -21,6 +22,10 @@ from app.security.session import (
 from app.services.avatars import delete_avatar, save_avatar
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+# Per-IP throttle on login: generous enough for a family behind one NAT retyping
+# PINs, tight enough to stop a cross-account brute-force spray from one host.
+_login_rate_limit = rate_limit(max_requests=20, window_seconds=60, scope="login")
 
 
 class _LocaleRequest(BaseModel):
@@ -42,7 +47,7 @@ def _to_dict(user: User) -> dict[str, Any]:
     }
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(_login_rate_limit)])
 def login(req: LoginRequest, db: Session = Depends(get_session)) -> JSONResponse:
     user = db.query(User).filter(User.id == req.user_id).first()
     if not user:

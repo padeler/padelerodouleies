@@ -12,8 +12,16 @@ services:
       DB_PATH: /app/data/padelerodouleies.db
       STATIC_DIR: /app/static
       # Required: signs the session cookie. Set in .env — no default on purpose.
+      # In production an unset/weak value now fails startup (see app/config.py).
       SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
       EXERCISES_DIR: /app/data/exercises
+      # Enables the internet-exposure hardening: fail-explicit secret, Secure
+      # cookie, HSTS, hidden OpenAPI. Requires TLS terminated by a reverse proxy
+      # in front of this container (do NOT publish :8000 directly).
+      APP_ENV: production
+      # Set once a TLS reverse proxy that overwrites X-Forwarded-For is in place,
+      # so per-IP rate limiting keys on the real client rather than the proxy.
+      TRUST_PROXY: ${TRUST_PROXY:-0}
     volumes:
       # Host path overridable via .env (DATA_DIR). Holds the SQLite DB,
       # uploaded avatars, and chore images — survives container rebuilds.

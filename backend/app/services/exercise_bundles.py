@@ -14,7 +14,6 @@ import io
 import json
 import logging
 import os
-import shutil
 import zipfile
 from collections import defaultdict
 from collections.abc import Iterator
@@ -30,6 +29,14 @@ logger = logging.getLogger(__name__)
 
 MANIFEST_NAME = "manifest.json"
 ASSETS_DIRNAME = "assets"
+
+# Upload guards for the admin bundle-zip endpoint. The zip-slip check protects
+# *where* files land; these protect *how much* lands, so a decompression bomb
+# (a few KB expanding to gigabytes) can't exhaust RAM/disk on the single-worker
+# container.
+MAX_ZIP_UPLOAD_BYTES = 50 * 1024 * 1024  # raw (compressed) upload cap
+MAX_ZIP_MEMBERS = 2000
+MAX_ZIP_UNCOMPRESSED_BYTES = 200 * 1024 * 1024  # 200MB total across all members
 
 # Shipped icon catalog (served at /api/icons/svg/<name>). A bundle may reference
 # a built-in icon by that URL instead of copying the SVG into its assets/ dir.
@@ -295,9 +302,21 @@ def extract_bundles_zip(data: bytes, root: Path | None = None) -> list[str]:
         raise BundleUploadError(f"invalid zip file: {exc}") from exc
 
     with zf:
+        members = zf.infolist()
+        if len(members) > MAX_ZIP_MEMBERS:
+            raise BundleUploadError(
+                f"too many files in zip: {len(members)} (max {MAX_ZIP_MEMBERS})"
+            )
+        total_uncompressed = sum(info.file_size for info in members)
+        if total_uncompressed > MAX_ZIP_UNCOMPRESSED_BYTES:
+            raise BundleUploadError(
+                f"zip expands to {total_uncompressed} bytes "
+                f"(max {MAX_ZIP_UNCOMPRESSED_BYTES}); refusing possible zip bomb"
+            )
+
         # Pre-validate all members: reject zip-slip before writing anything.
         targets: list[tuple[zipfile.ZipInfo, Path]] = []
-        for info in zf.infolist():
+        for info in members:
             name = info.filename
             if not name or name.startswith("/") or ".." in Path(name).parts:
                 raise BundleUploadError(f"unsafe path in zip: {name!r}")
@@ -308,13 +327,23 @@ def extract_bundles_zip(data: bytes, root: Path | None = None) -> list[str]:
 
         root.mkdir(parents=True, exist_ok=True)
         extracted: list[str] = []
+        written = 0
         for info, target in targets:
             if info.is_dir():
                 target.mkdir(parents=True, exist_ok=True)
                 continue
             target.parent.mkdir(parents=True, exist_ok=True)
+            # Count bytes as we stream, in case a member's declared file_size lied
+            # about its true expanded size (the pre-check trusts the zip header).
             with zf.open(info) as src, open(target, "wb") as dst:
-                shutil.copyfileobj(src, dst)
+                while chunk := src.read(65536):
+                    written += len(chunk)
+                    if written > MAX_ZIP_UNCOMPRESSED_BYTES:
+                        raise BundleUploadError(
+                            f"zip expands past {MAX_ZIP_UNCOMPRESSED_BYTES} bytes; "
+                            "refusing possible zip bomb"
+                        )
+                    dst.write(chunk)
             extracted.append(str(target.relative_to(root)))
 
     logger.info("extracted %d file(s) from bundle zip into %s", len(extracted), root)

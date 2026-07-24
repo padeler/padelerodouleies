@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Ongoing work is incremental — minor features and bug fixes on `main`. **All agentic exercise-generation tooling lives under `exercise_lab/`** — the workflow README + `templates/`, the per-course working notes in `notes/`, the output `bundles/`, and the source textbook PDFs in `exercise_lab/books/` (git-ignored, organized by school year); nothing under `exercise_lab/` ships in the container. Bundle scene images can be generated with the **ComfyUI MCP service** (configured in the repo-root `.mcp.json`) — see `exercise_lab/README.md`.
 
-**Health:** 257 Vitest tests + 276 backend pytest tests all pass; the production build (`npm run build`) and `docker build` both succeed. `mypy --strict` on the backend still reports pre-existing SQLAlchemy `Column[T]` vs `T` errors (not introduced here; the new exercises modules add only the same documented `Column[T]` class).
+**Health:** 257 Vitest tests + 303 backend pytest tests all pass; the production build (`npm run build`) and `docker build` both succeed. `mypy --strict` on the backend still reports pre-existing SQLAlchemy `Column[T]` vs `T` errors (not introduced here; the new exercises modules add only the same documented `Column[T]` class).
 
 > `README.md` is the product spec; the exercises bundle format is normatively documented in [docs/EXERCISE_FORMAT.md](docs/EXERCISE_FORMAT.md). Both the original build plan and the exercises-feature plan have shipped and their `PLAN.md` files have been removed. Work from `README.md`, [docs/EXERCISE_FORMAT.md](docs/EXERCISE_FORMAT.md), and this file — and when any doc disagrees with code written later, the code wins, but flag the drift.
 
@@ -25,6 +25,17 @@ The subsections below capture the current state of the build — deployment, sch
 - FastAPI serves the built SPA via `SPAStaticFiles` (mounted last at `/`, falls back to `index.html` on a 404 caught from Starlette's `HTTPException`); `openapi_url="/api/openapi.json"`.
 - `SESSION_SECRET` is required by compose (no default).
 - OpenAPI / SPA / health / TZ / DB-creation all verified by running the image and `docker compose up`.
+
+### Internet-exposure hardening
+
+The app was LAN-only; going internet-facing added a security layer gated on `APP_ENV=production` (set in `docker-compose.prod.yml`). Central flags live in `app/config.py` (pure env-reading helpers). Non-obvious pieces:
+
+- **Fail-explicit secret:** `config.session_secret()` raises at startup if `SESSION_SECRET` is unset/dev-default in production (no silent fallback). `session.py` resolves the key through it; the session cookie gains `secure` via `config.cookie_secure()`.
+- **Rate limiting:** `app/security/ratelimit.py` is an in-process per-IP sliding-window limiter (single-worker deployment, like the WS broadcaster) — login 20/min, bootstrap 5/min. It reads `X-Forwarded-For` **only** when `TRUST_PROXY=1`. Tests reset it via an autouse `conftest.py` fixture.
+- **Escalating lockout:** `app/security/lockout.py` multiplies the wait ×4 per failure past the threshold (cap 1h), replacing the flat self-clearing 60s.
+- **Security headers:** a `main.py` middleware sets CSP / `X-Frame-Options` / `nosniff` / `Referrer-Policy` (+ HSTS in prod). User-content paths (`/avatars/`, `/chore-images/`, `/api/icons/svg/`) get a locked-down `default-src 'none'; sandbox` CSP; OpenAPI is hidden unless `EXPOSE_OPENAPI=1`.
+- **Upload hardening:** admin bundle-zip upload has a 50MB body cap + member-count/uncompressed-size caps (zip-bomb guard) in `exercise_bundles.extract_bundles_zip`; SVG uploads with active content are rejected in `avatars._reject_dangerous_svg`.
+- TLS itself is **not** in the app — a reverse proxy / tunnel must terminate HTTPS in front (README "Exposing to the internet"). Remaining items tracked in `TODOs.md` (H1 roster leak, longer admin PINs, session revocation).
 
 ### Build gotcha (tsc)
 
@@ -123,7 +134,7 @@ The initial build shipped in five phases: (1) DB models + i18n scaffold → (2) 
 
 - **Frontend:** Vitest (v3.2.4) + jsdom + React Testing Library + MSW. Run `npm test` in `frontend/`. Tests live in `src/**/*.test.{ts,tsx}`. Test config in `vitest.config.ts`, setup in `tests/setup.ts`. 257 tests across 30 files, all passing.
 - **E2E:** Playwright in `frontend/tests/responsive.spec.ts`. Requires backend running on :8000 and frontend on :5173. Run `npx playwright test` in `frontend/`. 9 responsive tests.
-- **Backend:** pytest + httpx for FastAPI test client. Run `pytest` in `backend/`. 276 tests, all passing (incl. `test_exercises.py` covering the validator, discovery, age filtering, grading — all seven types, incl. M8 decimal/fraction equivalence — idempotent completion, and the admin-only rescan endpoint; `test_exercise_tts.py` covers the TTS cache-warming service; `test_stats.py` covers the per-kid exercise rollup). Tests use the file database with an autouse fixture that deletes all rows after each test.
+- **Backend:** pytest + httpx for FastAPI test client. Run `pytest` in `backend/`. 303 tests, all passing (incl. `test_exercises.py` covering the validator, discovery, age filtering, grading — all seven types, incl. M8 decimal/fraction equivalence — idempotent completion, and the admin-only rescan endpoint; `test_exercise_tts.py` covers the TTS cache-warming service; `test_stats.py` covers the per-kid exercise rollup; `test_hardening.py` covers the internet-exposure hardening — fail-explicit secret, escalating lockout, rate limiting, SVG rejection, zip-bomb guards, security headers). Tests use the file database with an autouse fixture that deletes all rows after each test.
 - MSW handlers registered via `server.use()` are NOT consumed after a single match — use a closure variable to track call count for sequential response patterns.
 - React 19 + testing-library compatibility: jsdom over happy-dom, `expect.extend(matchers)` pattern for jest-dom, `@testing-library/user-event` for mutation flows that require proper event sequencing.
 - Responsive breakpoint: `useIsMobile()` uses `< 768px` (not `<=`). CSS media queries use `max-width: 768px`. One-pixel off-by-one at exactly 768px is acceptable.
