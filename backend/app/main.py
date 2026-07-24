@@ -1,6 +1,9 @@
 """FastAPI application entry point."""
 
+import base64
+import hashlib
 import os
+import re
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -50,13 +53,53 @@ init_db()
 # so a hostile SVG opened directly can't execute script, and MIME sniffing is off.
 _USER_CONTENT_PREFIXES = ("/avatars/", "/chore-images/", "/api/icons/svg/")
 
+# Resolved here (the mount itself is at the bottom of this module, so it does not
+# shadow the API/WS routes) because the CSP below hashes the built index.html.
+STATIC_DIR = Path(os.getenv("STATIC_DIR", str(Path(__file__).parents[2] / "static")))
+
+_INLINE_SCRIPT_RE = re.compile(r"<script\b[^>]*>(.*?)</script>", re.DOTALL)
+
+
+def _index_script_hashes() -> list[str]:
+    """CSP hash sources for the inline scripts of the built index.html.
+
+    `@vitejs/plugin-legacy` (needed by the old LAN tablets) injects an inline
+    SystemJS bootstrap script into index.html, which `script-src 'self'` blocks —
+    the whole SPA then fails to boot and the page stays blank. Hashing the actual
+    built file, rather than hardcoding the digest, keeps the CSP correct across
+    Vite/plugin upgrades that reword the snippet.
+    """
+    index = STATIC_DIR / "index.html"
+    if not index.is_file():
+        # Dev mode: the Vite dev server serves index.html and this CSP never applies.
+        return []
+    digests = sorted(
+        {
+            base64.b64encode(hashlib.sha256(body.encode()).digest()).decode()
+            for match in _INLINE_SCRIPT_RE.finditer(index.read_text("utf-8"))
+            if (body := match.group(1)).strip()
+        }
+    )
+    print(f"[startup] CSP script-src: {len(digests)} inline hash(es) from {index}")
+    return [f"'sha256-{digest}'" for digest in digests]
+
+
 # App-wide CSP for the SPA. 'unsafe-inline' is limited to styles (React inline
-# styles / animated gradients); scripts are 'self' only. Same-origin WebSocket is
-# covered by connect-src 'self'.
-_APP_CSP = (
-    "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; "
-    "img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; "
-    "connect-src 'self'; font-src 'self' data:; form-action 'self'"
+# styles / animated gradients); scripts are 'self' plus the hashed inline
+# bootstrap above. Same-origin WebSocket is covered by connect-src 'self'.
+_APP_CSP = "; ".join(
+    [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "object-src 'none'",
+        "frame-ancestors 'none'",
+        "img-src 'self' data:",
+        "style-src 'self' 'unsafe-inline'",
+        " ".join(["script-src", "'self'", *_index_script_hashes()]),
+        "connect-src 'self'",
+        "font-src 'self' data:",
+        "form-action 'self'",
+    ]
 )
 # Neutralize any active content in a user-served document (esp. standalone SVG).
 _USER_CONTENT_CSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
@@ -191,7 +234,7 @@ class SPAStaticFiles(StaticFiles):
 
 
 # Serve the built frontend last, so it does not shadow the API/WS routes above.
-STATIC_DIR = Path(os.getenv("STATIC_DIR", str(Path(__file__).parents[2] / "static")))
+# (STATIC_DIR is resolved next to the CSP definition, which depends on it.)
 if STATIC_DIR.is_dir():
     app.mount("/", SPAStaticFiles(directory=str(STATIC_DIR), html=True), name="spa")
     print(f"[startup] Serving SPA from {STATIC_DIR}")
