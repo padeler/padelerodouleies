@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Exercise image diagnostic</title>
+    <!--
+      Standalone on-device diagnostic for the "option/match images do not paint"
+      bug on the old LAN tablet (Galaxy Tab 4, Opera / Chromium ~61), where
+      chrome://inspect remote debugging is unavailable.
+
+      Served from public/ so it ships verbatim to dist/ and is reachable at
+      /exdiag.html. The script lives in a separate file because the production
+      CSP is `script-src 'self'` and would block an inline <script>.
+
+      Section A replicates the three real layouts (ordering = fixed-width parent
+      and works; multiple-choice = grid track; match = flex column) and prints the
+      measurements DevTools would have shown. Section B renders candidate fixes so
+      the device itself tells us which one paints.
+    -->
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: sans-serif;
+        background: #fff;
+        color: #111;
+      }
+      h1 { font-size: 20px; margin: 0 0 4px; }
+      h2 { font-size: 17px; margin: 24px 0 8px; padding-top: 12px; border-top: 3px solid #333; }
+      p.note { font-size: 13px; color: #555; margin: 4px 0 12px; }
+      #env, #report { font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; background: #f2f2f2; padding: 10px; border-radius: 8px; }
+      .verdict { font-size: 15px; font-weight: 700; padding: 6px 0; }
+      .ok { color: #157f3d; }
+      .bad { color: #c00; }
+
+      /* A red backdrop sits behind every image box: if you see RED, the box has
+         size but the image did not paint; if you see nothing, the box collapsed. */
+      .probe { background: #ffdddd; outline: 1px solid #f00; }
+
+      .case { border: 2px solid #bbb; border-radius: 10px; padding: 10px; margin-bottom: 14px; }
+      .case-title { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+
+      /* ---- Real layout replicas (copied from Exercises.css) ---- */
+      .mc-options { display: grid; grid-template-columns: repeat(2, 1fr); grid-gap: 14px; }
+      .mc-option-wrap { position: relative; min-width: 0; }
+      .mc-option {
+        display: flex; flex-direction: column; align-items: center;
+        width: 100%; min-width: 0; padding: 16px;
+        background: #fff; border: 3px solid #c9b6e4; border-radius: 16px;
+      }
+      .mc-option-img-wrap { position: relative; width: 100%; padding-bottom: 100%; margin-bottom: 8px; }
+      .mc-option-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+
+      .order-tray { display: flex; flex-wrap: wrap; justify-content: center; }
+      .order-item-wrap { position: relative; display: inline-flex; flex-direction: column; align-items: center; margin: 6px; }
+      .order-item {
+        position: relative; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        width: 80px; margin: 6px; padding: 10px; box-sizing: border-box; overflow: hidden;
+        background: #fff; border: 3px solid #c9b6e4; border-radius: 14px;
+      }
+      .order-item-img-wrap { position: relative; width: 100%; padding-bottom: 100%; margin-bottom: 6px; }
+      .order-item-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+
+      .match-cols { display: flex; justify-content: center; }
+      .match-col { display: flex; flex-direction: column; width: 50%; max-width: 200px; }
+      .match-item-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; }
+      .match-item-wrap .match-item { width: 100%; margin-bottom: 0; }
+      .match-item {
+        position: relative; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        min-height: 64px; margin-bottom: 12px; padding: 10px;
+        background: #fff; border: 3px solid #c9b6e4; border-radius: 14px;
+      }
+      .match-item-img-wrap { position: relative; width: 100%; padding-bottom: 80%; margin-bottom: 4px; }
+      .match-item-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+
+      /* ---- Candidate fixes (section B), applied to an MC-shaped option ---- */
+      /* B1: intrinsically sized image, merely capped — no absolute positioning,
+         no padding trick, no percentage heights, ratio preserved without
+         object-fit. The most engine-agnostic option. */
+      .fix1-img { display: block; width: auto; height: auto; max-width: 100%; max-height: 120px; margin: 0 auto; }
+      /* B2: plain block image capped by max-height + object-fit. */
+      .fix2-img { display: block; width: 100%; height: 120px; object-fit: contain; }
+      /* B3: wrap forced to block (not an inline span) + padding trick. */
+      .fix3-wrap { display: block; position: relative; width: 100%; padding-bottom: 100%; }
+      .fix3-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+      /* B4: wrap with a definite px height (no percentage anywhere). */
+      .fix4-wrap { display: block; position: relative; width: 100%; height: 120px; }
+      .fix4-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+      /* B5: flex-centred wrap with an intrinsically sized image. */
+      .fix5-wrap { display: flex; align-items: center; justify-content: center; width: 100%; height: 120px; }
+      .fix5-img { max-width: 100%; max-height: 100%; }
+    </style>
+  </head>
+  <body>
+    <h1>Exercise image diagnostic</h1>
+    <p class="note">
+      Open this page on the tablet in the same browser that runs the app.
+      Every image box has a <b>pink/red backdrop</b>. Red visible + no picture =
+      the box is sized but the image never painted. Nothing at all = the box
+      collapsed. Report which cases show the picture.
+    </p>
+
+    <h2>Environment</h2>
+    <div id="env">measuring…</div>
+
+    <h2>A. Real layouts (as shipped today)</h2>
+    <p class="note">Ordering is the one that works today; MC and Match are broken.</p>
+
+    <div class="case">
+      <div class="case-title">A1 — ORDERING (fixed 80px parent) — works today</div>
+      <div class="order-tray">
+        <div class="order-item-wrap">
+          <button type="button" class="order-item">
+            <span class="order-item-img-wrap probe" id="a1w"><img class="order-item-img" id="a1i" alt="" /></span>
+            <span>text</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="case">
+      <div class="case-title">A2 — MULTIPLE CHOICE (grid 1fr parent) — broken</div>
+      <div class="mc-options">
+        <div class="mc-option-wrap">
+          <button type="button" class="mc-option">
+            <span class="mc-option-img-wrap probe" id="a2w"><img class="mc-option-img" id="a2i" alt="" /></span>
+            <span>text</span>
+          </button>
+        </div>
+        <div class="mc-option-wrap">
+          <button type="button" class="mc-option"><span>other</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="case">
+      <div class="case-title">A3 — MATCH PAIRS (flex 50% column parent) — broken</div>
+      <div class="match-cols">
+        <div class="match-col">
+          <div class="match-item-wrap">
+            <button type="button" class="match-item">
+              <span class="match-item-img-wrap probe" id="a3w"><img class="match-item-img" id="a3i" alt="" /></span>
+              <span>text</span>
+            </button>
+          </div>
+        </div>
+        <div class="match-col">
+          <div class="match-item-wrap"><button type="button" class="match-item"><span>right</span></button></div>
+        </div>
+      </div>
+    </div>
+
+    <h2>B. Candidate fixes (MC layout)</h2>
+    <p class="note">Each uses the same broken grid parent. Whichever shows the picture is the fix.</p>
+
+    <div class="mc-options">
+      <div class="mc-option-wrap">
+        <button type="button" class="mc-option">
+          <span class="case-title">B1 block img</span>
+          <img class="fix1-img probe" id="b1i" alt="" />
+        </button>
+      </div>
+      <div class="mc-option-wrap">
+        <button type="button" class="mc-option">
+          <span class="case-title">B2 fixed h + fit</span>
+          <img class="fix2-img probe" id="b2i" alt="" />
+        </button>
+      </div>
+      <div class="mc-option-wrap">
+        <button type="button" class="mc-option">
+          <span class="case-title">B3 block wrap</span>
+          <span class="fix3-wrap probe" id="b3w"><img class="fix3-img" id="b3i" alt="" /></span>
+        </button>
+      </div>
+      <div class="mc-option-wrap">
+        <button type="button" class="mc-option">
+          <span class="case-title">B4 px-height wrap</span>
+          <span class="fix4-wrap probe" id="b4w"><img class="fix4-img" id="b4i" alt="" /></span>
+        </button>
+      </div>
+      <div class="mc-option-wrap">
+        <button type="button" class="mc-option">
+          <span class="case-title">B5 flex centre</span>
+          <span class="fix5-wrap probe" id="b5w"><img class="fix5-img" id="b5i" alt="" /></span>
+        </button>
+      </div>
+    </div>
+
+    <h2>Measurements</h2>
+    <div id="report">measuring…</div>
+
+    <script src="/exdiag.js"></script>
+  </body>
+</html>
