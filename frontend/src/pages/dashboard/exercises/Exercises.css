@@ -1,7 +1,13 @@
 /* Exercises tab: subject-group hub, bundle list, and the player.
-   Old-tablet rules apply: no aspect-ratio (padding-bottom square trick), no
-   flex gap (grid-gap / margins), no `inset`, no animated filters —
-   transform/opacity transitions only. */
+   Old-tablet rules apply: no aspect-ratio, no flex gap (grid-gap / margins), no
+   `inset`, no animated filters — transform/opacity transitions only.
+
+   The padding-bottom square trick substitutes for aspect-ratio, but only where
+   the padded box is NOT the lone child of a column flexbox with indefinite
+   height: there the old engine resolves the percentage against the container's
+   main size, collapses the box to zero height and the image vanishes. Safe in
+   `.order-item` (fixed width, text sibling) and `.exercise-scene` (plain
+   block); the option/match image boxes use an in-flow capped <img> instead. */
 
 /* Tabs supply their own horizontal padding (the kid content area has none —
    unlike the admin shell), so pad the hub + player to keep cards off the edge. */
