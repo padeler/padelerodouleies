@@ -29,7 +29,8 @@
       h1 { font-size: 20px; margin: 0 0 4px; }
       h2 { font-size: 17px; margin: 24px 0 8px; padding-top: 12px; border-top: 3px solid #333; }
       p.note { font-size: 13px; color: #555; margin: 4px 0 12px; }
-      #env, #report { font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; background: #f2f2f2; padding: 10px; border-radius: 8px; }
+      #env, #report, #creport, .mono { font-family: monospace; font-size: 12px; white-space: pre-wrap; word-break: break-word; background: #f2f2f2; padding: 10px; border-radius: 8px; }
+      .mono { margin-top: 8px; }
       .verdict { font-size: 15px; font-weight: 700; padding: 6px 0; }
       .ok { color: #157f3d; }
       .bad { color: #c00; }
@@ -188,6 +189,17 @@
         </button>
       </div>
     </div>
+
+    <h2>C. Real images from the API</h2>
+    <p class="note">
+      Loads the actual bundle images this account can see, through the real
+      endpoints, in the real multiple-choice layout (left) and as a bare
+      <code>&lt;img&gt;</code> (right). Requires being logged into the app in
+      this browser. This is the case that differs from sections A/B, which used
+      built-in <code>data:</code> images.
+    </p>
+    <div id="creport">loading…</div>
+    <div id="cases"></div>
 
     <h2>Measurements</h2>
     <div id="report">measuring…</div>
