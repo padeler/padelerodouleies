@@ -34,8 +34,8 @@
   var which = queryParam('src');
   var SRC = custom ? custom : which === 'png' ? PNG_SRC : SVG_SRC;
 
-  var IMG_IDS = ['a1i', 'a2i', 'a3i', 'b1i', 'b2i', 'b3i', 'b4i', 'b5i'];
-  var WRAP_IDS = ['a1w', 'a2w', 'a3w', 'b3w', 'b4w', 'b5w'];
+  var IMG_IDS = ['a1i', 'a2i', 'a3i', 'b1i', 'b2i', 'b3i', 'b4i', 'b5i', 'd1i', 'd2i', 'd3i'];
+  var WRAP_IDS = ['a1w', 'a2w', 'a3w', 'b3w', 'b4w', 'b5w', 'd1w', 'd3w'];
 
   function byId(id) {
     return document.getElementById(id);

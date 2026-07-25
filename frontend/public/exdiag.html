@@ -77,6 +77,13 @@
       .match-item-img-wrap { position: relative; width: 100%; padding-bottom: 80%; margin-bottom: 4px; }
       .match-item-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
 
+      /* ---- Section D: the technique under test, in the faithful shape ---- */
+      /* Old: percentage-padding box + absolutely positioned image. */
+      .old-wrap { position: relative; width: 100%; padding-bottom: 100%; margin-bottom: 8px; }
+      .old-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+      /* New: in-flow image sized by its own bitmap, merely capped. */
+      .new-img { display: block; width: auto; height: auto; max-width: 100%; max-height: 128px; margin: 0 auto; }
+
       /* ---- Candidate fixes (section B), applied to an MC-shaped option ---- */
       /* B1: intrinsically sized image, merely capped — no absolute positioning,
          no padding trick, no percentage heights, ratio preserved without
@@ -186,6 +193,33 @@
         <button type="button" class="mc-option">
           <span class="case-title">B5 flex centre</span>
           <span class="fix5-wrap probe" id="b5w"><img class="fix5-img" id="b5i" alt="" /></span>
+        </button>
+      </div>
+    </div>
+
+    <h2>D. Image-only option (the faithful failing shape)</h2>
+    <p class="note">
+      Every real multiple-choice option is <b>image-only</b>: the padding box is
+      the button's ONLY child. Sections A/B/C all added a text sibling, so none
+      of them reproduced the bug. D1 is the shipped-before shape, D2 is the fix,
+      D3 is the same old technique WITH text (why ordering kept working).
+      Expected on the tablet: <b>D1 empty, D2 and D3 fine.</b>
+    </p>
+    <div class="mc-options">
+      <div class="mc-option-wrap">
+        <button type="button" class="mc-option">
+          <span class="old-wrap probe" id="d1w"><img class="old-img" id="d1i" alt="" /></span>
+        </button>
+      </div>
+      <div class="mc-option-wrap">
+        <button type="button" class="mc-option">
+          <img class="new-img probe" id="d2i" alt="" />
+        </button>
+      </div>
+      <div class="mc-option-wrap">
+        <button type="button" class="mc-option">
+          <span class="old-wrap probe" id="d3w"><img class="old-img" id="d3i" alt="" /></span>
+          <span>with text</span>
         </button>
       </div>
     </div>
