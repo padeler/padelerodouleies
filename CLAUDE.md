@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-**In production.** The initial build plan is fully delivered (Phases 1–5 — see [Build history](#build-history)) and the app has been live in production on the LAN-only Synology NAS since early June 2026. Two large post-launch features have since **merged to `main` and shipped** in the release line (current tag **v0.9.1**):
+**In production.** The initial build plan is fully delivered (Phases 1–5 — see [Build history](#build-history)) and the app has been live in production on the LAN-only Synology NAS since early June 2026. Two large post-launch features have since **merged to `main` and shipped** in the release line (current tag **v0.14.0**):
 
 - **Age-targeted exercises** (was `feat/exercises-mvp`) — all seven exercise types playable (M1–M5 + M8: `decimal_entry`/`fraction_entry`, admin rescan, Stats surfacing). The dev-machine **generation workflow** under `exercise_lab/` (M6) is a README-driven multi-step process (`exercise_lab/README.md`) used to turn real school material into validator-clean bundles.
 - **Learning Adventure** teaching games (was `feat/learn-adventure`) — the shared numbers/letters engine with falling-target action levels (see the Games-tab feature note below).
@@ -79,11 +79,11 @@ Each entry is a pointer — read the named modules for detail. Cross-cutting rul
 
 ### Versioning
 
-We tag releases with semantic-versioning git tags in `X.Y.Z` notation (the UI/`git describe` prefixes them with `v`, e.g. `v1.4.2`):
+The tag format is **`vX.Y.Z`** — the `v` is part of the tag itself (e.g. `v0.14.0`), so the UI, which renders `git describe` output verbatim, must not add a second one:
 
-- **Z (patch)** — bump for bug fixes.
-- **Y (minor)** — bump for small features.
-- **X (major)** — bump **only when the user explicitly requests it**. Never bump `X` on your own initiative.
+- **Z** — minor bug fixes and small changes.
+- **Y** — features, or larger bug fixes.
+- **X** — version releases. **Set by the repo owner only** — never bump `X` on your own initiative, even when the change feels large enough to warrant it.
 
 When merging a feature to `main`, create and push a new tag following these rules.
 
