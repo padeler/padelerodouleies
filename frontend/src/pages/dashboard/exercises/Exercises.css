@@ -50,6 +50,39 @@
   background: var(--accent-border);
 }
 
+/* Completion filter pills (all / completed / not started). Old-tablet rules:
+   no flex `gap` — the pills carry their own right margin. */
+.exercise-filter {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.exercise-filter-btn {
+  margin: 0 8px 8px 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.exercise-filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.exercise-filter-count {
+  opacity: 0.75;
+  font-weight: 400;
+}
+
 .exercises-empty {
   color: var(--text);
   font-size: 16px;

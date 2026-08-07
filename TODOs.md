@@ -1,9 +1,5 @@
 # TODOs
 
-# UX
-
-- [ ] The per course "exercises" tab for the kids is getting crowded the more bundles i add. I want a filter in the page of each cource that will hide "completed" bundles. The kid can switch between "all", "completed" and "not started" with the "not started" beeing the default selection showing only exercise bundled that are not "completed" yet.
-
 # Generate exercise bundles
 
 - [ ] Use the exercise_lab skill to generate with the following command:

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
 import { useT } from '../../../i18n/store';
@@ -18,16 +19,29 @@ function DifficultyDots({ value }: { value: number }) {
   );
 }
 
+/** Completion filter over the group. `not_started` is the default so the list
+ *  stays short as more bundles are added. */
+type CompletionFilter = 'not_started' | 'completed' | 'all';
+
+const FILTERS: CompletionFilter[] = ['not_started', 'completed', 'all'];
+
+function matchesFilter(completed: boolean, filter: CompletionFilter): boolean {
+  if (filter === 'all') return true;
+  return filter === 'completed' ? completed : !completed;
+}
+
 /** Bundles within one subject group, sorted easier → harder. */
 export function BundleList() {
   const t = useT();
   const { subject } = useParams<{ subject: string }>();
   const { data: bundles, isLoading } = useExerciseBundles();
+  const [filter, setFilter] = useState<CompletionFilter>('not_started');
 
   const inGroup = (bundles ?? [])
     .filter((b) => b.subject === subject)
     .slice()
     .sort((a, b) => a.difficulty - b.difficulty);
+  const shown = inGroup.filter((b) => matchesFilter(b.completed, filter));
 
   return (
     <div className="exercises-hub">
@@ -37,12 +51,32 @@ export function BundleList() {
           ← {t('exercises.back')}
         </Link>
         <h2>{subject ? t(`exercises.subject.${subject as ExerciseSubject}`) : ''}</h2>
+        {inGroup.length > 0 && (
+          <div className="exercise-filter" role="group">
+            {FILTERS.map((f) => {
+              const count = inGroup.filter((b) => matchesFilter(b.completed, f)).length;
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  className={`exercise-filter-btn${f === filter ? ' active' : ''}`}
+                  aria-pressed={f === filter}
+                  onClick={() => setFilter(f)}
+                >
+                  {t(`exercises.filter.${f}`)} <span className="exercise-filter-count">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
-      {!isLoading && inGroup.length === 0 ? (
+      {isLoading ? null : inGroup.length === 0 ? (
         <p className="exercises-empty">{t('exercises.empty')}</p>
+      ) : shown.length === 0 ? (
+        <p className="exercises-empty">{t('exercises.filter_empty')}</p>
       ) : (
         <div className="exercises-grid">
-          {inGroup.map((b) => (
+          {shown.map((b) => (
             <div key={b.id} className="exercise-bundle-card-wrap">
               {/* SpeakButton is a sibling of the Link (not nested in the anchor)
                   so tapping it never navigates into the bundle. */}
