@@ -10,8 +10,10 @@
     /exercise_lab generate Γ_ΤΑΞΗ_ΔΗΜΟΤΙΚΟΥ mathimatika 10 1-2 4-5
     Done — batch 2, bundles 11–20 (20 mathimatika bundles total). Output is local only
     (`exercise_lab/bundles/` is git-ignored); the ledger is that folder's `progress.md`.
-- [ ] Use the exercise_lab skill to generate with the following command:
+- [x] Use the exercise_lab skill to generate with the following command:
     /exercise_lab generate Γ_ΤΑΞΗ_ΔΗΜΟΤΙΚΟΥ magic_book 10 1-2 3-4
+    Done — batch 3, bundles 21–30 (30 magic_book bundles total). Output is local only
+    (`exercise_lab/bundles/` is git-ignored); the ledger is that folder's `progress.md`.
 
 # Exercises — spoken math operators
 

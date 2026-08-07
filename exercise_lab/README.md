@@ -27,12 +27,14 @@ The goal is to produce exercise bundles for each course with:
 
 - `books/` — source textbook PDFs, by school year (git-ignored).
 - `notes/<grade>/<course>/` — per-chapter notes plus an `ideas.md` checklist
-  (working artifacts, tracked in git). `<grade>` mirrors the `books/` folder
-  name (e.g. `Γ_ΤΑΞΗ_ΔΗΜΟΤΙΚΟΥ`), so the same course name (e.g. `glossa`) can
-  exist under multiple grades without collision.
-- `bundles/<grade>/<course>/` — the generated bundle directories (the output).
+  (working artifacts, **git-ignored** — they stay on the dev machine). `<grade>`
+  mirrors the `books/` folder name (e.g. `Γ_ΤΑΞΗ_ΔΗΜΟΤΙΚΟΥ`), so the same course
+  name (e.g. `glossa`) can exist under multiple grades without collision.
+- `bundles/<grade>/<course>/` — the generated bundle directories (the output,
+  also **git-ignored**). Only `templates/`, `tools/` and this README are tracked,
+  so the tracked deliverable of a generate run is just the `TODOs.md` tick.
 - `templates/manifest.template.jsonc` — annotated reference manifest covering all
-  five exercise types.
+  seven exercise types.
 - `templates/icon-catalog-reference.md` — browsable list of all 359 SVG icons
   available to exercises, with English/Greek keywords by category.
 - `tools/pdf_crop.py` — PyMuPDF helper that crops a page (or region) of a book PDF
@@ -120,6 +122,20 @@ Some manifest fields can't be read straight off the page — set them as follows
     *sees* the glyph, which is what the textbook uses) or write the operator as a
     word (`6 επί 7`). Prefer putting mis-reading symbols in the `prompt`, where an
     override can fix them.
+
+- **Hard size caps in the schema** (`backend/app/schemas/exercises.py`) — plan the
+  exercise around them instead of discovering them at validation time:
+
+  | Field | Allowed length |
+  |---|---|
+  | `multiple_choice.options` | 2–4 |
+  | `ordering.items` | 3–5 |
+  | `match_pairs.pairs` | 2–6 |
+  | any `prompt`/`hint`/`*_tts` | ≤ 400 chars |
+  | any option/item/pair `text` | ≤ 200 chars |
+
+  **Answer position does not matter:** all three players shuffle client-side
+  (`lib/shuffle.ts`), so an answer key that is always the first option is fine.
 
 - **`schema_version`**: use `1` for bundles that only need the five original
   types (`multiple_choice`, `numeric_entry`, `counting`, `ordering`,
@@ -370,7 +386,7 @@ Producing exercise bundles is a multi-step process. For each course:
        subagent, not surfaced later in the orchestrator:
 
        ```
-       cd backend && python -m app.schemas.exercises ../exercise_lab/bundles/<grade>/<course>/<id>-v<version>
+       cd backend && .venv/bin/python -m app.schemas.exercises ../exercise_lab/bundles/<grade>/<course>/<id>-v<version>
        ```
 
    A bundle that generates clean must load clean. To play-test it, copy the dir
@@ -401,6 +417,20 @@ Producing exercise bundles is a multi-step process. For each course:
        are far less error-prone.
      - **Factual / answer correctness slips** that a language read catches — a
        `prompt` that contradicts its `answer`, a mislabelled option.
+     - **Solvability** — the failure mode that actually recurs most, and one the
+       validator cannot see:
+       - *Smuggled book recall.* A hint like «In the story this animal's name is
+         Henry» or «the timetable shows which activity it is» is useless to a kid
+         who has not memorised the page. Rewrite it as a self-contained clue.
+       - *Undeducible `match_pairs`.* Every pair must be derivable from the two
+         texts alone. "grandfather ↔ listens to music in the living room" is an
+         arbitrary fact from a picture; "grandfather ↔ sits in his armchair and
+         reads a newspaper" carries its own cue.
+       - *Ambiguous cloze / distractors.* `__IPS` accepts both `sh` and `ch`
+         (SHIPS, CHIPS). Check that exactly one option fits.
+       - *Unspeakable option text.* Every option renders its own SpeakButton, so
+         never make an item that is bare punctuation (a lone `.` in an
+         `ordering` sentence-builder).
    - **Fix mistakes in place** with a minimal edit — change only the wrong characters,
      leave structure, ids, and assets untouched. Keep the mono-script-per-string rule
      intact (don't introduce a Latin letter into a Greek string or vice-versa), and
@@ -408,7 +438,7 @@ Producing exercise bundles is a multi-step process. For each course:
    - After editing a bundle, **re-run the validator** to confirm it still loads:
 
      ```
-     cd backend && python -m app.schemas.exercises ../exercise_lab/bundles/<grade>/<course>/<id>-v<version>
+     cd backend && .venv/bin/python -m app.schemas.exercises ../exercise_lab/bundles/<grade>/<course>/<id>-v<version>
      ```
 
    Record the proof-read outcome per bundle in `bundles/<grade>/<course>/progress.md`

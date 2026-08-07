@@ -216,6 +216,9 @@ cd backend
 python -m app.schemas.exercises <bundle-dir>
 ```
 
+(On the dev machine the deps live in the venv, so use `.venv/bin/python` — the
+system interpreter has no `pydantic`.)
+
 Exits `0` and prints `OK: …` on success; exits non-zero with the offending
 path + field on failure (the M6 generator iterates against this).
 
