@@ -94,6 +94,32 @@ Some manifest fields can't be read straight off the page — set them as follows
     an override just to read a string that is a lone Greek letter, a single Greek
     word, or a bare number — the TTS service carrier-wraps those automatically
     (see `docs/EXERCISE_FORMAT.md` § Spoken-text overrides).
+  - **What the Greek voice actually does with symbols** (probed with espeak-ng `el`;
+    don't guess, and don't spend overrides on the cases that already work):
+
+    | In the text | Spoken as | Needs `prompt_tts`? |
+    |---|---|---|
+    | `1.000`, `4.873` (dotted thousands) | «χίλια», «τέσσερις χιλιάδες οκτακόσια εβδομήντα τρία» | no — reads correctly |
+    | `+` | «συν» | no |
+    | `8:30` (time) | «οκτώ τριάντα» | no |
+    | `×`, `÷` | **silent** | yes |
+    | `−` (U+2212) | **«μάινους»** (English!) | yes |
+    | `3/8` (fraction) | «τρία σλας οκτώ» | yes |
+
+    Probe any symbol you are unsure about instead of guessing:
+
+    ```
+    cd backend && .venv/bin/python -c "from piper.phonemize_espeak import EspeakPhonemizer; \
+      print(EspeakPhonemizer().phonemize('el', '6 × 7'))"
+    ```
+
+  - **Option / item / pair `text` cannot carry a spoken override** — the schema has
+    `*_tts` only on `prompt` and `hint` — yet every option renders its **own**
+    SpeakButton (`exerciseOptionTtsUrl`) and the warmer synthesizes it. So a symbol
+    that mis-reads is unfixable inside an option: either keep it (the kid still
+    *sees* the glyph, which is what the textbook uses) or write the operator as a
+    word (`6 επί 7`). Prefer putting mis-reading symbols in the `prompt`, where an
+    override can fix them.
 
 - **`schema_version`**: use `1` for bundles that only need the five original
   types (`multiple_choice`, `numeric_entry`, `counting`, `ordering`,
